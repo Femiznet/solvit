@@ -14,9 +14,9 @@ export const projectLikes = pgTable(
         .references(() => projects.id, { onDelete: "cascade" }),
       createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     },
-    (table) => ({
-      pk: primaryKey({ columns: [table.userId, table.projectId] }),
-    })
+    (table) => [
+      primaryKey({ columns: [table.userId, table.projectId] }),
+    ]
   );
   
   export type ProjectLike = typeof projectLikes.$inferSelect;
