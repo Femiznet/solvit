@@ -14,9 +14,9 @@ export const solutionSchema = z.object({
 });
 
 export const solutionLikeSchema = z.object({
-    userId: z.uuid(),
-    solutionId: z.uuid(),
-    createdAt: z.date().optional(),
+  userId: z.uuid(),
+  solutionId: z.uuid(),
+  createdAt: z.date().optional(),
 });
 
 export type SolutionSchemaType = z.infer<typeof solutionSchema>;
