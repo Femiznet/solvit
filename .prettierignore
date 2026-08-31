@@ -1,0 +1,15 @@
+# Drizzle Migrations & Meta
+.drizzle/
+drizzle/
+
+# Next.js Build Outputs
+.next/
+out/
+build/
+
+# Package Managers
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb
