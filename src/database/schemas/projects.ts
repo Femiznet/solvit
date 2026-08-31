@@ -11,7 +11,6 @@ export const projects = pgTable("projects", {
   optFeat: jsonb("opt_feat").$type<string[]>().default([]).notNull(),
   expFeat: jsonb("exp_feat").$type<string[]>().default([]).notNull(),
   totalLikes: integer("total_likes").default(0).notNull(),
-  totalIneed: integer("total_ineed").default(0).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" })
     .defaultNow()
