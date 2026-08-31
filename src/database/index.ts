@@ -11,7 +11,7 @@ export type TxClient = PgTransaction<
   ExtractTablesWithRelations<typeof schema>
 >;
 
-const pool = new Pool({
+export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
