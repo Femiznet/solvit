@@ -38,7 +38,7 @@
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "unplugin-auto-import": "^21.1.0",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.11"
