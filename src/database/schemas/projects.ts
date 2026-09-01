@@ -1,6 +1,9 @@
-import { pgTable, uuid, varchar, text, integer, jsonb, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar, text, integer, jsonb, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { categories } from "./categories";
+import { PROJECT_LEVELS } from "@/constants";
+
+export const levelEnum = pgEnum("project_level", PROJECT_LEVELS);
 
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -8,8 +11,10 @@ export const projects = pgTable("projects", {
   categoryId: uuid("category_id").references(() => categories.id),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description"),
-  optFeat: jsonb("opt_feat").$type<string[]>().default([]).notNull(),
-  expFeat: jsonb("exp_feat").$type<string[]>().default([]).notNull(),
+  levels: levelEnum("level").default("BEGINNER").notNull(),
+  optRequirements: jsonb("opt_requirements").$type<string[]>().default([]).notNull(),
+  requirements: jsonb("requirements").$type<string[]>().default([]).notNull(),
+  instructions: text("instructions"),
   totalLikes: integer("total_likes").default(0).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" })

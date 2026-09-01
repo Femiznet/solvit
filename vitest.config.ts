@@ -5,6 +5,7 @@ import path from "path";
 export default defineConfig({
   plugins: [react()],
   test: {
+    bail: 1,
     environment: "node",
     globals: true,
   },
