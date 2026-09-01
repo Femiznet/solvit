@@ -1,0 +1,18 @@
+{
+    "$schema": "https://unpkg.com/knip@6/schema.json",
+    "entry": [
+      "src/actions/categories/actions.ts",
+      "src/main.ts"
+    ],
+    "project": [
+      "src/**/*.{ts,tsx,js,jsx}"
+    ],
+    "ignore": [
+      "**/__tests__/**",
+      "**/*.test.ts"
+    ],
+    "ignoreDependencies": [
+      "typescript",
+      "@types/node"
+    ]
+  }
