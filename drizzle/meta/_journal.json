@@ -15,6 +15,20 @@
       "when": 1788175888376,
       "tag": "0001_massive_kabuki",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788282844955,
+      "tag": "0002_robust_photon",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788283595588,
+      "tag": "0003_hot_luke_cage",
+      "breakpoints": true
     }
   ]
 }
