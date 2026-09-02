@@ -1,25 +1,27 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { categorySchema } from "@/zod-validators/zod-categories";
+import { validateData } from "@/lib/validate";
+import { 
+  createCategorySchema, 
+  updateCategorySchema, 
+  deleteCategorySchema 
+} from "@/zod-validators/zod-categories";
 import { createCategoryService } from "@/services/categories/create-category";
 import { updateCategoryService } from "@/services/categories/update-category";
 import { deleteCategoryService } from "@/services/categories/delete-category";
+import { CATEGORY_PATH } from "@/constants/paths";
 
 /**
- * Creates a new category after validating the payload using Zod.
+ * Creates a new category after validating the payload using validateData.
  */
 export async function createCategoryAction(payload: unknown) {
-  const validatedFields = categorySchema.safeParse(payload);
-
-  if (!validatedFields.success) {
-    return { success: false, error: "Invalid layout fields." };
-  }
+  const validation = validateData(createCategorySchema, payload);
+  if (!validation.success) return validation; // Returns { success: false, error: "Invalid input fields." }
 
   try {
-    // Pass data as a destructured property object
-    const data = await createCategoryService({ data: validatedFields.data });
-    revalidatePath("/categories");
+    const data = await createCategoryService({ name: validation.data.name });
+    revalidatePath(CATEGORY_PATH);
     return { success: true, data };
   } catch (error) {
     console.error(error);
@@ -30,20 +32,16 @@ export async function createCategoryAction(payload: unknown) {
 /**
  * Updates an existing category by its ID.
  */
-export async function updateCategoryAction(id: string, payload: unknown) {
-  // Partial validation allows updating only the fields that changed
-  const validatedFields = categorySchema.partial().safeParse(payload);
-
-  if (!validatedFields.success) {
-    return { success: false, error: "Invalid mutation fields." };
-  }
+export async function updateCategoryAction(payload: unknown) {
+  const validation = validateData(updateCategorySchema, payload);
+  if (!validation.success) return validation;
 
   try {
-    // Pass id and data as properties of a single destructured argument
-    const data = await updateCategoryService({ id, data: validatedFields.data });
+    const { id, name } = validation.data;
+    const data = await updateCategoryService({ id, name });
     if (!data) return { success: false, error: "Category not found." };
 
-    revalidatePath("/categories");
+    revalidatePath(CATEGORY_PATH);
     return { success: true, data };
   } catch (error) {
     console.error(error);
@@ -55,12 +53,14 @@ export async function updateCategoryAction(id: string, payload: unknown) {
  * Deletes a category by its ID.
  */
 export async function deleteCategoryAction(id: string) {
+  const validation = validateData(deleteCategorySchema, { id });
+  if (!validation.success) return validation;
+
   try {
-    // Pass id as a property within the structured parameter object
-    const data = await deleteCategoryService({ id });
+    const data = await deleteCategoryService({ id: validation.data.id });
     if (!data) return { success: false, error: "Category not found." };
 
-    revalidatePath("/categories");
+    revalidatePath(CATEGORY_PATH);
     return { success: true, data };
   } catch (error) {
     console.error(error);

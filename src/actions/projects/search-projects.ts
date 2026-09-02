@@ -1,31 +1,20 @@
 "use server";
 
-import { parseZodError } from "@/lib/zod-error";
+import { validateData } from "@/lib/validate";
 import { searchProjectsService } from "@/services/projects/search-projects";
 import { searchProjectsSchema } from "@/zod-validators/zod-projects";
 
 export async function searchProjectsAction(payload: unknown){
-  const validatedFields = searchProjectsSchema.safeParse(payload);
-
-  if (!validatedFields.success) {
-    const fieldErrors = parseZodError(validatedFields.error);
-    return {
-      success: false,
-      error: "Validation failed.",
-      validationErrors: fieldErrors,
-    };
-  }
+  const validation = validateData(searchProjectsSchema, payload);
+  if (!validation.success) return validation;
 
   try {
-    const { level, levels, categoryId, stackIds, requirements, optRequirements, query, sort } =
-      validatedFields.data;
+    const { level, categoryId, stackIds, query, sort } = validation.data;
 
     const projects = await searchProjectsService({
-      level: levels || level,
+      level,
       categoryId,
       stackIds,
-      requirements,
-      optRequirements,
       query,
       sort,
     });

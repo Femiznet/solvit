@@ -12,3 +12,6 @@ export type ProjectSortOption = (typeof PROJECT_SORT_OPTIONS)[number];
 export const PROJECT_PROGRESS = ["BOOKMARKED", "IN_PROGRESS", "COMPLETED"] as const;
 export type ProjectProgress = (typeof PROJECT_PROGRESS)[number];
 
+export const PROJECT_DIFFICULTY_ENUM = ["BEGINNER", "INTERMEDIATE", "ADVANCED"] as const;
+export type ProjectDifficulty = (typeof PROJECT_DIFFICULTY_ENUM)[number];
+

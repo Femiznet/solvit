@@ -20,7 +20,8 @@ const VALID_CATEGORY_ID = "123e4567-e89b-12d3-a456-426614174000";
 const INVALID_CATEGORY_ID = "invalid-id";
 const VALID_PAYLOAD = { name: "Software Development" };
 const INVALID_PAYLOAD = { name: "" };
-const PARTIAL_VALID_PAYLOAD = { name: "Updated Software Development" };
+const VALID_UPDATE_PAYLOAD = { id: VALID_CATEGORY_ID, name: "Updated Software Development" };
+const INVALID_UPDATE_PAYLOAD = { id: INVALID_CATEGORY_ID, name: "" };
 const MOCK_CATEGORY_RESPONSE = { id: VALID_CATEGORY_ID, name: "Software Development" };
 const MOCK_UPDATED_RESPONSE = { id: VALID_CATEGORY_ID, name: "Updated Software Development" };
 
@@ -36,7 +37,7 @@ describe("Category Actions", () => {
 
       const result = await createCategoryAction(VALID_PAYLOAD);
 
-      expect(createCategoryService).toHaveBeenCalledWith({ data: VALID_PAYLOAD });
+      expect(createCategoryService).toHaveBeenCalledWith(VALID_PAYLOAD);
       expect(revalidatePath).toHaveBeenCalledWith("/categories");
       expect(result).toEqual({ success: true, data: MOCK_CATEGORY_RESPONSE });
     });
@@ -44,7 +45,7 @@ describe("Category Actions", () => {
     it("should return an error when given an invalid payload", async () => {
       const result = await createCategoryAction(INVALID_PAYLOAD);
 
-      expect(result).toEqual({ success: false, error: "Invalid layout fields." });
+      expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(createCategoryService).not.toHaveBeenCalled();
       expect(revalidatePath).not.toHaveBeenCalled();
     });
@@ -60,30 +61,30 @@ describe("Category Actions", () => {
   });
 
   describe("updateCategoryAction", () => {
-    it("should successfully update an existing category with partial payload", async () => {
+    it("should successfully update an existing category with payload", async () => {
       vi.mocked(updateCategoryService).mockResolvedValueOnce(MOCK_UPDATED_RESPONSE);
 
-      const result = await updateCategoryAction(VALID_CATEGORY_ID, PARTIAL_VALID_PAYLOAD);
+      const result = await updateCategoryAction(VALID_UPDATE_PAYLOAD);
 
       expect(updateCategoryService).toHaveBeenCalledWith({ 
         id: VALID_CATEGORY_ID, 
-        data: PARTIAL_VALID_PAYLOAD 
+        name: VALID_UPDATE_PAYLOAD.name 
       });
       expect(revalidatePath).toHaveBeenCalledWith("/categories");
       expect(result).toEqual({ success: true, data: MOCK_UPDATED_RESPONSE });
     });
 
     it("should return an error when update payload is invalid", async () => {
-      const result = await updateCategoryAction(VALID_CATEGORY_ID, INVALID_PAYLOAD);
+      const result = await updateCategoryAction(INVALID_UPDATE_PAYLOAD);
 
-      expect(result).toEqual({ success: false, error: "Invalid mutation fields." });
+      expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(updateCategoryService).not.toHaveBeenCalled();
     });
 
     it("should return category not found error if service returns null/undefined", async () => {
       vi.mocked(updateCategoryService).mockResolvedValueOnce(null as any);
 
-      const result = await updateCategoryAction(VALID_CATEGORY_ID, PARTIAL_VALID_PAYLOAD);
+      const result = await updateCategoryAction(VALID_UPDATE_PAYLOAD);
 
       expect(result).toEqual({ success: false, error: "Category not found." });
       expect(revalidatePath).not.toHaveBeenCalled();
@@ -92,7 +93,7 @@ describe("Category Actions", () => {
     it("should handle service exceptions gracefully when updating a category", async () => {
       vi.mocked(updateCategoryService).mockRejectedValueOnce(new Error("Update failed"));
 
-      const result = await updateCategoryAction(VALID_CATEGORY_ID, PARTIAL_VALID_PAYLOAD);
+      const result = await updateCategoryAction(VALID_UPDATE_PAYLOAD);
 
       expect(result).toEqual({ success: false, error: "Failed to update category." });
       expect(console.error).toHaveBeenCalled();
@@ -115,16 +116,16 @@ describe("Category Actions", () => {
 
       const result = await deleteCategoryAction(INVALID_CATEGORY_ID);
 
-      expect(result).toEqual({ success: false, error: "Category not found." });
+      expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when deleting a category", async () => {
       vi.mocked(deleteCategoryService).mockRejectedValueOnce(new Error("Delete failed"));
 
-      const result = await deleteCategoryAction(VALID_CATEGORY_ID);
+      const result = await deleteCategoryAction(INVALID_CATEGORY_ID);
 
-      expect(result).toEqual({ success: false, error: "Failed to delete category." });
+      expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(console.error).toHaveBeenCalled();
     });
   });

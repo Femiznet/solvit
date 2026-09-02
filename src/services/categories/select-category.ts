@@ -11,15 +11,19 @@ interface SelectManyCategoriesArgs {
   tx?: TxClient;
 }
 
-export async function selectCategoryService({ id, tx }: SelectCategoryArgs) {
-  const [category] = await db(tx).select().from(categories).where(eq(categories.id, id));
+const categoryFields = {
+  id: categories.id,
+  name: categories.name,
+};
 
-  return category || null;
+export async function selectCategoryService({ id, tx }: SelectCategoryArgs) {
+  const [category] = await db(tx).select(categoryFields).from(categories).where(eq(categories.id, id));
+  return category;
 }
 
 export async function selectManyCategoriesService(args?: SelectManyCategoriesArgs) {
   // Destructure with a default empty object fallback so passing arguments remains optional
   const { tx } = args || {};
 
-  return await db(tx).select().from(categories);
+  return await db(tx).select(categoryFields).from(categories);
 }

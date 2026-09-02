@@ -1,6 +1,6 @@
-import { ProjectProgress } from "@/constants";
+import { ProjectProgress } from "@/constants/enums";
 import { db, TxClient } from "@/database";
-import { userProjectProgress } from "@/database/schemas";
+import { userProgress } from "@/database/schemas";
 
 interface CreateProgressArgs {
     userId: string;
@@ -16,7 +16,7 @@ export async function createProgressService({
   tx,
 }: CreateProgressArgs) {
   const [progress] = await db(tx)
-    .insert(userProjectProgress)
+    .insert(userProgress)
     .values({
       userId,
       projectId,
