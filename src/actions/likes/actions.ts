@@ -2,6 +2,7 @@
 
 import { db } from "@/database";
 import { revalidatePath } from "next/cache";
+import { validateData } from "@/lib/validate";
 import { projectLikeSchema } from "@/zod-validators/zod-projects";
 import { solutionLikeSchema } from "@/zod-validators/zod-solutions";
 
@@ -16,19 +17,17 @@ import { selectSolutionService } from "@/services/solutions/select-solution";
 import { updateSolutionService } from "@/services/solutions/update-solution";
 import { deleteSolutionLikeService } from "@/services/solutions/delete-solution";
 import { createSolutionLikeService } from "@/services/solutions/create-solution";
+import { projectIdPath, solutionIdPath } from "@/constants/paths";
 
 /**
  * Toggles a project like entry.
  * Increments or decrements the project totalLikes counter atomically.
  */
-export async function toggleProjectLikeAction(payload: unknown) {
-  const validatedFields = projectLikeSchema.safeParse(payload);
+export async function createProjectLikeAction(payload: unknown) {
+  const validation = validateData(projectLikeSchema, payload);
+  if (!validation.success) return validation;
 
-  if (!validatedFields.success) {
-    return { success: false, error: "Invalid layout fields." };
-  }
-
-  const { userId, projectId } = validatedFields.data;
+  const { userId, projectId } = validation.data;
 
   try {
     const result = await db().transaction(async (tx) => {
@@ -62,7 +61,7 @@ export async function toggleProjectLikeAction(payload: unknown) {
       }
     });
 
-    revalidatePath(`/projects/${projectId}`);
+    revalidatePath(projectIdPath(projectId));
     return { success: true, liked: result.liked };
   } catch (error) {
     console.error(error);
@@ -74,14 +73,11 @@ export async function toggleProjectLikeAction(payload: unknown) {
  * Toggles a solution like entry.
  * Increments or decrements the solution likes counter atomically.
  */
-export async function toggleSolutionLikeAction(payload: unknown) {
-  const validatedFields = solutionLikeSchema.safeParse(payload);
+export async function createSolutionLikeAction(payload: unknown) {
+  const validation = validateData(solutionLikeSchema, payload);
+  if (!validation.success) return validation;
 
-  if (!validatedFields.success) {
-    return { success: false, error: "Invalid layout fields." };
-  }
-
-  const { userId, solutionId } = validatedFields.data;
+  const { userId, solutionId } = validation.data;
 
   try {
     const result = await db().transaction(async (tx) => {
@@ -115,7 +111,7 @@ export async function toggleSolutionLikeAction(payload: unknown) {
       }
     });
 
-    revalidatePath(`/solutions/${solutionId}`);
+    revalidatePath(solutionIdPath(solutionId));
     return { success: true, liked: result.liked };
   } catch (error) {
     console.error(error);

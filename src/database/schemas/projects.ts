@@ -1,7 +1,7 @@
 import { pgTable, uuid, varchar, text, integer, jsonb, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { categories } from "./categories";
-import { PROJECT_LEVELS } from "@/constants";
+import { PROJECT_LEVELS } from "@/constants/enums";
 
 export const levelEnum = pgEnum("project_level", PROJECT_LEVELS);
 

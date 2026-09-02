@@ -4,19 +4,15 @@ import {
   updateProjectAction, 
   deleteProjectAction 
 } from "@/actions/projects/actions";
-import { projectSchema } from "@/zod-validators/zod-projects";
+import { projectSchema, updateProjectSchema } from "@/zod-validators/zod-projects";
 import { createProjectService } from "@/services/projects/create-project";
 import { updateProjectService } from "@/services/projects/update-project";
 import { deleteProjectService } from "@/services/projects/delete-project";
+import { validateData } from "@/lib/validate";
 import { revalidatePath } from "next/cache";
 
-vi.mock("@/zod-validators/zod-projects", () => ({
-  projectSchema: {
-    safeParse: vi.fn(),
-    partial: vi.fn().mockReturnValue({
-      safeParse: vi.fn(),
-    }),
-  },
+vi.mock("@/lib/validate", () => ({
+  validateData: vi.fn(),
 }));
 vi.mock("@/services/projects/create-project");
 vi.mock("@/services/projects/update-project");
@@ -41,7 +37,7 @@ describe("Project Actions", () => {
 
   describe("createProjectAction", () => {
     it("should successfully create a project when given a valid payload", async () => {
-      vi.mocked(projectSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: VALID_PAYLOAD,
       } as any);
@@ -49,27 +45,28 @@ describe("Project Actions", () => {
 
       const result = await createProjectAction(VALID_PAYLOAD);
 
-      expect(projectSchema.safeParse).toHaveBeenCalledWith(VALID_PAYLOAD);
+      expect(validateData).toHaveBeenCalledWith(projectSchema, VALID_PAYLOAD);
       expect(createProjectService).toHaveBeenCalledWith({ data: VALID_PAYLOAD });
       expect(revalidatePath).toHaveBeenCalledWith("/projects");
       expect(result).toEqual({ success: true, data: MOCK_PROJECT_RESPONSE });
     });
 
     it("should return an error when given an invalid payload", async () => {
-      vi.mocked(projectSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: false,
-        error: {} as any,
+        error: "Invalid input fields.",
       });
 
       const result = await createProjectAction(INVALID_PAYLOAD);
 
-      expect(result).toEqual({ success: false, error: "Invalid project parameters." });
+      expect(validateData).toHaveBeenCalledWith(projectSchema, INVALID_PAYLOAD);
+      expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(createProjectService).not.toHaveBeenCalled();
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when creating a project", async () => {
-      vi.mocked(projectSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: VALID_PAYLOAD,
       } as any);
@@ -84,15 +81,15 @@ describe("Project Actions", () => {
 
   describe("updateProjectAction", () => {
     it("should successfully update an existing project with partial payload", async () => {
-      const mockPartialParser = projectSchema.partial() as any;
-      mockPartialParser.safeParse.mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: PARTIAL_VALID_PAYLOAD,
-      });
+      } as any);
       vi.mocked(updateProjectService).mockResolvedValueOnce(MOCK_UPDATED_RESPONSE as any);
 
       const result = await updateProjectAction(VALID_PROJECT_ID, PARTIAL_VALID_PAYLOAD);
 
+      expect(validateData).toHaveBeenCalledWith(updateProjectSchema, PARTIAL_VALID_PAYLOAD);
       expect(updateProjectService).toHaveBeenCalledWith({ 
         id: VALID_PROJECT_ID, 
         data: PARTIAL_VALID_PAYLOAD 
@@ -103,24 +100,23 @@ describe("Project Actions", () => {
     });
 
     it("should return an error when update payload is invalid", async () => {
-      const mockPartialParser = projectSchema.partial() as any;
-      mockPartialParser.safeParse.mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: false,
-        error: {} as any,
+        error: "Invalid input fields.",
       });
 
       const result = await updateProjectAction(VALID_PROJECT_ID, INVALID_PAYLOAD);
 
-      expect(result).toEqual({ success: false, error: "Invalid modification values." });
+      expect(validateData).toHaveBeenCalledWith(updateProjectSchema, INVALID_PAYLOAD);
+      expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(updateProjectService).not.toHaveBeenCalled();
     });
 
     it("should return project entry not found error if service returns null/undefined", async () => {
-      const mockPartialParser = projectSchema.partial() as any;
-      mockPartialParser.safeParse.mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: PARTIAL_VALID_PAYLOAD,
-      });
+      } as any);
       vi.mocked(updateProjectService).mockResolvedValueOnce(null as any);
 
       const result = await updateProjectAction(VALID_PROJECT_ID, PARTIAL_VALID_PAYLOAD);
@@ -130,11 +126,10 @@ describe("Project Actions", () => {
     });
 
     it("should handle service exceptions gracefully when updating a project", async () => {
-      const mockPartialParser = projectSchema.partial() as any;
-      mockPartialParser.safeParse.mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: PARTIAL_VALID_PAYLOAD,
-      });
+      } as any);
       vi.mocked(updateProjectService).mockRejectedValueOnce(new Error("Update failed"));
 
       const result = await updateProjectAction(VALID_PROJECT_ID, PARTIAL_VALID_PAYLOAD);

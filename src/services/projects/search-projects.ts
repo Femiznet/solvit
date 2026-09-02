@@ -3,7 +3,7 @@ import { db, type TxClient } from "@/database";
 import { projects } from "@/database/schemas";
 import { eq, and, or, ilike, inArray, asc, desc, sql } from "drizzle-orm";
 import { projectStacks } from "@/database/schemas/project-stacks";
-import { PROJECT_SORT_OPTIONS, ProjectLevel } from "@/constants";
+import { PROJECT_SORT_OPTIONS, ProjectLevel } from "@/constants/enums";
 
 export type ProjectSortOption = (typeof PROJECT_SORT_OPTIONS)[number];
 

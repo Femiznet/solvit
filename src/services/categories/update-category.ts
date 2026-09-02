@@ -1,22 +1,25 @@
 import { db, TxClient } from "@/database";
-import { categories, type NewCategory } from "@/database/schemas";
+import { categories } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 
 interface UpdateCategoryArgs {
   id: string;
-  data: Partial<NewCategory>;
+  name: string;
   tx?: TxClient;
 }
 
-export async function updateCategoryService({ id, data, tx }: UpdateCategoryArgs) {
+export async function updateCategoryService({
+  id, name, tx }: UpdateCategoryArgs) {
   const [updatedCategory] = await db(tx)
     .update(categories)
     .set({
-      ...data,
+      name,
       updatedAt: new Date(),
     })
     .where(eq(categories.id, id))
-    .returning();
+    .returning({
+      name: categories.name
+    });
 
-  return updatedCategory || null;
+  return updatedCategory;
 }

@@ -1,4 +1,4 @@
-import { ProjectDifficulty } from "@/constants";
+import { ProjectDifficulty } from "@/constants/enums";
 import { db, type TxClient } from "@/database";
 import { projectDifficultyVotes } from "@/database/schemas/project-difficulty";
 import { eq } from "drizzle-orm";

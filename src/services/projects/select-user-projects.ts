@@ -1,6 +1,6 @@
-import { ProjectProgress } from "@/constants";
+import { ProjectProgress } from "@/constants/enums";
 import { db, type TxClient } from "@/database";
-import { userProjectProgress, projects } from "@/database/schemas";
+import { userProgress, projects } from "@/database/schemas";
 import { eq, and } from "drizzle-orm";
 
 interface SelectUserProjectsArgs {
@@ -25,18 +25,18 @@ export async function selectUserProjectsService({
 }: SelectUserProjectsArgs) {
   const results = await db(tx)
     .select({
-      progress: userProjectProgress,
+      progress: userProgress,
       project: projects,
     })
-    .from(userProjectProgress)
-    .innerJoin(projects, eq(userProjectProgress.projectId, projects.id))
+    .from(userProgress)
+    .innerJoin(projects, eq(userProgress.projectId, projects.id))
     .where(
       and(
-        eq(userProjectProgress.userId, userId),
-        status ? eq(userProjectProgress.status, status) : undefined
+        eq(userProgress.userId, userId),
+        status ? eq(userProgress.status, status) : undefined
       )
     )
-    .orderBy(userProjectProgress.updatedAt);
+    .orderBy(userProgress.updatedAt);
 
   return results.map((r) => ({
     ...r.progress,
@@ -54,18 +54,18 @@ export async function selectProjectsByStatusService({
 }: SelectProjectsByStatusArgs) {
   const results = await db(tx)
     .select({
-      progress: userProjectProgress,
+      progress: userProgress,
       project: projects,
     })
-    .from(userProjectProgress)
-    .innerJoin(projects, eq(userProjectProgress.projectId, projects.id))
+    .from(userProgress)
+    .innerJoin(projects, eq(userProgress.projectId, projects.id))
     .where(
       and(
-        eq(userProjectProgress.userId, userId),
-        eq(userProjectProgress.status, status)
+        eq(userProgress.userId, userId),
+        eq(userProgress.status, status)
       )
     )
-    .orderBy(userProjectProgress.updatedAt);
+    .orderBy(userProgress.updatedAt);
 
   return results.map((r) => ({
     ...r.progress,
@@ -79,8 +79,8 @@ export async function selectProjectsByStatusService({
 export async function selectUserProgressStatsService(userId: string) {
   const allProgress = await db()
     .select()
-    .from(userProjectProgress)
-    .where(eq(userProjectProgress.userId, userId));
+    .from(userProgress)
+    .where(eq(userProgress.userId, userId));
 
   const stats = {
     total: allProgress.length,

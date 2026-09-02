@@ -1,7 +1,7 @@
 import { pgTable, uuid, timestamp, unique, pgEnum } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { projects } from "./projects";
-import { PROJECT_DIFFICULTY_ENUM } from "@/constants";
+import { PROJECT_DIFFICULTY_ENUM } from "@/constants/enums";
 
 export const project_difficulty = pgEnum('project_difficulty', PROJECT_DIFFICULTY_ENUM);
 

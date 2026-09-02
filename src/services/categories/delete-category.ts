@@ -11,7 +11,9 @@ export async function deleteCategoryService({ id, tx }: DeleteCategoryArgs) {
   const [deletedCategory] = await db(tx)
     .delete(categories)
     .where(eq(categories.id, id))
-    .returning();
+    .returning({
+      id: categories.id, name: categories.name
+    });
 
   return deletedCategory || null;
 }

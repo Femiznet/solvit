@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { userSchema } from "@/zod-validators/zod-users";
+import { validateData } from "@/lib/validate";
+import { createUserSchema, deleteUserSchema, updateUserSchema } from "@/zod-validators/zod-users";
 import { createUserService } from "@/services/users/create-user";
 import { updateUserService } from "@/services/users/update-user";
 import { deleteUserService } from "@/services/users/delete-user";
@@ -10,15 +11,12 @@ import { deleteUserService } from "@/services/users/delete-user";
  * Creates a new user after verifying payloads via Zod.
  */
 export async function createUserAction(payload: unknown) {
-  const validatedFields = userSchema.safeParse(payload);
-
-  if (!validatedFields.success) {
-    return { success: false, error: "Invalid user details provided." };
-  }
+  const validation = validateData(createUserSchema, payload);
+  if (!validation.success) return validation;
 
   try {
     // Pass data as a destructured property object
-    const data = await createUserService({ data: validatedFields.data });
+    const data = await createUserService({ data: validation.data });
     revalidatePath("/users");
     return { success: true, data };
   } catch (error) {
@@ -31,15 +29,12 @@ export async function createUserAction(payload: unknown) {
  * Updates an existing user's profile details.
  */
 export async function updateUserAction(id: string, payload: unknown) {
-  const validatedFields = userSchema.partial().safeParse(payload);
-
-  if (!validatedFields.success) {
-    return { success: false, error: "Invalid profile mutation fields." };
-  }
+  const validation = validateData(updateUserSchema, payload);
+  if (!validation.success) return validation;
 
   try {
     // Pass id and data as properties of a single destructured argument object
-    const data = await updateUserService({ id, data: validatedFields.data });
+    const data = await updateUserService({ id, data: validation.data });
     if (!data) return { success: false, error: "User account not found." };
 
     revalidatePath(`/users/${id}`);
@@ -55,9 +50,12 @@ export async function updateUserAction(id: string, payload: unknown) {
  * Deletes a user account by their unique ID.
  */
 export async function deleteUserAction(id: string) {
+  const validation = validateData(deleteUserSchema, id);
+  if (!validation.success) return validation;
+
   try {
     // Pass id as a property within the structured parameter object
-    const data = await deleteUserService({ id });
+    const data = await deleteUserService({ id: validation.data.id });
     if (!data) return { success: false, error: "User account not found." };
 
     revalidatePath("/users");

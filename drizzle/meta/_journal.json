@@ -29,6 +29,13 @@
       "when": 1788283595588,
       "tag": "0003_hot_luke_cage",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788377636372,
+      "tag": "0004_thin_pandemic",
+      "breakpoints": true
     }
   ]
 }

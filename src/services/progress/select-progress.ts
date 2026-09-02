@@ -1,5 +1,5 @@
 import { db, type TxClient } from "@/database";
-import { userProjectProgress } from "@/database/schemas";
+import { userProgress } from "@/database/schemas";
 import { eq, and } from "drizzle-orm";
 
 interface SelectProgressArgs {
@@ -15,11 +15,11 @@ export async function selectProgressService({
 }: SelectProgressArgs) {
   const [progress] = await db(tx)
     .select()
-    .from(userProjectProgress)
+    .from(userProgress)
     .where(
       and(
-        eq(userProjectProgress.userId, userId),
-        eq(userProjectProgress.projectId, projectId)
+        eq(userProgress.userId, userId),
+        eq(userProgress.projectId, projectId)
       )
     );
 

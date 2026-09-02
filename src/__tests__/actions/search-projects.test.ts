@@ -2,28 +2,25 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { searchProjectsAction } from "@/actions/projects/search-projects";
 import { searchProjectsSchema } from "@/zod-validators/zod-projects";
 import { searchProjectsService } from "@/services/projects/search-projects";
-import { parseZodError } from "@/lib/zod-error";
+import { validateData } from "@/lib/validate";
 
-vi.mock("@/zod-validators/zod-projects", () => ({
-  searchProjectsSchema: { safeParse: vi.fn() },
+vi.mock("@/lib/validate", () => ({
+  validateData: vi.fn(),
 }));
 vi.mock("@/services/projects/search-projects");
-vi.mock("@/lib/zod-error");
 
 const VALID_SEARCH_PAYLOAD = { query: "React", level: "beginner" };
 const INVALID_SEARCH_PAYLOAD = { query: 123 }; // Invalid type
 const MOCK_PROJECTS_LIST = [{ id: "1", title: "React Dashboard" }];
-const MOCK_ZOD_ERRORS = { query: ["Expected string, received number"] };
 
 describe("Search Projects Action", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.spyOn(console, "error").mockImplementation(() => {});
-    vi.mocked(parseZodError).mockReturnValue(MOCK_ZOD_ERRORS as any);
   });
 
   it("should successfully search projects when given a valid payload", async () => {
-    vi.mocked(searchProjectsSchema.safeParse).mockReturnValueOnce({
+    vi.mocked(validateData).mockReturnValueOnce({
       success: true,
       data: VALID_SEARCH_PAYLOAD,
     } as any);
@@ -31,7 +28,7 @@ describe("Search Projects Action", () => {
 
     const result = await searchProjectsAction(VALID_SEARCH_PAYLOAD);
 
-    expect(searchProjectsSchema.safeParse).toHaveBeenCalledWith(VALID_SEARCH_PAYLOAD);
+    expect(validateData).toHaveBeenCalledWith(searchProjectsSchema, VALID_SEARCH_PAYLOAD);
     expect(searchProjectsService).toHaveBeenCalledWith({
       level: "beginner",
       categoryId: undefined,
@@ -45,24 +42,23 @@ describe("Search Projects Action", () => {
   });
 
   it("should return validation error when payload fails Zod parsing", async () => {
-    vi.mocked(searchProjectsSchema.safeParse).mockReturnValueOnce({
+    vi.mocked(validateData).mockReturnValueOnce({
       success: false,
-      error: {} as any,
+      error: "Invalid input fields.",
     });
 
     const result = await searchProjectsAction(INVALID_SEARCH_PAYLOAD);
 
-    expect(parseZodError).toHaveBeenCalled();
+    expect(validateData).toHaveBeenCalledWith(searchProjectsSchema, INVALID_SEARCH_PAYLOAD);
     expect(result).toEqual({
       success: false,
-      error: "Validation failed.",
-      validationErrors: MOCK_ZOD_ERRORS,
+      error: "Invalid input fields.",
     });
     expect(searchProjectsService).not.toHaveBeenCalled();
   });
 
   it("should handle service exceptions gracefully when searching projects", async () => {
-    vi.mocked(searchProjectsSchema.safeParse).mockReturnValueOnce({
+    vi.mocked(validateData).mockReturnValueOnce({
       success: true,
       data: VALID_SEARCH_PAYLOAD,
     } as any);

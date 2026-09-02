@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { 
-  toggleProjectLikeAction, 
-  toggleSolutionLikeAction 
+  createProjectLikeAction, 
+  createSolutionLikeAction 
 } from "@/actions/likes/actions";
 import { db } from "@/database";
+import { validateData } from "@/lib/validate";
 import { projectLikeSchema } from "@/zod-validators/zod-projects";
 import { solutionLikeSchema } from "@/zod-validators/zod-solutions";
 import { selectProjectService } from "@/services/projects/select-project";
@@ -19,11 +20,8 @@ import { revalidatePath } from "next/cache";
 vi.mock("@/database", () => ({
   db: vi.fn(),
 }));
-vi.mock("@/zod-validators/zod-projects", () => ({
-  projectLikeSchema: { safeParse: vi.fn() },
-}));
-vi.mock("@/zod-validators/zod-solutions", () => ({
-  solutionLikeSchema: { safeParse: vi.fn() },
+vi.mock("@/lib/validate", () => ({
+  validateData: vi.fn(),
 }));
 vi.mock("@/services/projects/select-project");
 vi.mock("@/services/projects/update-project");
@@ -52,21 +50,22 @@ describe("Likes Actions", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
-  describe("toggleProjectLikeAction", () => {
+  describe("createProjectLikeAction", () => {
     it("should return validation error when payload is invalid", async () => {
-      vi.mocked(projectLikeSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: false,
-        error: {} as any,
+        error: "Invalid input fields.",
       });
 
-      const result = await toggleProjectLikeAction(INVALID_PAYLOAD);
+      const result = await createProjectLikeAction(INVALID_PAYLOAD);
 
-      expect(result).toEqual({ success: false, error: "Invalid layout fields." });
+      expect(validateData).toHaveBeenCalledWith(projectLikeSchema, INVALID_PAYLOAD);
+      expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(db).not.toHaveBeenCalled();
     });
 
     it("should unlike project if like already exists (decrement likes)", async () => {
-      vi.mocked(projectLikeSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: VALID_PROJECT_PAYLOAD,
       } as any);
@@ -80,7 +79,7 @@ describe("Likes Actions", () => {
       vi.mocked(selectProjectService).mockResolvedValueOnce(MOCK_PROJECT as any);
       vi.mocked(deleteProjectLikeService).mockResolvedValueOnce({ id: "like-id" } as any);
 
-      const result = await toggleProjectLikeAction(VALID_PROJECT_PAYLOAD);
+      const result = await createProjectLikeAction(VALID_PROJECT_PAYLOAD);
 
       expect(selectProjectService).toHaveBeenCalledWith({ id: VALID_PROJECT_ID, tx: mockTx });
       expect(deleteProjectLikeService).toHaveBeenCalledWith({ userId: VALID_USER_ID, projectId: VALID_PROJECT_ID, tx: mockTx });
@@ -94,7 +93,7 @@ describe("Likes Actions", () => {
     });
 
     it("should like project if like does not exist (increment likes)", async () => {
-      vi.mocked(projectLikeSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: VALID_PROJECT_PAYLOAD,
       } as any);
@@ -107,7 +106,7 @@ describe("Likes Actions", () => {
       vi.mocked(selectProjectService).mockResolvedValueOnce(MOCK_PROJECT as any);
       vi.mocked(deleteProjectLikeService).mockResolvedValueOnce(null as any);
 
-      const result = await toggleProjectLikeAction(VALID_PROJECT_PAYLOAD);
+      const result = await createProjectLikeAction(VALID_PROJECT_PAYLOAD);
 
       expect(createProjectLikeService).toHaveBeenCalledWith({
         data: { userId: VALID_USER_ID, projectId: VALID_PROJECT_ID },
@@ -123,7 +122,7 @@ describe("Likes Actions", () => {
     });
 
     it("should handle project not found error inside transaction gracefully", async () => {
-      vi.mocked(projectLikeSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: VALID_PROJECT_PAYLOAD,
       } as any);
@@ -135,28 +134,29 @@ describe("Likes Actions", () => {
 
       vi.mocked(selectProjectService).mockResolvedValueOnce(null as any);
 
-      const result = await toggleProjectLikeAction(VALID_PROJECT_PAYLOAD);
+      const result = await createProjectLikeAction(VALID_PROJECT_PAYLOAD);
 
       expect(result).toEqual({ success: false, error: "Failed to toggle project like." });
       expect(console.error).toHaveBeenCalled();
     });
   });
 
-  describe("toggleSolutionLikeAction", () => {
+  describe("createSolutionLikeAction", () => {
     it("should return validation error when solution payload is invalid", async () => {
-      vi.mocked(solutionLikeSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: false,
-        error: {} as any,
+        error: "Invalid input fields.",
       });
 
-      const result = await toggleSolutionLikeAction(INVALID_PAYLOAD);
+      const result = await createSolutionLikeAction(INVALID_PAYLOAD);
 
-      expect(result).toEqual({ success: false, error: "Invalid layout fields." });
+      expect(validateData).toHaveBeenCalledWith(solutionLikeSchema, INVALID_PAYLOAD);
+      expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(db).not.toHaveBeenCalled();
     });
 
     it("should unlike solution if like already exists (decrement likes)", async () => {
-      vi.mocked(solutionLikeSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: VALID_SOLUTION_PAYLOAD,
       } as any);
@@ -169,7 +169,7 @@ describe("Likes Actions", () => {
       vi.mocked(selectSolutionService).mockResolvedValueOnce(MOCK_SOLUTION as any);
       vi.mocked(deleteSolutionLikeService).mockResolvedValueOnce({ id: "like-id" } as any);
 
-      const result = await toggleSolutionLikeAction(VALID_SOLUTION_PAYLOAD);
+      const result = await createSolutionLikeAction(VALID_SOLUTION_PAYLOAD);
 
       expect(selectSolutionService).toHaveBeenCalledWith({ id: VALID_SOLUTION_ID, tx: mockTx });
       expect(deleteSolutionLikeService).toHaveBeenCalledWith({ userId: VALID_USER_ID, solutionId: VALID_SOLUTION_ID, tx: mockTx });
@@ -183,7 +183,7 @@ describe("Likes Actions", () => {
     });
 
     it("should like solution if like does not exist (increment likes)", async () => {
-      vi.mocked(solutionLikeSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: VALID_SOLUTION_PAYLOAD,
       } as any);
@@ -196,7 +196,7 @@ describe("Likes Actions", () => {
       vi.mocked(selectSolutionService).mockResolvedValueOnce(MOCK_SOLUTION as any);
       vi.mocked(deleteSolutionLikeService).mockResolvedValueOnce(null as any);
 
-      const result = await toggleSolutionLikeAction(VALID_SOLUTION_PAYLOAD);
+      const result = await createSolutionLikeAction(VALID_SOLUTION_PAYLOAD);
 
       expect(createSolutionLikeService).toHaveBeenCalledWith({
         data: { userId: VALID_USER_ID, solutionId: VALID_SOLUTION_ID },
@@ -212,7 +212,7 @@ describe("Likes Actions", () => {
     });
 
     it("should handle solution not found error inside transaction gracefully", async () => {
-      vi.mocked(solutionLikeSchema.safeParse).mockReturnValueOnce({
+      vi.mocked(validateData).mockReturnValueOnce({
         success: true,
         data: VALID_SOLUTION_PAYLOAD,
       } as any);
@@ -224,7 +224,7 @@ describe("Likes Actions", () => {
 
       vi.mocked(selectSolutionService).mockResolvedValueOnce(null as any);
 
-      const result = await toggleSolutionLikeAction(VALID_SOLUTION_PAYLOAD);
+      const result = await createSolutionLikeAction(VALID_SOLUTION_PAYLOAD);
 
       expect(result).toEqual({ success: false, error: "Failed to toggle solution like." });
       expect(console.error).toHaveBeenCalled();
