@@ -8,10 +8,14 @@ const categoryFields = {
   name: categories.name,
 };
 
+export type SelectCategoryInput = {
+  id: string;
+};
+
 export async function selectCategoryService({
   data: { id },
   tx,
-}: ServiceArgs<{ id: string }>) {
+}: ServiceArgs<SelectCategoryInput>) {
   const [category] = await db(tx).select(categoryFields).from(categories).where(eq(categories.id, id));
   return category || null;
 }

@@ -1,7 +1,6 @@
 import { db } from "@/database";
 import { users, userProgress } from "@/database/schemas";
-import { ServiceArgs } from "@/types";
-import { CreateUserInput, CreateUserProgressInput } from "@/types";
+import { ServiceArgs, CreateUserInput, CreateUserProgressInput } from "@/types";
 
 export async function createUserService({ data, tx }: ServiceArgs<CreateUserInput>) {
   const [newUser] = await db(tx).insert(users).values(data).returning();

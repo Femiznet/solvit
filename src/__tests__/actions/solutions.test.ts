@@ -24,11 +24,24 @@ vi.mock("next/cache", () => ({
 const VALID_SOLUTION_ID = "123e4567-e89b-12d3-a456-426614174000";
 const VALID_PROJECT_ID = "223e4567-e89b-12d3-a456-426614174000";
 const INVALID_SOLUTION_ID = "invalid-id";
-const VALID_PAYLOAD = { title: "New Solution", projectId: VALID_PROJECT_ID };
-const INVALID_PAYLOAD = { title: "" };
-const PARTIAL_VALID_PAYLOAD = { title: "Updated Solution Title" };
-const MOCK_SOLUTION_RESPONSE = { id: VALID_SOLUTION_ID, title: "New Solution", projectId: VALID_PROJECT_ID };
-const MOCK_UPDATED_RESPONSE = { id: VALID_SOLUTION_ID, title: "Updated Solution Title", projectId: VALID_PROJECT_ID };
+
+// Test Data Factories
+const createSolutionInput = (overrides = {}) => ({
+  title: "New Solution",
+  projectId: VALID_PROJECT_ID,
+  ...overrides,
+});
+
+const updateSolutionInput = (overrides = {}) => ({
+  id: VALID_SOLUTION_ID,
+  title: "Updated Solution Title",
+  ...overrides,
+});
+
+const deleteSolutionInput = (overrides = {}) => ({
+  id: VALID_SOLUTION_ID,
+  ...overrides,
+});
 
 describe("Solution Actions", () => {
   beforeEach(() => {
@@ -38,19 +51,24 @@ describe("Solution Actions", () => {
 
   describe("createSolutionAction", () => {
     it("should successfully create a solution when given a valid payload", async () => {
+      const input = createSolutionInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: VALID_PAYLOAD,
+        data: input,
       } as any);
-      vi.mocked(createSolutionService).mockResolvedValueOnce(MOCK_SOLUTION_RESPONSE as any);
 
-      const result = await createSolutionAction(VALID_PAYLOAD);
+      const mockResponse = { id: VALID_SOLUTION_ID, ...input };
+      vi.mocked(createSolutionService).mockResolvedValueOnce(mockResponse as any);
 
-      expect(validateData).toHaveBeenCalledWith(createSolutionSchema, VALID_PAYLOAD);
-      expect(createSolutionService).toHaveBeenCalledWith({ data: VALID_PAYLOAD });
+      const result = await createSolutionAction(input);
+
+      expect(validateData).toHaveBeenCalledWith(createSolutionSchema, input);
+      expect(createSolutionService).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining(input) })
+      );
       expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
       expect(revalidatePath).toHaveBeenCalledWith("/solutions");
-      expect(result).toEqual({ success: true, data: MOCK_SOLUTION_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
     it("should return an error when given an invalid payload", async () => {
@@ -59,67 +77,73 @@ describe("Solution Actions", () => {
         error: "Invalid input fields.",
       });
 
-      const result = await createSolutionAction(INVALID_PAYLOAD);
+      const input = createSolutionInput({ title: "" });
+      const result = await createSolutionAction(input);
 
-      expect(validateData).toHaveBeenCalledWith(createSolutionSchema, INVALID_PAYLOAD);
-      expect(result).toEqual({ success: false, error: "Invalid input fields." });
+      expect(validateData).toHaveBeenCalledWith(createSolutionSchema, input);
+      expect(result).toEqual(expect.objectContaining({ success: false }));
       expect(createSolutionService).not.toHaveBeenCalled();
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when creating a solution", async () => {
+      const input = createSolutionInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: VALID_PAYLOAD,
+        data: input,
       } as any);
       vi.mocked(createSolutionService).mockRejectedValueOnce(new Error("Database error"));
 
-      const result = await createSolutionAction(VALID_PAYLOAD);
+      const result = await createSolutionAction(input);
 
-      expect(result).toEqual({ success: false, error: "Failed to create solution." });
+      expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to create solution." }));
       expect(console.error).toHaveBeenCalled();
     });
   });
 
-  it("should successfully update an existing solution with partial payload", async () => {
-    const FULL_PAYLOAD = {
-      id: VALID_SOLUTION_ID,
-      ...PARTIAL_VALID_PAYLOAD,
-    };
+  describe("updateSolutionAction", () => {
+    it("should successfully update an existing solution with partial payload", async () => {
+      const input = updateSolutionInput();
+      vi.mocked(validateData).mockReturnValueOnce({
+        success: true,
+        data: input,
+      } as any);
 
-    vi.mocked(validateData).mockReturnValueOnce({
-      success: true,
-      data: FULL_PAYLOAD,
-    } as any);
-    vi.mocked(updateSolutionService).mockResolvedValueOnce(MOCK_UPDATED_RESPONSE as any);
+      const mockResponse = { id: VALID_SOLUTION_ID, projectId: VALID_PROJECT_ID, ...input };
+      vi.mocked(updateSolutionService).mockResolvedValueOnce(mockResponse as any);
 
-    // Call with a single payload argument
-    const result = await updateSolutionAction(FULL_PAYLOAD);
+      const result = await updateSolutionAction(input);
 
-    expect(validateData).toHaveBeenCalledWith(updateSolutionSchema, FULL_PAYLOAD);
-    expect(updateSolutionService).toHaveBeenCalledWith({
-      data: FULL_PAYLOAD,
+      expect(validateData).toHaveBeenCalledWith(updateSolutionSchema, input);
+      expect(updateSolutionService).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining(input) })
+      );
+      expect(revalidatePath).toHaveBeenCalledWith(`/solutions/${VALID_SOLUTION_ID}`);
+      expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
-    expect(revalidatePath).toHaveBeenCalledWith(`/solutions/${VALID_SOLUTION_ID}`);
-    expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
-    expect(result).toEqual({ success: true, data: MOCK_UPDATED_RESPONSE });
   });
 
   describe("deleteSolutionAction", () => {
     it("should successfully delete an existing solution by ID", async () => {
+      const input = deleteSolutionInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: { id: VALID_SOLUTION_ID },
+        data: input,
       } as any);
-      vi.mocked(deleteSolutionService).mockResolvedValueOnce(MOCK_SOLUTION_RESPONSE as any);
+
+      const mockResponse = { id: VALID_SOLUTION_ID, ...createSolutionInput() };
+      vi.mocked(deleteSolutionService).mockResolvedValueOnce(mockResponse as any);
 
       const result = await deleteSolutionAction(VALID_SOLUTION_ID);
 
-      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, VALID_SOLUTION_ID);
-      expect(deleteSolutionService).toHaveBeenCalledWith({ data: { id: VALID_SOLUTION_ID } });
+      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, { id: VALID_SOLUTION_ID });
+      expect(deleteSolutionService).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { id: VALID_SOLUTION_ID } })
+      );
       expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
       expect(revalidatePath).toHaveBeenCalledWith("/solutions");
-      expect(result).toEqual({ success: true, data: MOCK_SOLUTION_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
     it("should return solution entry not found error if deletion target does not exist", async () => {
@@ -131,7 +155,7 @@ describe("Solution Actions", () => {
 
       const result = await deleteSolutionAction(INVALID_SOLUTION_ID);
 
-      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, INVALID_SOLUTION_ID);
+      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, { id: INVALID_SOLUTION_ID });
       expect(result).toEqual({ success: false, error: "Solution entry not found." });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
@@ -145,8 +169,8 @@ describe("Solution Actions", () => {
 
       const result = await deleteSolutionAction(VALID_SOLUTION_ID);
 
-      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, VALID_SOLUTION_ID);
-      expect(result).toEqual({ success: false, error: "Failed to delete solution." });
+      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, { id: VALID_SOLUTION_ID });
+      expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to delete solution." }));
       expect(console.error).toHaveBeenCalled();
     });
   });

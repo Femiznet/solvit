@@ -16,6 +16,8 @@ export interface SearchProjectsInput {
   optRequirements?: string[];
   query?: string;
   sort?: ProjectSortOption;
+  limit?: number;
+  offset?: number;
 }
 
 export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInput>) {
@@ -28,6 +30,8 @@ export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInp
     optRequirements,
     query,
     sort = "newest",
+    limit = 20, // default page size
+    offset = 0, // default start position
   } = data;
 
   const conditions = [];
@@ -79,8 +83,21 @@ export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInp
     conditions.push(inArray(projects.id, matchingProjectIds));
   }
 
-  const queryBuilder = db(tx).select().from(projects);
   const finalCondition = conditions.length > 0 ? and(...conditions) : undefined;
+
+  // 1. Get total count using the exact same conditions
+  const countQuery = db(tx)
+    .select({ count: sql<number>`count(*)` })
+    .from(projects);
+  
+  const [countResult] = finalCondition 
+    ? await countQuery.where(finalCondition) 
+    : await countQuery;
+    
+  const total = Number(countResult?.count ?? 0);
+
+  // 2. Fetch the paginated data
+  const queryBuilder = db(tx).select().from(projects);
   const filteredQuery = finalCondition ? queryBuilder.where(finalCondition) : queryBuilder;
 
   const sortMapping = {
@@ -90,5 +107,20 @@ export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInp
     "newest": desc(projects.createdAt),
   };
 
-  return await filteredQuery.orderBy(sortMapping[sort]);
+  const projectsResult = await filteredQuery
+    .orderBy(sortMapping[sort])
+    .limit(limit)
+    .offset(offset);
+
+  // 3. Return data along with clean pagination metadata
+  return {
+    data: projectsResult,
+    pagination: {
+      total,
+      limit,
+      offset,
+      totalPages: Math.ceil(total / limit),
+      hasMore: offset + limit < total,
+    },
+  };
 }

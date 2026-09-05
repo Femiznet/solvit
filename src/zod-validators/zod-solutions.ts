@@ -6,6 +6,7 @@ import { solutions, solutionLikes } from "@/database/schemas";
 export const solutionSchema = createSelectSchema(solutions, {
   id: z.uuid("Invalid solution ID format."),
   projectId: z.uuid("Invalid project ID format."),
+  userId: z.uuid("Invalid user ID format."),
   title: z.string().min(1, "Title is required").max(255, "Title cannot exceed 255 characters"),
   description: z.string().nullable().optional(),
   repoUrl: z.url("Invalid repository URL").max(500).nullable().optional(),
@@ -16,6 +17,7 @@ export const solutionSchema = createSelectSchema(solutions, {
 // 2. Create Schema (Insert)
 export const createSolutionSchema = createInsertSchema(solutions, {
   projectId: z.uuid("Invalid project ID format."),
+  userId: z.uuid("Invalid user ID format."),
   title: z.string().min(1, "Title is required").max(255, "Title cannot exceed 255 characters"),
   description: z.string().nullable().optional(),
   repoUrl: z.url("Invalid repository URL").max(500).nullable().optional(),
@@ -23,6 +25,7 @@ export const createSolutionSchema = createInsertSchema(solutions, {
   implFeat: z.array(z.string()),
 }).pick({
   projectId: true,
+  userId: true,
   title: true,
   description: true,
   repoUrl: true,

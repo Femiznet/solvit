@@ -4,10 +4,18 @@ import { eq, and } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 import { PROJECT_PROGRESS } from "@/constants/enums";
 
+export type UpdateUserInput = { id: string } & Partial<NewUser>;
+
+export type UpdateProgressInput = {
+  userId: string;
+  projectId: string;
+  status?: (typeof PROJECT_PROGRESS)[number];
+};
+
 export async function updateUserService({
   data: { id, ...updatedData },
   tx,
-}: ServiceArgs<{ id: string } & Partial<NewUser>>) {
+}: ServiceArgs<UpdateUserInput>) {
   const [updatedUser] = await db(tx)
     .update(users)
     .set({
@@ -23,11 +31,7 @@ export async function updateUserService({
 export async function updateProgressService({
   data: { userId, projectId, status },
   tx,
-}: ServiceArgs<{
-  userId: string;
-  projectId: string;
-  status?: (typeof PROJECT_PROGRESS)[number];
-}>) {
+}: ServiceArgs<UpdateProgressInput>) {
   const [updated] = await db(tx)
     .update(userProgress)
     .set({

@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
 import {
     createUserProgressSchema,
-    updateUserProgressSchema
+    updateUserProgressSchema,
+    type CreateUserProgressInput,
+    type UpdateUserProgressInput
 } from "@/zod-validators/zod-user-progress";
 import { DASHBOARD_PATH, PROJECTS_PATH } from "@/constants/paths";
 import { createProgressService } from "@/services/users/create-user";
@@ -14,9 +16,9 @@ import { updateProgressService } from "@/services/users/update-user";
  * Create new user project progress entry (bookmark, start, complete)
  */
 export async function createProgressAction(
-  payload: unknown
+  input: CreateUserProgressInput
 ){
-  const validation = validateData(createUserProgressSchema, payload);
+  const validation = validateData(createUserProgressSchema, input);
   if (!validation.success) return validation;
 
   try {
@@ -33,9 +35,9 @@ export async function createProgressAction(
  * Update user project progress (change status, mark completed, etc)
  */
 export async function updateProgressAction(
-  payload: unknown
+  input: UpdateUserProgressInput
 ){
-  const validation = validateData(updateUserProgressSchema, payload);
+  const validation = validateData(updateUserProgressSchema, input);
   if (!validation.success) return validation;
 
   try {

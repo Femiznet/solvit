@@ -3,10 +3,14 @@ import { projects } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
+export type SelectProjectInput = {
+  projectId: string;
+};
+
 export async function selectProjectService({
   data: { projectId },
   tx,
-}: ServiceArgs<{ projectId: string }>) {
+}: ServiceArgs<SelectProjectInput>) {
   const [project] = await db(tx).select().from(projects).where(eq(projects.id, projectId));
 
   return project || null;

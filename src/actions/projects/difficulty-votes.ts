@@ -2,11 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
-import { voteDifficultySchema } from "@/zod-validators/zod-project-difficulty";
+import { 
+  voteDifficultySchema, 
+  type VoteDifficultyInput 
+} from "@/zod-validators/zod-project-difficulty";
 import { upsertProjectDifficultyVoteService } from "@/services/projects/difficulty-vote";
 
-export async function voteDifficultyAction(payload: unknown) {
-  const validation = validateData(voteDifficultySchema, payload);
+export async function voteDifficultyAction(input: VoteDifficultyInput) {
+  const validation = validateData(voteDifficultySchema, input);
   if (!validation.success) return validation;
 
   const { userId, projectId, difficulty } = validation.data;

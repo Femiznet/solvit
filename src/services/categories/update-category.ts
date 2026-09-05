@@ -3,10 +3,15 @@ import { categories } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
+export type UpdateCategoryInput = {
+  id: string;
+  name: string;
+};
+
 export async function updateCategoryService({
   data: { id, name },
   tx,
-}: ServiceArgs<{ id: string; name: string }>) {
+}: ServiceArgs<UpdateCategoryInput>) {
   const [updatedCategory] = await db(tx)
     .update(categories)
     .set({

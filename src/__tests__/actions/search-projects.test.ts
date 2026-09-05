@@ -9,8 +9,13 @@ vi.mock("@/lib/validate", () => ({
 }));
 vi.mock("@/services/projects/search-projects");
 
-const VALID_SEARCH_PAYLOAD = { query: "React", level: "beginner" };
-const INVALID_SEARCH_PAYLOAD = { query: 123 }; // Invalid type
+// Test Data Factory
+const createSearchInput = (overrides = {}) => ({
+  query: "React",
+  level: "beginner",
+  ...overrides,
+});
+
 const MOCK_PROJECTS_LIST = [{ id: "1", title: "React Dashboard" }];
 
 describe("Search Projects Action", () => {
@@ -20,24 +25,21 @@ describe("Search Projects Action", () => {
   });
 
   it("should successfully search projects when given a valid payload", async () => {
+    const input = createSearchInput();
     vi.mocked(validateData).mockReturnValueOnce({
       success: true,
-      data: VALID_SEARCH_PAYLOAD,
+      data: input,
     } as any);
     vi.mocked(searchProjectsService).mockResolvedValueOnce(MOCK_PROJECTS_LIST as any);
 
-    const result = await searchProjectsAction(VALID_SEARCH_PAYLOAD);
+    const result = await searchProjectsAction(input);
 
-    expect(validateData).toHaveBeenCalledWith(searchProjectsSchema, VALID_SEARCH_PAYLOAD);
-    expect(searchProjectsService).toHaveBeenCalledWith({data: {
-      level: "beginner",
-      categoryId: undefined,
-      stackIds: undefined,
-      requirements: undefined,
-      optRequirements: undefined,
-      query: "React",
-      sort: undefined,
-    }});
+    expect(validateData).toHaveBeenCalledWith(searchProjectsSchema, input);
+    expect(searchProjectsService).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining(input),
+      })
+    );
     expect(result).toEqual({ success: true, data: MOCK_PROJECTS_LIST });
   });
 
@@ -47,9 +49,10 @@ describe("Search Projects Action", () => {
       error: "Invalid input fields.",
     });
 
-    const result = await searchProjectsAction(INVALID_SEARCH_PAYLOAD);
+    const input = createSearchInput({ query: 123 });
+    const result = await searchProjectsAction(input);
 
-    expect(validateData).toHaveBeenCalledWith(searchProjectsSchema, INVALID_SEARCH_PAYLOAD);
+    expect(validateData).toHaveBeenCalledWith(searchProjectsSchema, input);
     expect(result).toEqual({
       success: false,
       error: "Invalid input fields.",
@@ -58,13 +61,14 @@ describe("Search Projects Action", () => {
   });
 
   it("should handle service exceptions gracefully when searching projects", async () => {
+    const input = createSearchInput();
     vi.mocked(validateData).mockReturnValueOnce({
       success: true,
-      data: VALID_SEARCH_PAYLOAD,
+      data: input,
     } as any);
     vi.mocked(searchProjectsService).mockRejectedValueOnce(new Error("Search query error"));
 
-    const result = await searchProjectsAction(VALID_SEARCH_PAYLOAD);
+    const result = await searchProjectsAction(input);
 
     expect(result).toEqual({ success: false, error: "Failed to search projects." });
     expect(console.error).toHaveBeenCalled();

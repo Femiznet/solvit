@@ -3,10 +3,12 @@ import { projects, type NewProject } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
+export type UpdateProjectInput = { id: string } & Partial<NewProject>;
+
 export async function updateProjectService({
   data: { id, ...data },
   tx,
-}: ServiceArgs<{ id: string } & Partial<NewProject>>) {
+}: ServiceArgs<UpdateProjectInput>) {
   const [updatedProject] = await db(tx)
     .update(projects)
     .set({

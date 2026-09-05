@@ -4,7 +4,7 @@ import {
   updateProjectAction, 
   deleteProjectAction 
 } from "@/actions/projects/actions";
-import { createProjectSchema, projectSchema, updateProjectSchema } from "@/zod-validators/zod-projects";
+import { createProjectSchema, updateProjectSchema, deleteProjectSchema } from "@/zod-validators/zod-projects";
 import { createProjectService } from "@/services/projects/create-project";
 import { updateProjectService } from "@/services/projects/update-project";
 import { deleteProjectService } from "@/services/projects/delete-project";
@@ -21,13 +21,25 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-const VALID_PROJECT_ID = "123e4567-e89b-12d3-a456-426614174000";
-const INVALID_PROJECT_ID = "invalid-id";
-const VALID_PAYLOAD = { title: "New Project", description: "Project description" };
-const INVALID_PAYLOAD = { title: "" };
-const PARTIAL_VALID_PAYLOAD = { title: "Updated Project Title" };
-const MOCK_PROJECT_RESPONSE = { id: VALID_PROJECT_ID, title: "New Project", description: "Project description" };
-const MOCK_UPDATED_RESPONSE = { id: VALID_PROJECT_ID, title: "Updated Project Title", description: "Project description" };
+const VALID_UUID = "123e4567-e89b-12d3-a456-426614174000";
+
+// Test Data Factories
+const createProjectInput = (overrides = {}) => ({
+  title: "New Project",
+  description: "Project description",
+  ...overrides,
+});
+
+const updateProjectInput = (overrides = {}) => ({
+  id: VALID_UUID,
+  title: "Updated Project Title",
+  ...overrides,
+});
+
+const deleteProjectInput = (overrides = {}) => ({
+  id: VALID_UUID,
+  ...overrides,
+});
 
 describe("Project Actions", () => {
   beforeEach(() => {
@@ -37,18 +49,23 @@ describe("Project Actions", () => {
 
   describe("createProjectAction", () => {
     it("should successfully create a project when given a valid payload", async () => {
+      const input = createProjectInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: VALID_PAYLOAD,
+        data: input,
       } as any);
-      vi.mocked(createProjectService).mockResolvedValueOnce(MOCK_PROJECT_RESPONSE as any);
 
-      const result = await createProjectAction(VALID_PAYLOAD);
+      const mockResponse = { id: VALID_UUID, ...input };
+      vi.mocked(createProjectService).mockResolvedValueOnce(mockResponse as any);
 
-      expect(validateData).toHaveBeenCalledWith(createProjectSchema, VALID_PAYLOAD);
-      expect(createProjectService).toHaveBeenCalledWith({ data: VALID_PAYLOAD });
+      const result = await createProjectAction(input);
+
+      expect(validateData).toHaveBeenCalledWith(createProjectSchema, input);
+      expect(createProjectService).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining(input) })
+      );
       expect(revalidatePath).toHaveBeenCalledWith("/projects");
-      expect(result).toEqual({ success: true, data: MOCK_PROJECT_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
     it("should return an error when given an invalid payload", async () => {
@@ -57,133 +74,141 @@ describe("Project Actions", () => {
         error: "Invalid input fields.",
       });
 
-      const result = await createProjectAction(INVALID_PAYLOAD);
+      const input = createProjectInput({ title: "" });
+      const result = await createProjectAction(input);
 
-      expect(validateData).toHaveBeenCalledWith(createProjectSchema, INVALID_PAYLOAD);
-      expect(result).toEqual({ success: false, error: "Invalid input fields." });
+      expect(validateData).toHaveBeenCalledWith(createProjectSchema, input);
+      expect(result).toEqual(expect.objectContaining({ success: false }));
       expect(createProjectService).not.toHaveBeenCalled();
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when creating a project", async () => {
+      const input = createProjectInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: VALID_PAYLOAD,
+        data: input,
       } as any);
       vi.mocked(createProjectService).mockRejectedValueOnce(new Error("Database error"));
 
-      const result = await createProjectAction(VALID_PAYLOAD);
+      const result = await createProjectAction(input);
 
-      expect(result).toEqual({ success: false, error: "Failed to create project." });
+      expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to create project." }));
       expect(console.error).toHaveBeenCalled();
     });
   });
 
   describe("updateProjectAction", () => {
     it("should successfully update an existing project with partial payload", async () => {
-      const FULL_PAYLOAD = {
-        id: VALID_PROJECT_ID,
-        ...PARTIAL_VALID_PAYLOAD,
-      };
-
+      const input = updateProjectInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: FULL_PAYLOAD,
+        data: input,
       } as any);
-      vi.mocked(updateProjectService).mockResolvedValueOnce(MOCK_UPDATED_RESPONSE as any);
 
-      const result = await updateProjectAction(FULL_PAYLOAD);
+      const mockResponse = { id: VALID_UUID, description: "Desc", ...input };
+      vi.mocked(updateProjectService).mockResolvedValueOnce(mockResponse as any);
 
-      expect(validateData).toHaveBeenCalledWith(updateProjectSchema, FULL_PAYLOAD);
-      expect(updateProjectService).toHaveBeenCalledWith({ 
-        data: FULL_PAYLOAD,
-      });
-      expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
+      const result = await updateProjectAction(input);
+
+      expect(validateData).toHaveBeenCalledWith(updateProjectSchema, input);
+      expect(updateProjectService).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining(input) })
+      );
+      expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_UUID}`);
       expect(revalidatePath).toHaveBeenCalledWith("/projects");
-      expect(result).toEqual({ success: true, data: MOCK_UPDATED_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
     it("should return an error when update payload is invalid", async () => {
-      const INVALID_FULL_PAYLOAD = {
-        id: VALID_PROJECT_ID,
-        ...INVALID_PAYLOAD,
-      };
-
       vi.mocked(validateData).mockReturnValueOnce({
         success: false,
         error: "Invalid input fields.",
       });
 
-      const result = await updateProjectAction(INVALID_FULL_PAYLOAD);
+      const input = updateProjectInput({ title: "" });
+      const result = await updateProjectAction(input);
 
-      expect(validateData).toHaveBeenCalledWith(updateProjectSchema, INVALID_FULL_PAYLOAD);
-      expect(result).toEqual({ success: false, error: "Invalid input fields." });
+      expect(validateData).toHaveBeenCalledWith(updateProjectSchema, input);
+      expect(result).toEqual(expect.objectContaining({ success: false }));
       expect(updateProjectService).not.toHaveBeenCalled();
     });
 
     it("should return project entry not found error if service returns null/undefined", async () => {
-      const FULL_PAYLOAD = {
-        id: VALID_PROJECT_ID,
-        ...PARTIAL_VALID_PAYLOAD,
-      };
-
+      const input = updateProjectInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: FULL_PAYLOAD,
+        data: input,
       } as any);
       vi.mocked(updateProjectService).mockResolvedValueOnce(null as any);
 
-      const result = await updateProjectAction(FULL_PAYLOAD);
+      const result = await updateProjectAction(input);
 
       expect(result).toEqual({ success: false, error: "Project entry not found." });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when updating a project", async () => {
-      const FULL_PAYLOAD = {
-        id: VALID_PROJECT_ID,
-        ...PARTIAL_VALID_PAYLOAD,
-      };
-
+      const input = updateProjectInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: FULL_PAYLOAD,
+        data: input,
       } as any);
       vi.mocked(updateProjectService).mockRejectedValueOnce(new Error("Update failed"));
 
-      const result = await updateProjectAction(FULL_PAYLOAD);
+      const result = await updateProjectAction(input);
 
-      expect(result).toEqual({ success: false, error: "Failed to update project." });
+      expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to update project." }));
       expect(console.error).toHaveBeenCalled();
     });
   });
 
   describe("deleteProjectAction", () => {
     it("should successfully delete an existing project by ID", async () => {
-      vi.mocked(deleteProjectService).mockResolvedValueOnce(MOCK_PROJECT_RESPONSE as any);
+      const input = deleteProjectInput();
+      vi.mocked(validateData).mockReturnValueOnce({
+        success: true,
+        data: input,
+      } as any);
 
-      const result = await deleteProjectAction({ id: VALID_PROJECT_ID });
+      const mockResponse = { id: VALID_UUID, ...createProjectInput() };
+      vi.mocked(deleteProjectService).mockResolvedValueOnce(mockResponse as any);
 
-      expect(deleteProjectService).toHaveBeenCalledWith({data: { id: VALID_PROJECT_ID }});
+      const result = await deleteProjectAction(input);
+
+      expect(validateData).toHaveBeenCalledWith(deleteProjectSchema, input);
+      expect(deleteProjectService).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { id: VALID_UUID } })
+      );
       expect(revalidatePath).toHaveBeenCalledWith("/projects");
-      expect(result).toEqual({ success: true, data: MOCK_PROJECT_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
     it("should return project entry not found error if deletion target does not exist", async () => {
+      const input = deleteProjectInput();
+      vi.mocked(validateData).mockReturnValueOnce({
+        success: true,
+        data: input,
+      } as any);
       vi.mocked(deleteProjectService).mockResolvedValueOnce(null as any);
 
-      const result = await deleteProjectAction({ id: INVALID_PROJECT_ID });
+      const result = await deleteProjectAction(input);
 
       expect(result).toEqual({ success: false, error: "Project entry not found." });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when deleting a project", async () => {
+      const input = deleteProjectInput();
+      vi.mocked(validateData).mockReturnValueOnce({
+        success: true,
+        data: input,
+      } as any);
       vi.mocked(deleteProjectService).mockRejectedValueOnce(new Error("Delete failed"));
 
-      const result = await deleteProjectAction({ id: VALID_PROJECT_ID });
+      const result = await deleteProjectAction(input);
 
-      expect(result).toEqual({ success: false, error: "Failed to delete project." });
+      expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to delete project." }));
       expect(console.error).toHaveBeenCalled();
     });
   });

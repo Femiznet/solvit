@@ -5,7 +5,10 @@ import { validateData } from "@/lib/validate";
 import { 
   createCategorySchema, 
   updateCategorySchema, 
-  deleteCategorySchema 
+  deleteCategorySchema,
+  type CreateCategoryInput,
+  type UpdateCategoryInput,
+  type DeleteCategoryInput
 } from "@/zod-validators/zod-categories";
 import { createCategoryService } from "@/services/categories/create-category";
 import { updateCategoryService } from "@/services/categories/update-category";
@@ -13,11 +16,11 @@ import { deleteCategoryService } from "@/services/categories/delete-category";
 import { CATEGORY_PATH } from "@/constants/paths";
 
 /**
- * Creates a new category after validating the payload using validateData.
+ * Creates a new category after validating the input.
  */
-export async function createCategoryAction(payload: unknown) {
-  const validation = validateData(createCategorySchema, payload);
-  if (!validation.success) return validation; // Returns { success: false, error: "Invalid input fields." }
+export async function createCategoryAction(input: CreateCategoryInput) {
+  const validation = validateData(createCategorySchema, input);
+  if (!validation.success) return validation;
 
   try {
     const data = await createCategoryService({ data: { ...validation.data } });
@@ -32,8 +35,8 @@ export async function createCategoryAction(payload: unknown) {
 /**
  * Updates an existing category by its ID.
  */
-export async function updateCategoryAction(payload: unknown) {
-  const validation = validateData(updateCategorySchema, payload);
+export async function updateCategoryAction(input: UpdateCategoryInput) {
+  const validation = validateData(updateCategorySchema, input);
   if (!validation.success) return validation;
 
   try {
@@ -51,8 +54,8 @@ export async function updateCategoryAction(payload: unknown) {
 /**
  * Deletes a category by its ID.
  */
-export async function deleteCategoryAction(id: string) {
-  const validation = validateData(deleteCategorySchema, { id });
+export async function deleteCategoryAction(input: DeleteCategoryInput) {
+  const validation = validateData(deleteCategorySchema, input);
   if (!validation.success) return validation;
 
   try {
