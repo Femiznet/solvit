@@ -1,22 +1,15 @@
-import { db, type TxClient } from "@/database";
-import { projects, type NewProject, projectLikes, type NewProjectLike } from "@/database/schemas";
+import { db } from "@/database";
+import { projects, projectLikes } from "@/database/schemas";
+import { CreateProjectLikeInput } from "@/types";
+import { ServiceArgs } from "@/types/service-args";
+import { CreateProjectInput } from "@/zod-validators/zod-projects";
 
-interface CreateProjectArgs {
-  data: NewProject;
-  tx?: TxClient;
-}
-
-interface CreateProjectLikeArgs {
-  data: NewProjectLike;
-  tx?: TxClient;
-}
-
-export async function createProjectService({ data, tx }: CreateProjectArgs) {
+export async function createProjectService({ data, tx }: ServiceArgs<CreateProjectInput>) {
   const [newProject] = await db(tx).insert(projects).values(data).returning();
   return newProject;
 }
 
-export async function createProjectLikeService({ data, tx }: CreateProjectLikeArgs) {
+export async function createProjectLikeService({ data, tx }: ServiceArgs<CreateProjectLikeInput>) {
   const [newLike] = await db(tx).insert(projectLikes).values(data).returning();
   return newLike;
 }

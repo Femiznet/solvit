@@ -1,32 +1,47 @@
 import { z } from "zod";
+import { createSelectSchema, createInsertSchema } from "drizzle-zod";
+import { users } from "@/database/schemas";
 
-// Reusable validators
-const userIdString = z.uuid("Invalid user ID format.");
-const userDate = z.date();
-
-// 1. Base input fields required/accepted from user profile input
-const userInputSchema = z.object({
+// 1. Full Database Entity Schema (Select)
+export const userSchema = createSelectSchema(users, {
+  id: z.uuid("Invalid user ID format."),
   name: z.string().min(1, "Name is required").max(255, "Name cannot exceed 255 characters"),
   email: z.email("Invalid email address").max(255),
+  image: z.url("Invalid image URL").max(1000).optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+// 2. Create Schema (Insert)
+export const createUserSchema = createInsertSchema(users, {
+  name: z.string().min(1, "Name is required").max(255, "Name cannot exceed 255 characters"),
+  email: z.email("Invalid email address").max(255),
+  image: z.url("Invalid image URL").max(1000).optional(),
+}).pick({
+  name: true,
+  email: true,
+  image: true,
+});
+
+// 3. Update Schema
+export const updateUserSchema = createInsertSchema(users, {
+  name: z.string().min(1, "Name is required").max(255, "Name cannot exceed 255 characters").optional(),
+  email: z.email("Invalid email address").max(255).optional(),
   image: z.url("Invalid image URL").max(1000).nullable().optional(),
-});
+})
+  .pick({
+    name: true,
+    email: true,
+    image: true,
+  })
+  .partial()
+  .extend({
+    id: z.uuid("Invalid user ID format."),
+  });
 
-// 2. CRUD Schemas
-export const createUserSchema = userInputSchema;
-
-export const updateUserSchema = userInputSchema.partial().extend({
-  id: userIdString,
-});
-
+// 4. Delete Schema
 export const deleteUserSchema = z.object({
-  id: userIdString,
-});
-
-// 3. Full Database Entity Schema (Represents a complete record straight from Drizzle)
-export const userSchema = userInputSchema.extend({
-  id: userIdString,
-  createdAt: userDate,
-  updatedAt: userDate,
+  id: z.uuid("Invalid user ID format."),
 });
 
 // Exported Types

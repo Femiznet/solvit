@@ -81,11 +81,11 @@ describe("Likes Actions", () => {
 
       const result = await createProjectLikeAction(VALID_PROJECT_PAYLOAD);
 
-      expect(selectProjectService).toHaveBeenCalledWith({ id: VALID_PROJECT_ID, tx: mockTx });
-      expect(deleteProjectLikeService).toHaveBeenCalledWith({ userId: VALID_USER_ID, projectId: VALID_PROJECT_ID, tx: mockTx });
+      expect(selectProjectService).toHaveBeenCalledWith({ data: {projectId: VALID_PROJECT_ID}, tx: mockTx });
+      expect(deleteProjectLikeService).toHaveBeenCalledWith({data: { userId: VALID_USER_ID, projectId: VALID_PROJECT_ID}, tx: mockTx });
       expect(updateProjectService).toHaveBeenCalledWith({
-        id: VALID_PROJECT_ID,
-        data: { totalLikes: 4 },
+        
+        data: { id: VALID_PROJECT_ID, totalLikes: 4 },
         tx: mockTx,
       });
       expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
@@ -113,8 +113,8 @@ describe("Likes Actions", () => {
         tx: mockTx,
       });
       expect(updateProjectService).toHaveBeenCalledWith({
-        id: VALID_PROJECT_ID,
-        data: { totalLikes: 6 },
+        
+        data: { id: VALID_PROJECT_ID, totalLikes: 6 },
         tx: mockTx,
       });
       expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
@@ -171,11 +171,11 @@ describe("Likes Actions", () => {
 
       const result = await createSolutionLikeAction(VALID_SOLUTION_PAYLOAD);
 
-      expect(selectSolutionService).toHaveBeenCalledWith({ id: VALID_SOLUTION_ID, tx: mockTx });
-      expect(deleteSolutionLikeService).toHaveBeenCalledWith({ userId: VALID_USER_ID, solutionId: VALID_SOLUTION_ID, tx: mockTx });
+      expect(selectSolutionService).toHaveBeenCalledWith({data: { solutionId: VALID_SOLUTION_ID}, tx: mockTx });
+      expect(deleteSolutionLikeService).toHaveBeenCalledWith({data: { userId: VALID_USER_ID, solutionId: VALID_SOLUTION_ID}, tx: mockTx });
       expect(updateSolutionService).toHaveBeenCalledWith({
-        id: VALID_SOLUTION_ID,
-        data: { likes: 2 },
+        
+        data: { id: VALID_SOLUTION_ID, likes: 2 },
         tx: mockTx,
       });
       expect(revalidatePath).toHaveBeenCalledWith(`/solutions/${VALID_SOLUTION_ID}`);
@@ -203,8 +203,8 @@ describe("Likes Actions", () => {
         tx: mockTx,
       });
       expect(updateSolutionService).toHaveBeenCalledWith({
-        id: VALID_SOLUTION_ID,
-        data: { likes: 4 },
+        
+        data: { id: VALID_SOLUTION_ID, likes: 4 },
         tx: mockTx,
       });
       expect(revalidatePath).toHaveBeenCalledWith(`/solutions/${VALID_SOLUTION_ID}`);

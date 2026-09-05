@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
-import { projectSchema, updateProjectSchema } from "@/zod-validators/zod-projects";
+import { createProjectSchema, updateProjectSchema } from "@/zod-validators/zod-projects";
 import { createProjectService } from "@/services/projects/create-project";
 import { updateProjectService } from "@/services/projects/update-project";
 import { deleteProjectService } from "@/services/projects/delete-project";
@@ -11,7 +11,7 @@ import { deleteProjectService } from "@/services/projects/delete-project";
  * Creates a new project after verifying payloads via Zod.
  */
 export async function createProjectAction(payload: unknown) {
-  const validation = validateData(projectSchema, payload);
+  const validation = validateData(createProjectSchema, payload);
   if (!validation.success) return validation;
 
   try {
@@ -28,17 +28,17 @@ export async function createProjectAction(payload: unknown) {
 /**
  * Updates an existing project by its unique ID.
  */
-export async function updateProjectAction(id: string, payload: unknown) {
+export async function updateProjectAction(payload: unknown) {
   // Utilizing partial parsing for flexible frontend component inputs
   const validation = validateData(updateProjectSchema, payload);
   if (!validation.success) return validation;
 
   try {
     // Pass id and data as properties of a single destructured argument object
-    const data = await updateProjectService({ id, data: validation.data });
+    const data = await updateProjectService({ data: { ...validation.data } });
     if (!data) return { success: false, error: "Project entry not found." };
 
-    revalidatePath(`/projects/${id}`);
+    revalidatePath(`/projects/${validation.data.id}`);
     revalidatePath("/projects");
     return { success: true, data };
   } catch (error) {
@@ -53,7 +53,7 @@ export async function updateProjectAction(id: string, payload: unknown) {
 export async function deleteProjectAction({ id }: { id: string }) {
   try {
     // Pass id as a property within the structured parameter object
-    const data = await deleteProjectService({ id });
+    const data = await deleteProjectService({ data: { id } });
     if (!data) return { success: false, error: "Project entry not found." };
 
     revalidatePath("/projects");

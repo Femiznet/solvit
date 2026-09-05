@@ -1,14 +1,12 @@
-import { db, type TxClient } from "@/database";
+import { db } from "@/database";
 import { projects, type NewProject } from "@/database/schemas";
 import { eq } from "drizzle-orm";
+import { ServiceArgs } from "@/types";
 
-interface UpdateProjectArgs {
-  id: string;
-  data: Partial<NewProject>;
-  tx?: TxClient;
-}
-
-export async function updateProjectService({ id, data, tx }: UpdateProjectArgs) {
+export async function updateProjectService({
+  data: { id, ...data },
+  tx,
+}: ServiceArgs<{ id: string } & Partial<NewProject>>) {
   const [updatedProject] = await db(tx)
     .update(projects)
     .set({

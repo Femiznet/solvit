@@ -81,18 +81,22 @@ describe("User Actions", () => {
 
   describe("updateUserAction", () => {
     it("should successfully update an existing user with partial payload", async () => {
+      const FULL_PAYLOAD = {
+        id: VALID_USER_ID,
+        ...PARTIAL_VALID_PAYLOAD,
+      };
+
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: PARTIAL_VALID_PAYLOAD,
+        data: FULL_PAYLOAD,
       } as any);
       vi.mocked(updateUserService).mockResolvedValueOnce(MOCK_UPDATED_RESPONSE as any);
 
-      const result = await updateUserAction(VALID_USER_ID, PARTIAL_VALID_PAYLOAD);
+      const result = await updateUserAction(FULL_PAYLOAD);
 
-      expect(validateData).toHaveBeenCalledWith(updateUserSchema, PARTIAL_VALID_PAYLOAD);
+      expect(validateData).toHaveBeenCalledWith(updateUserSchema, FULL_PAYLOAD);
       expect(updateUserService).toHaveBeenCalledWith({ 
-        id: VALID_USER_ID, 
-        data: PARTIAL_VALID_PAYLOAD 
+        data: FULL_PAYLOAD,
       });
       expect(revalidatePath).toHaveBeenCalledWith(`/users/${VALID_USER_ID}`);
       expect(revalidatePath).toHaveBeenCalledWith("/users");
@@ -100,39 +104,54 @@ describe("User Actions", () => {
     });
 
     it("should return an error when update payload is invalid", async () => {
+      const INVALID_FULL_PAYLOAD = {
+        id: VALID_USER_ID,
+        ...INVALID_PAYLOAD,
+      };
+
       vi.mocked(validateData).mockReturnValueOnce({
         success: false,
         error: "Invalid input fields.",
       });
 
-      const result = await updateUserAction(VALID_USER_ID, INVALID_PAYLOAD);
+      const result = await updateUserAction(INVALID_FULL_PAYLOAD);
 
-      expect(validateData).toHaveBeenCalledWith(updateUserSchema, INVALID_PAYLOAD);
+      expect(validateData).toHaveBeenCalledWith(updateUserSchema, INVALID_FULL_PAYLOAD);
       expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(updateUserService).not.toHaveBeenCalled();
     });
 
     it("should return user account not found error if service returns null/undefined", async () => {
+      const FULL_PAYLOAD = {
+        id: VALID_USER_ID,
+        ...PARTIAL_VALID_PAYLOAD,
+      };
+
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: PARTIAL_VALID_PAYLOAD,
+        data: FULL_PAYLOAD,
       } as any);
       vi.mocked(updateUserService).mockResolvedValueOnce(null as any);
 
-      const result = await updateUserAction(VALID_USER_ID, PARTIAL_VALID_PAYLOAD);
+      const result = await updateUserAction(FULL_PAYLOAD);
 
       expect(result).toEqual({ success: false, error: "User account not found." });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when updating a user", async () => {
+      const FULL_PAYLOAD = {
+        id: VALID_USER_ID,
+        ...PARTIAL_VALID_PAYLOAD,
+      };
+
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: PARTIAL_VALID_PAYLOAD,
+        data: FULL_PAYLOAD,
       } as any);
       vi.mocked(updateUserService).mockRejectedValueOnce(new Error("Update failed"));
 
-      const result = await updateUserAction(VALID_USER_ID, PARTIAL_VALID_PAYLOAD);
+      const result = await updateUserAction(FULL_PAYLOAD);
 
       expect(result).toEqual({ success: false, error: "Failed to update user profile." });
       expect(console.error).toHaveBeenCalled();
@@ -150,7 +169,7 @@ describe("User Actions", () => {
       const result = await deleteUserAction(VALID_USER_ID);
 
       expect(validateData).toHaveBeenCalledWith(deleteUserSchema, VALID_USER_ID);
-      expect(deleteUserService).toHaveBeenCalledWith({ id: VALID_USER_ID });
+      expect(deleteUserService).toHaveBeenCalledWith({ data: {id: VALID_USER_ID} });
       expect(revalidatePath).toHaveBeenCalledWith("/users");
       expect(result).toEqual({ success: true, data: MOCK_USER_RESPONSE });
     });

@@ -1,28 +1,18 @@
-import { ProjectProgress } from "@/constants/enums";
-import { db, type TxClient } from "@/database";
+import { PROJECT_PROGRESS } from "@/constants/enums";
+import { db } from "@/database";
 import { userProgress, projects } from "@/database/schemas";
 import { eq, and } from "drizzle-orm";
+import { ServiceArgs } from "@/types";
 
-interface SelectUserProjectsArgs {
-  userId: string;
-  status?: ProjectProgress;
-  tx?: TxClient;
-}
-
-interface SelectProjectsByStatusArgs {
-  userId: string;
-  status: ProjectProgress;
-  tx?: TxClient;
-}
+type ProjectProgressType = (typeof PROJECT_PROGRESS)[number];
 
 /**
  * Get all projects for a user, optionally filtered by status
  */
 export async function selectUserProjectsService({
-  userId,
-  status,
+  data: { userId, status },
   tx,
-}: SelectUserProjectsArgs) {
+}: ServiceArgs<{ userId: string; status?: ProjectProgressType }>) {
   const results = await db(tx)
     .select({
       progress: userProgress,
@@ -48,10 +38,9 @@ export async function selectUserProjectsService({
  * Get all projects by specific status for a user
  */
 export async function selectProjectsByStatusService({
-  userId,
-  status,
+  data: { userId, status },
   tx,
-}: SelectProjectsByStatusArgs) {
+}: ServiceArgs<{ userId: string; status: ProjectProgressType }>) {
   const results = await db(tx)
     .select({
       progress: userProgress,
@@ -76,8 +65,11 @@ export async function selectProjectsByStatusService({
 /**
  * Get completion stats for a user
  */
-export async function selectUserProgressStatsService(userId: string) {
-  const allProgress = await db()
+export async function selectUserProgressStatsService({
+  data: { userId },
+  tx,
+}: ServiceArgs<{ userId: string }>) {
+  const allProgress = await db(tx)
     .select()
     .from(userProgress)
     .where(eq(userProgress.userId, userId));

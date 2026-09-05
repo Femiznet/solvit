@@ -20,7 +20,7 @@ export async function createCategoryAction(payload: unknown) {
   if (!validation.success) return validation; // Returns { success: false, error: "Invalid input fields." }
 
   try {
-    const data = await createCategoryService({ name: validation.data.name });
+    const data = await createCategoryService({ data: { ...validation.data } });
     revalidatePath(CATEGORY_PATH);
     return { success: true, data };
   } catch (error) {
@@ -37,8 +37,7 @@ export async function updateCategoryAction(payload: unknown) {
   if (!validation.success) return validation;
 
   try {
-    const { id, name } = validation.data;
-    const data = await updateCategoryService({ id, name });
+    const data = await updateCategoryService({ data: { ...validation.data } });
     if (!data) return { success: false, error: "Category not found." };
 
     revalidatePath(CATEGORY_PATH);
@@ -57,7 +56,7 @@ export async function deleteCategoryAction(id: string) {
   if (!validation.success) return validation;
 
   try {
-    const data = await deleteCategoryService({ id: validation.data.id });
+    const data = await deleteCategoryService({ data: { ...validation.data } });
     if (!data) return { success: false, error: "Category not found." };
 
     revalidatePath(CATEGORY_PATH);

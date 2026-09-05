@@ -1,13 +1,14 @@
 // src/services/projects/search-projects.ts
-import { db, type TxClient } from "@/database";
+import { db } from "@/database";
 import { projects } from "@/database/schemas";
 import { eq, and, or, ilike, inArray, asc, desc, sql } from "drizzle-orm";
 import { projectStacks } from "@/database/schemas/project-stacks";
 import { PROJECT_SORT_OPTIONS, ProjectLevel } from "@/constants/enums";
+import { ServiceArgs } from "@/types";
 
 export type ProjectSortOption = (typeof PROJECT_SORT_OPTIONS)[number];
 
-interface SearchProjectsArgs {
+export interface SearchProjectsInput {
   level?: ProjectLevel | ProjectLevel[];
   categoryId?: string;
   stackIds?: string[];
@@ -15,19 +16,27 @@ interface SearchProjectsArgs {
   optRequirements?: string[];
   query?: string;
   sort?: ProjectSortOption;
-  tx?: TxClient;
 }
 
-export async function searchProjectsService(args?: SearchProjectsArgs) {
-  const { level, categoryId, stackIds, requirements, optRequirements, query, sort = "newest", tx } = args || {};
+export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInput>) {
+  const { data = {}, tx } = args || {};
+  const {
+    level,
+    categoryId,
+    stackIds,
+    requirements,
+    optRequirements,
+    query,
+    sort = "newest",
+  } = data;
 
   const conditions = [];
 
   if (level) {
     if (Array.isArray(level)) {
-      conditions.push(inArray(projects.levels, level));
+      conditions.push(inArray(projects.level, level));
     } else {
-      conditions.push(eq(projects.levels, level));
+      conditions.push(eq(projects.level, level));
     }
   }
 

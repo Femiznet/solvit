@@ -32,17 +32,16 @@ export async function createProjectLikeAction(payload: unknown) {
   try {
     const result = await db().transaction(async (tx) => {
       // 1. Fetch current project to get totalLikes (passing tx context object)
-      const project = await selectProjectService({ id: projectId, tx });
+      const project = await selectProjectService({ data: { projectId }, tx });
       if (!project) throw new Error("Project not found");
 
       // 2. Check if like entry exists by attempting a clean conditional deletion
-      const deletedLike = await deleteProjectLikeService({ userId, projectId, tx });
+      const deletedLike = await deleteProjectLikeService({ data: { userId, projectId }, tx });
 
       if (deletedLike) {
         // Like existed, so we decrement
         await updateProjectService({
-          id: projectId,
-          data: { totalLikes: Math.max(0, project.totalLikes - 1) },
+          data: { id: projectId, totalLikes: Math.max(0, project.totalLikes - 1) },
           tx,
         });
         return { liked: false };
@@ -53,8 +52,7 @@ export async function createProjectLikeAction(payload: unknown) {
           tx,
         });
         await updateProjectService({
-          id: projectId,
-          data: { totalLikes: project.totalLikes + 1 },
+          data: { id: projectId, totalLikes: project.totalLikes + 1 },
           tx,
         });
         return { liked: true };
@@ -82,17 +80,16 @@ export async function createSolutionLikeAction(payload: unknown) {
   try {
     const result = await db().transaction(async (tx) => {
       // 1. Fetch current solution to get current likes count
-      const solution = await selectSolutionService({ id: solutionId, tx });
+      const solution = await selectSolutionService({ data: { solutionId }, tx });
       if (!solution) throw new Error("Solution not found");
 
       // 2. Attempt conditional deletion to see if user already liked it
-      const deletedLike = await deleteSolutionLikeService({ userId, solutionId, tx });
+      const deletedLike = await deleteSolutionLikeService({ data: { userId, solutionId }, tx });
 
       if (deletedLike) {
         // Like existed, decrement
         await updateSolutionService({
-          id: solutionId,
-          data: { likes: Math.max(0, solution.likes - 1) },
+          data: { id: solutionId, likes: Math.max(0, solution.likes - 1) },
           tx,
         });
         return { liked: false };
@@ -103,8 +100,8 @@ export async function createSolutionLikeAction(payload: unknown) {
           tx,
         });
         await updateSolutionService({
-          id: solutionId,
-          data: { likes: solution.likes + 1 },
+          
+          data: { id: solutionId, likes: solution.likes + 1 },
           tx,
         });
         return { liked: true };

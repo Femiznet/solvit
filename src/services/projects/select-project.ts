@@ -1,23 +1,18 @@
-import { db, type TxClient } from "@/database";
+import { db } from "@/database";
 import { projects } from "@/database/schemas";
 import { eq } from "drizzle-orm";
+import { ServiceArgs } from "@/types";
 
-interface SelectProjectArgs {
-  id: string;
-  tx?: TxClient;
-}
-
-interface SelectManyProjectsArgs {
-  tx?: TxClient;
-}
-
-export async function selectProjectService({ id, tx }: SelectProjectArgs) {
-  const [project] = await db(tx).select().from(projects).where(eq(projects.id, id));
+export async function selectProjectService({
+  data: { projectId },
+  tx,
+}: ServiceArgs<{ projectId: string }>) {
+  const [project] = await db(tx).select().from(projects).where(eq(projects.id, projectId));
 
   return project || null;
 }
 
-export async function selectManyProjectsService(args?: SelectManyProjectsArgs) {
+export async function selectManyProjectsService(args?: { tx?: ServiceArgs<never>["tx"] }) {
   const { tx } = args || {};
 
   return await db(tx).select().from(projects);

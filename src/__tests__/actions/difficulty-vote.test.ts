@@ -51,11 +51,11 @@ describe("Project Difficulty Actions", () => {
       const result = await voteDifficultyAction(VALID_PAYLOAD);
 
       expect(validateData).toHaveBeenCalledWith(voteDifficultySchema, VALID_PAYLOAD);
-      expect(upsertProjectDifficultyVoteService).toHaveBeenCalledWith({
+      expect(upsertProjectDifficultyVoteService).toHaveBeenCalledWith({data: {
         userId: VALID_USER_ID,
         projectId: VALID_PROJECT_ID,
         difficulty: "BEGINNER",
-      });
+      }});
       expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
       expect(result).toEqual({ success: true, data: MOCK_VOTE_RESPONSE });
     });

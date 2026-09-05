@@ -37,7 +37,7 @@ describe("Category Actions", () => {
 
       const result = await createCategoryAction(VALID_PAYLOAD);
 
-      expect(createCategoryService).toHaveBeenCalledWith(VALID_PAYLOAD);
+      expect(createCategoryService).toHaveBeenCalledWith({ data: {...VALID_PAYLOAD} });
       expect(revalidatePath).toHaveBeenCalledWith("/categories");
       expect(result).toEqual({ success: true, data: MOCK_CATEGORY_RESPONSE });
     });
@@ -66,10 +66,10 @@ describe("Category Actions", () => {
 
       const result = await updateCategoryAction(VALID_UPDATE_PAYLOAD);
 
-      expect(updateCategoryService).toHaveBeenCalledWith({ 
+      expect(updateCategoryService).toHaveBeenCalledWith({data: { 
         id: VALID_CATEGORY_ID, 
         name: VALID_UPDATE_PAYLOAD.name 
-      });
+      }});
       expect(revalidatePath).toHaveBeenCalledWith("/categories");
       expect(result).toEqual({ success: true, data: MOCK_UPDATED_RESPONSE });
     });
@@ -106,7 +106,7 @@ describe("Category Actions", () => {
 
       const result = await deleteCategoryAction(VALID_CATEGORY_ID);
 
-      expect(deleteCategoryService).toHaveBeenCalledWith({ id: VALID_CATEGORY_ID });
+      expect(deleteCategoryService).toHaveBeenCalledWith({ data: {id: VALID_CATEGORY_ID} });
       expect(revalidatePath).toHaveBeenCalledWith("/categories");
       expect(result).toEqual({ success: true, data: MOCK_CATEGORY_RESPONSE });
     });
