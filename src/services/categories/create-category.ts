@@ -1,14 +1,17 @@
-import { db, type TxClient } from "@/database";
+import { db } from "@/database";
 import { categories } from "@/database/schemas";
+import { ServiceArgs } from "@/types";
 
-interface CreateCategoryArgs {
-  name: string;
-  tx?: TxClient;
-}
-
-export async function createCategoryService({ name, tx }: CreateCategoryArgs) {
-  const [newCategory] = await db(tx).insert(categories).values({ name }).returning({
-    id: categories.id, name: categories.name
-  });
+export async function createCategoryService({
+  data: { name },
+  tx,
+}: ServiceArgs<{ name: string }>) {
+  const [newCategory] = await db(tx)
+    .insert(categories)
+    .values({ name })
+    .returning({
+      id: categories.id,
+      name: categories.name,
+    });
   return newCategory;
 }

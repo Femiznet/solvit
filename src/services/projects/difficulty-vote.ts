@@ -1,21 +1,12 @@
-import { ProjectDifficulty } from "@/constants/enums";
-import { db, type TxClient } from "@/database";
+import { db } from "@/database";
 import { projectDifficultyVotes } from "@/database/schemas/project-difficulty";
 import { eq } from "drizzle-orm";
-
-interface VoteDifficultyArgs {
-  userId: string;
-  projectId: string;
-  difficulty: ProjectDifficulty;
-  tx?: TxClient;
-}
+import { ServiceArgs, CreateProjectDifficultyVoteInput } from "@/types";
 
 export async function upsertProjectDifficultyVoteService({
-  userId,
-  projectId,
-  difficulty,
+  data: { userId, projectId, difficulty },
   tx,
-}: VoteDifficultyArgs) {
+}: ServiceArgs<CreateProjectDifficultyVoteInput>) {
   const client = db(tx);
 
   // Upsert vote (insert or update if user already voted on this project)
@@ -31,15 +22,10 @@ export async function upsertProjectDifficultyVoteService({
   return result;
 }
 
-interface GetProjectDifficultyStatsArgs {
-  projectId: string;
-  tx?: TxClient;
-}
-
 export async function selectProjectDifficultyStatsService({
-  projectId,
+  data: { projectId },
   tx,
-}: GetProjectDifficultyStatsArgs) {
+}: ServiceArgs<{ projectId: string }>) {
   const client = db(tx);
 
   const votes = await client
@@ -58,7 +44,7 @@ export async function selectProjectDifficultyStatsService({
 
   for (const vote of votes) {
     if (vote.difficulty in stats) {
-      stats[vote.difficulty as ProjectDifficulty]++;
+      stats[vote.difficulty as keyof typeof stats]++;
     }
   }
 

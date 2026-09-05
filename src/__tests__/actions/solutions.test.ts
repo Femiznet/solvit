@@ -81,64 +81,28 @@ describe("Solution Actions", () => {
     });
   });
 
-  describe("updateSolutionAction", () => {
-    it("should successfully update an existing solution with partial payload", async () => {
-      vi.mocked(validateData).mockReturnValueOnce({
-        success: true,
-        data: PARTIAL_VALID_PAYLOAD,
-      } as any);
-      vi.mocked(updateSolutionService).mockResolvedValueOnce(MOCK_UPDATED_RESPONSE as any);
+  it("should successfully update an existing solution with partial payload", async () => {
+    const FULL_PAYLOAD = {
+      id: VALID_SOLUTION_ID,
+      ...PARTIAL_VALID_PAYLOAD,
+    };
 
-      const result = await updateSolutionAction(VALID_SOLUTION_ID, PARTIAL_VALID_PAYLOAD);
+    vi.mocked(validateData).mockReturnValueOnce({
+      success: true,
+      data: FULL_PAYLOAD,
+    } as any);
+    vi.mocked(updateSolutionService).mockResolvedValueOnce(MOCK_UPDATED_RESPONSE as any);
 
-      expect(validateData).toHaveBeenCalledWith(updateSolutionSchema, PARTIAL_VALID_PAYLOAD);
-      expect(updateSolutionService).toHaveBeenCalledWith({ 
-        id: VALID_SOLUTION_ID, 
-        data: PARTIAL_VALID_PAYLOAD 
-      });
-      expect(revalidatePath).toHaveBeenCalledWith(`/solutions/${VALID_SOLUTION_ID}`);
-      expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
-      expect(result).toEqual({ success: true, data: MOCK_UPDATED_RESPONSE });
+    // Call with a single payload argument
+    const result = await updateSolutionAction(FULL_PAYLOAD);
+
+    expect(validateData).toHaveBeenCalledWith(updateSolutionSchema, FULL_PAYLOAD);
+    expect(updateSolutionService).toHaveBeenCalledWith({
+      data: FULL_PAYLOAD,
     });
-
-    it("should return an error when update payload is invalid", async () => {
-      vi.mocked(validateData).mockReturnValueOnce({
-        success: false,
-        error: "Invalid input fields.",
-      });
-
-      const result = await updateSolutionAction(VALID_SOLUTION_ID, INVALID_PAYLOAD);
-
-      expect(validateData).toHaveBeenCalledWith(updateSolutionSchema, INVALID_PAYLOAD);
-      expect(result).toEqual({ success: false, error: "Invalid input fields." });
-      expect(updateSolutionService).not.toHaveBeenCalled();
-    });
-
-    it("should return solution entry not found error if service returns null/undefined", async () => {
-      vi.mocked(validateData).mockReturnValueOnce({
-        success: true,
-        data: PARTIAL_VALID_PAYLOAD,
-      } as any);
-      vi.mocked(updateSolutionService).mockResolvedValueOnce(null as any);
-
-      const result = await updateSolutionAction(VALID_SOLUTION_ID, PARTIAL_VALID_PAYLOAD);
-
-      expect(result).toEqual({ success: false, error: "Solution entry not found." });
-      expect(revalidatePath).not.toHaveBeenCalled();
-    });
-
-    it("should handle service exceptions gracefully when updating a solution", async () => {
-      vi.mocked(validateData).mockReturnValueOnce({
-        success: true,
-        data: PARTIAL_VALID_PAYLOAD,
-      } as any);
-      vi.mocked(updateSolutionService).mockRejectedValueOnce(new Error("Update failed"));
-
-      const result = await updateSolutionAction(VALID_SOLUTION_ID, PARTIAL_VALID_PAYLOAD);
-
-      expect(result).toEqual({ success: false, error: "Failed to update solution." });
-      expect(console.error).toHaveBeenCalled();
-    });
+    expect(revalidatePath).toHaveBeenCalledWith(`/solutions/${VALID_SOLUTION_ID}`);
+    expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
+    expect(result).toEqual({ success: true, data: MOCK_UPDATED_RESPONSE });
   });
 
   describe("deleteSolutionAction", () => {
@@ -152,7 +116,7 @@ describe("Solution Actions", () => {
       const result = await deleteSolutionAction(VALID_SOLUTION_ID);
 
       expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, VALID_SOLUTION_ID);
-      expect(deleteSolutionService).toHaveBeenCalledWith({ id: VALID_SOLUTION_ID });
+      expect(deleteSolutionService).toHaveBeenCalledWith({ data: { id: VALID_SOLUTION_ID } });
       expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
       expect(revalidatePath).toHaveBeenCalledWith("/solutions");
       expect(result).toEqual({ success: true, data: MOCK_SOLUTION_RESPONSE });

@@ -3,18 +3,17 @@ import {
   createProgressAction,
   updateProgressAction,
 } from "@/actions/progress/actions";
-import { createProgressService } from "@/services/progress/create-progress";
-import { updateProgressService } from "@/services/progress/update-progress";
 import {
   createUserProgressSchema,
   updateUserProgressSchema,
 } from "@/zod-validators/zod-user-progress";
 import { validateData } from "@/lib/validate";
 import { revalidatePath } from "next/cache";
+import { createProgressService } from "@/services/users/create-user";
+import { updateProgressService } from "@/services/users/update-user";
 
-vi.mock("@/services/progress/create-progress");
-vi.mock("@/services/progress/update-progress");
-vi.mock("@/services/progress/select-progress");
+vi.mock("@/services/users/create-user");
+vi.mock("@/services/users/update-user");
 vi.mock("@/services/projects/select-user-projects");
 vi.mock("@/lib/validate", () => ({
   validateData: vi.fn(),
@@ -46,7 +45,7 @@ describe("User Project Progress Actions", () => {
       const result = await createProgressAction(VALID_CREATE_PAYLOAD);
 
       expect(validateData).toHaveBeenCalledWith(createUserProgressSchema, VALID_CREATE_PAYLOAD);
-      expect(createProgressService).toHaveBeenCalledWith(VALID_CREATE_PAYLOAD);
+      expect(createProgressService).toHaveBeenCalledWith({ data: {...VALID_CREATE_PAYLOAD} });
       expect(revalidatePath).toHaveBeenCalledWith("/dashboard");
       expect(result).toEqual({ success: true, data: MOCK_PROGRESS_RESPONSE });
     });
@@ -92,7 +91,7 @@ describe("User Project Progress Actions", () => {
       const result = await updateProgressAction(VALID_UPDATE_PAYLOAD);
 
       expect(validateData).toHaveBeenCalledWith(updateUserProgressSchema, VALID_UPDATE_PAYLOAD);
-      expect(updateProgressService).toHaveBeenCalledWith(VALID_UPDATE_PAYLOAD);
+      expect(updateProgressService).toHaveBeenCalledWith({data: {...VALID_UPDATE_PAYLOAD}});
       expect(revalidatePath).toHaveBeenCalledWith("/dashboard");
       expect(revalidatePath).toHaveBeenCalledWith("/projects");
       expect(result).toEqual({ success: true, data: MOCK_PROGRESS_RESPONSE });

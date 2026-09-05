@@ -12,11 +12,13 @@ export async function searchProjectsAction(payload: unknown){
     const { level, categoryId, stackIds, query, sort } = validation.data;
 
     const projects = await searchProjectsService({
-      level,
-      categoryId,
-      stackIds,
-      query,
-      sort,
+      data: {
+        level,
+        categoryId,
+        stackIds,
+        query,
+        sort,
+      }
     });
 
     return { success: true, data: projects };

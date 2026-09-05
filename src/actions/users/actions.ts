@@ -28,16 +28,16 @@ export async function createUserAction(payload: unknown) {
 /**
  * Updates an existing user's profile details.
  */
-export async function updateUserAction(id: string, payload: unknown) {
+export async function updateUserAction(payload: unknown) {
   const validation = validateData(updateUserSchema, payload);
   if (!validation.success) return validation;
 
   try {
     // Pass id and data as properties of a single destructured argument object
-    const data = await updateUserService({ id, data: validation.data });
+    const data = await updateUserService({ data: { ...validation.data } });
     if (!data) return { success: false, error: "User account not found." };
 
-    revalidatePath(`/users/${id}`);
+    revalidatePath(`/users/${validation.data.id}`);
     revalidatePath("/users");
     return { success: true, data };
   } catch (error) {
@@ -55,7 +55,7 @@ export async function deleteUserAction(id: string) {
 
   try {
     // Pass id as a property within the structured parameter object
-    const data = await deleteUserService({ id: validation.data.id });
+    const data = await deleteUserService({ data: { id: validation.data.id } });
     if (!data) return { success: false, error: "User account not found." };
 
     revalidatePath("/users");

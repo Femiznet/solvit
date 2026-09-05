@@ -1,22 +1,20 @@
-import { db, type TxClient } from "@/database";
+import { db } from "@/database";
 import { solutions, type NewSolution } from "@/database/schemas";
 import { eq } from "drizzle-orm";
+import { ServiceArgs } from "@/types";
 
-interface UpdateSolutionArgs {
-  id: string;
-  data: Partial<NewSolution>;
-  tx?: TxClient;
-}
-
-export async function updateSolutionService({ id, data, tx }: UpdateSolutionArgs) {
+export async function updateSolutionService({
+  data: { id, ...updateData },
+  tx,
+}: ServiceArgs<{ id: string } & Partial<NewSolution>>) {
   const [updatedSolution] = await db(tx)
     .update(solutions)
     .set({
-      ...data,
+      ...updateData,
       updatedAt: new Date(),
     })
     .where(eq(solutions.id, id))
     .returning();
 
-  return updatedSolution || null;
+  return updatedSolution ?? null;
 }

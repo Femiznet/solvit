@@ -13,9 +13,11 @@ export async function voteDifficultyAction(payload: unknown) {
 
   try {
     const data = await upsertProjectDifficultyVoteService({
-      userId,
-      projectId,
-      difficulty,
+      data: {
+        userId,
+        projectId,
+        difficulty,
+      }
     });
 
     revalidatePath(`/projects/${projectId}`);

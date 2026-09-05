@@ -16,7 +16,7 @@ export async function createSolutionAction(payload: unknown) {
 
   try {
     // Pass data as a destructured property object
-    const data = await createSolutionService({ data: validation.data });
+    const data = await createSolutionService({ data: { ...validation.data } });
 
     // Revalidate the project page this solution belongs to
     revalidatePath(`/projects/${data.projectId}`);
@@ -32,16 +32,16 @@ export async function createSolutionAction(payload: unknown) {
 /**
  * Updates an existing solution by its unique ID.
  */
-export async function updateSolutionAction(id: string, payload: unknown) {
+export async function updateSolutionAction(payload: unknown) {
   const validation = validateData(updateSolutionSchema, payload);
   if (!validation.success) return validation;
 
   try {
     // Pass id and data as properties of a single destructured argument object
-    const data = await updateSolutionService({ id, data: validation.data });
+    const data = await updateSolutionService({ data: { ...validation.data } });
     if (!data) return { success: false, error: "Solution entry not found." };
 
-    revalidatePath(`/solutions/${id}`);
+    revalidatePath(`/solutions/${validation.data.id}`);
     revalidatePath(`/projects/${data.projectId}`);
     return { success: true, data };
   } catch (error) {
@@ -59,7 +59,7 @@ export async function deleteSolutionAction(id: string) {
 
   try {
     // Pass id as a property within the structured parameter object
-    const data = await deleteSolutionService({ id: validation.data.id });
+    const data = await deleteSolutionService({ data: { ...validation.data } });
     if (!data) return { success: false, error: "Solution entry not found." };
 
     revalidatePath(`/projects/${data.projectId}`);

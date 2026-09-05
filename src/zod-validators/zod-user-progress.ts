@@ -1,49 +1,48 @@
 import { PROJECT_PROGRESS } from "@/constants/enums";
 import { z } from "zod";
+import { createSelectSchema, createInsertSchema } from "drizzle-zod";
+import { userProgress } from "@/database/schemas";
 
 export const progressStatusEnum = z.enum(PROJECT_PROGRESS);
 
-// Reusable core validators & helpers
-const userIdString = z.uuid("Invalid user ID format.");
-const projectIdString = z.uuid("Invalid project ID format.");
-const progressIdString = z.uuid("Invalid progress ID format.");
-
-const baseKeys = {
-  userId: userIdString,
-  projectId: projectIdString,
-};
-
-const defaultStatus = progressStatusEnum.default("BOOKMARKED");
-const optionalStatus = progressStatusEnum.optional();
-const optionalDate = z.date().optional();
-
-// Exported Schemas
-export const selectUserProgressSchema = z.object(baseKeys);
-
-export const createUserProgressSchema = z.object({
-  ...baseKeys,
-  status: defaultStatus,
-});
-
-export const updateUserProgressSchema = z.object({
-  ...baseKeys,
-  status: optionalStatus,
-  completedAt: optionalDate.nullable(),
+// 1. Action Schemas
+export const selectUserProgressSchema = z.object({
+  userId: z.uuid("Invalid user ID format."),
+  projectId: z.uuid("Invalid project ID format."),
 });
 
 export const getUserProjectsSchema = z.object({
-  userId: userIdString,
-  status: optionalStatus,
+  userId: z.uuid("Invalid user ID format."),
+  status: progressStatusEnum.optional(),
 });
 
-export const userProgressSchema = z.object({
-  id: progressIdString,
-  ...baseKeys,
-  status: defaultStatus,
-  startedAt: optionalDate,
-  completedAt: optionalDate.nullable(),
-  createdAt: optionalDate,
-  updatedAt: optionalDate,
+// 2. Create Schema
+export const createUserProgressSchema = createInsertSchema(userProgress)
+  .extend({
+    userId: z.uuid("Invalid user ID format."),
+    projectId: z.uuid("Invalid project ID format."),
+    status: progressStatusEnum.default("BOOKMARKED"),
+  })
+  .pick({
+    userId: true,
+    projectId: true,
+    status: true,
+  });
+
+// 3. Update Schema
+export const updateUserProgressSchema = z.object({
+  userId: z.uuid("Invalid user ID format."),
+  projectId: z.uuid("Invalid project ID format."),
+  status: progressStatusEnum.optional(),
+  completedAt: z.date().optional().nullable(),
+});
+
+// 4. Full Database Entity Schema (Select)
+export const userProgressSchema = createSelectSchema(userProgress).extend({
+  id: z.uuid("Invalid progress ID format."),
+  userId: z.uuid("Invalid user ID format."),
+  projectId: z.uuid("Invalid project ID format."),
+  status: progressStatusEnum,
 });
 
 // Exported Types

@@ -1,42 +1,69 @@
 import { z } from "zod";
+import { createSelectSchema, createInsertSchema } from "drizzle-zod";
+import { solutions, solutionLikes } from "@/database/schemas";
 
-// Reusable ID validators
-const solutionIdString = z.uuid("Invalid solution ID format.");
-const projectIdString = z.uuid("Invalid project ID format.");
-const userIdString = z.uuid("Invalid user ID format.");
-
-// 1. Base input fields required/accepted from user input
-const solutionInputSchema = z.object({
-  projectId: projectIdString,
+// 1. Full Database Entity Schema (Select)
+export const solutionSchema = createSelectSchema(solutions, {
+  id: z.uuid("Invalid solution ID format."),
+  projectId: z.uuid("Invalid project ID format."),
   title: z.string().min(1, "Title is required").max(255, "Title cannot exceed 255 characters"),
   description: z.string().nullable().optional(),
   repoUrl: z.url("Invalid repository URL").max(500).nullable().optional(),
   demoUrl: z.url("Invalid demo URL").max(500).nullable().optional(),
-  implFeat: z.array(z.string()).default([]),
+  implFeat: z.array(z.string()),
 });
 
-// 2. CRUD Schemas
-export const createSolutionSchema = solutionInputSchema;
-
-export const updateSolutionSchema = solutionInputSchema.partial().extend({
-  id: solutionIdString,
+// 2. Create Schema (Insert)
+export const createSolutionSchema = createInsertSchema(solutions, {
+  projectId: z.uuid("Invalid project ID format."),
+  title: z.string().min(1, "Title is required").max(255, "Title cannot exceed 255 characters"),
+  description: z.string().nullable().optional(),
+  repoUrl: z.url("Invalid repository URL").max(500).nullable().optional(),
+  demoUrl: z.url("Invalid demo URL").max(500).nullable().optional(),
+  implFeat: z.array(z.string()),
+}).pick({
+  projectId: true,
+  title: true,
+  description: true,
+  repoUrl: true,
+  demoUrl: true,
+  implFeat: true,
 });
 
+// 3. Update Schema
+export const updateSolutionSchema = createInsertSchema(solutions, {
+  projectId: z.uuid("Invalid project ID format."),
+  title: z.string().min(1, "Title is required").max(255, "Title cannot exceed 255 characters"),
+  description: z.string().nullable(),
+  repoUrl: z.url("Invalid repository URL").max(500),
+  demoUrl: z.url("Invalid demo URL").max(500),
+  implFeat: z.array(z.string()),
+})
+  .pick({
+    projectId: true,
+    title: true,
+    description: true,
+    repoUrl: true,
+    demoUrl: true,
+    implFeat: true,
+  })
+  .partial()
+  .extend({
+    id: z.uuid("Invalid solution ID format."),
+  });
+
+// 4. Delete Schema
 export const deleteSolutionSchema = z.object({
-  id: solutionIdString,
+  id: z.uuid("Invalid solution ID format."),
 });
 
-// 3. Full Database Entity Schema (Represents a complete record straight from Drizzle)
-export const solutionSchema = solutionInputSchema.extend({
-  id: solutionIdString,
-  createdAt: z.date(),
-  updatedAt: z.date(),
-});
-
-// 4. Solution Likes Schema
-export const solutionLikeSchema = z.object({
-  userId: userIdString,
-  solutionId: solutionIdString,
+// 5. Solution Likes Schema
+export const solutionLikeSchema = createInsertSchema(solutionLikes, {
+  userId: z.uuid("Invalid user ID format."),
+  solutionId: z.uuid("Invalid solution ID format."),
+}).pick({
+  userId: true,
+  solutionId: true,
 });
 
 // Exported Types

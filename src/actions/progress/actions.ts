@@ -6,9 +6,9 @@ import {
     createUserProgressSchema,
     updateUserProgressSchema
 } from "@/zod-validators/zod-user-progress";
-import { createProgressService } from "@/services/progress/create-progress";
-import { updateProgressService } from "@/services/progress/update-progress";
 import { DASHBOARD_PATH, PROJECTS_PATH } from "@/constants/paths";
+import { createProgressService } from "@/services/users/create-user";
+import { updateProgressService } from "@/services/users/update-user";
 
 /**
  * Create new user project progress entry (bookmark, start, complete)
@@ -20,7 +20,7 @@ export async function createProgressAction(
   if (!validation.success) return validation;
 
   try {
-    const progress = await createProgressService(validation.data);
+    const progress = await createProgressService({ data: {...validation.data} });
     revalidatePath(DASHBOARD_PATH);
     return { success: true, data: progress };
   } catch (error) {
@@ -39,7 +39,7 @@ export async function updateProgressAction(
   if (!validation.success) return validation;
 
   try {
-    const progress = await updateProgressService(validation.data);
+    const progress = await updateProgressService({ data: { ...validation.data } });
     revalidatePath(DASHBOARD_PATH);
     revalidatePath(PROJECTS_PATH);
     return { success: true, data: progress };

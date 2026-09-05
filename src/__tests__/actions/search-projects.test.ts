@@ -29,7 +29,7 @@ describe("Search Projects Action", () => {
     const result = await searchProjectsAction(VALID_SEARCH_PAYLOAD);
 
     expect(validateData).toHaveBeenCalledWith(searchProjectsSchema, VALID_SEARCH_PAYLOAD);
-    expect(searchProjectsService).toHaveBeenCalledWith({
+    expect(searchProjectsService).toHaveBeenCalledWith({data: {
       level: "beginner",
       categoryId: undefined,
       stackIds: undefined,
@@ -37,7 +37,7 @@ describe("Search Projects Action", () => {
       optRequirements: undefined,
       query: "React",
       sort: undefined,
-    });
+    }});
     expect(result).toEqual({ success: true, data: MOCK_PROJECTS_LIST });
   });
 

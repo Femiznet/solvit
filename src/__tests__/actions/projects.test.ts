@@ -4,7 +4,7 @@ import {
   updateProjectAction, 
   deleteProjectAction 
 } from "@/actions/projects/actions";
-import { projectSchema, updateProjectSchema } from "@/zod-validators/zod-projects";
+import { createProjectSchema, projectSchema, updateProjectSchema } from "@/zod-validators/zod-projects";
 import { createProjectService } from "@/services/projects/create-project";
 import { updateProjectService } from "@/services/projects/update-project";
 import { deleteProjectService } from "@/services/projects/delete-project";
@@ -45,7 +45,7 @@ describe("Project Actions", () => {
 
       const result = await createProjectAction(VALID_PAYLOAD);
 
-      expect(validateData).toHaveBeenCalledWith(projectSchema, VALID_PAYLOAD);
+      expect(validateData).toHaveBeenCalledWith(createProjectSchema, VALID_PAYLOAD);
       expect(createProjectService).toHaveBeenCalledWith({ data: VALID_PAYLOAD });
       expect(revalidatePath).toHaveBeenCalledWith("/projects");
       expect(result).toEqual({ success: true, data: MOCK_PROJECT_RESPONSE });
@@ -59,7 +59,7 @@ describe("Project Actions", () => {
 
       const result = await createProjectAction(INVALID_PAYLOAD);
 
-      expect(validateData).toHaveBeenCalledWith(projectSchema, INVALID_PAYLOAD);
+      expect(validateData).toHaveBeenCalledWith(createProjectSchema, INVALID_PAYLOAD);
       expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(createProjectService).not.toHaveBeenCalled();
       expect(revalidatePath).not.toHaveBeenCalled();
@@ -81,18 +81,22 @@ describe("Project Actions", () => {
 
   describe("updateProjectAction", () => {
     it("should successfully update an existing project with partial payload", async () => {
+      const FULL_PAYLOAD = {
+        id: VALID_PROJECT_ID,
+        ...PARTIAL_VALID_PAYLOAD,
+      };
+
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: PARTIAL_VALID_PAYLOAD,
+        data: FULL_PAYLOAD,
       } as any);
       vi.mocked(updateProjectService).mockResolvedValueOnce(MOCK_UPDATED_RESPONSE as any);
 
-      const result = await updateProjectAction(VALID_PROJECT_ID, PARTIAL_VALID_PAYLOAD);
+      const result = await updateProjectAction(FULL_PAYLOAD);
 
-      expect(validateData).toHaveBeenCalledWith(updateProjectSchema, PARTIAL_VALID_PAYLOAD);
+      expect(validateData).toHaveBeenCalledWith(updateProjectSchema, FULL_PAYLOAD);
       expect(updateProjectService).toHaveBeenCalledWith({ 
-        id: VALID_PROJECT_ID, 
-        data: PARTIAL_VALID_PAYLOAD 
+        data: FULL_PAYLOAD,
       });
       expect(revalidatePath).toHaveBeenCalledWith(`/projects/${VALID_PROJECT_ID}`);
       expect(revalidatePath).toHaveBeenCalledWith("/projects");
@@ -100,39 +104,54 @@ describe("Project Actions", () => {
     });
 
     it("should return an error when update payload is invalid", async () => {
+      const INVALID_FULL_PAYLOAD = {
+        id: VALID_PROJECT_ID,
+        ...INVALID_PAYLOAD,
+      };
+
       vi.mocked(validateData).mockReturnValueOnce({
         success: false,
         error: "Invalid input fields.",
       });
 
-      const result = await updateProjectAction(VALID_PROJECT_ID, INVALID_PAYLOAD);
+      const result = await updateProjectAction(INVALID_FULL_PAYLOAD);
 
-      expect(validateData).toHaveBeenCalledWith(updateProjectSchema, INVALID_PAYLOAD);
+      expect(validateData).toHaveBeenCalledWith(updateProjectSchema, INVALID_FULL_PAYLOAD);
       expect(result).toEqual({ success: false, error: "Invalid input fields." });
       expect(updateProjectService).not.toHaveBeenCalled();
     });
 
     it("should return project entry not found error if service returns null/undefined", async () => {
+      const FULL_PAYLOAD = {
+        id: VALID_PROJECT_ID,
+        ...PARTIAL_VALID_PAYLOAD,
+      };
+
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: PARTIAL_VALID_PAYLOAD,
+        data: FULL_PAYLOAD,
       } as any);
       vi.mocked(updateProjectService).mockResolvedValueOnce(null as any);
 
-      const result = await updateProjectAction(VALID_PROJECT_ID, PARTIAL_VALID_PAYLOAD);
+      const result = await updateProjectAction(FULL_PAYLOAD);
 
       expect(result).toEqual({ success: false, error: "Project entry not found." });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when updating a project", async () => {
+      const FULL_PAYLOAD = {
+        id: VALID_PROJECT_ID,
+        ...PARTIAL_VALID_PAYLOAD,
+      };
+
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: PARTIAL_VALID_PAYLOAD,
+        data: FULL_PAYLOAD,
       } as any);
       vi.mocked(updateProjectService).mockRejectedValueOnce(new Error("Update failed"));
 
-      const result = await updateProjectAction(VALID_PROJECT_ID, PARTIAL_VALID_PAYLOAD);
+      const result = await updateProjectAction(FULL_PAYLOAD);
 
       expect(result).toEqual({ success: false, error: "Failed to update project." });
       expect(console.error).toHaveBeenCalled();
@@ -145,7 +164,7 @@ describe("Project Actions", () => {
 
       const result = await deleteProjectAction({ id: VALID_PROJECT_ID });
 
-      expect(deleteProjectService).toHaveBeenCalledWith({ id: VALID_PROJECT_ID });
+      expect(deleteProjectService).toHaveBeenCalledWith({data: { id: VALID_PROJECT_ID }});
       expect(revalidatePath).toHaveBeenCalledWith("/projects");
       expect(result).toEqual({ success: true, data: MOCK_PROJECT_RESPONSE });
     });
