@@ -3,6 +3,10 @@ import { projectDifficultyVotes } from "@/database/schemas/project-difficulty";
 import { eq } from "drizzle-orm";
 import { ServiceArgs, CreateProjectDifficultyVoteInput } from "@/types";
 
+export type SelectProjectDifficultyStatsInput = {
+  projectId: string;
+};
+
 export async function upsertProjectDifficultyVoteService({
   data: { userId, projectId, difficulty },
   tx,
@@ -25,7 +29,7 @@ export async function upsertProjectDifficultyVoteService({
 export async function selectProjectDifficultyStatsService({
   data: { projectId },
   tx,
-}: ServiceArgs<{ projectId: string }>) {
+}: ServiceArgs<SelectProjectDifficultyStatsInput>) {
   const client = db(tx);
 
   const votes = await client

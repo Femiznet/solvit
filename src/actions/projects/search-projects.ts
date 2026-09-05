@@ -2,10 +2,13 @@
 
 import { validateData } from "@/lib/validate";
 import { searchProjectsService } from "@/services/projects/search-projects";
-import { searchProjectsSchema } from "@/zod-validators/zod-projects";
+import { 
+  searchProjectsSchema, 
+  type SearchProjectsInput 
+} from "@/zod-validators/zod-projects";
 
-export async function searchProjectsAction(payload: unknown){
-  const validation = validateData(searchProjectsSchema, payload);
+export async function searchProjectsAction(input: SearchProjectsInput){
+  const validation = validateData(searchProjectsSchema, input);
   if (!validation.success) return validation;
 
   try {

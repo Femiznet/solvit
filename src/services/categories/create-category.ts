@@ -1,11 +1,13 @@
 import { db } from "@/database";
-import { categories } from "@/database/schemas";
+import { categories, type NewCategory } from "@/database/schemas";
 import { ServiceArgs } from "@/types";
+
+export type CreateCategoryInput = Pick<NewCategory, "name">;
 
 export async function createCategoryService({
   data: { name },
   tx,
-}: ServiceArgs<{ name: string }>) {
+}: ServiceArgs<CreateCategoryInput>) {
   const [newCategory] = await db(tx)
     .insert(categories)
     .values({ name })

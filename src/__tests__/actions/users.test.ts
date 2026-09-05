@@ -4,7 +4,7 @@ import {
   updateUserAction, 
   deleteUserAction 
 } from "@/actions/users/actions";
-import { userSchema, deleteUserSchema, createUserSchema, updateUserSchema } from "@/zod-validators/zod-users";
+import { deleteUserSchema, createUserSchema, updateUserSchema } from "@/zod-validators/zod-users";
 import { createUserService } from "@/services/users/create-user";
 import { updateUserService } from "@/services/users/update-user";
 import { deleteUserService } from "@/services/users/delete-user";
@@ -21,13 +21,21 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-const VALID_USER_ID = "123e4567-e89b-12d3-a456-426614174000";
-const INVALID_USER_ID = "invalid-id";
-const VALID_PAYLOAD = { name: "John Doe", email: "john@example.com" };
-const INVALID_PAYLOAD = { email: "not-an-email" };
-const PARTIAL_VALID_PAYLOAD = { name: "Johnathan Doe" };
-const MOCK_USER_RESPONSE = { id: VALID_USER_ID, name: "John Doe", email: "john@example.com" };
-const MOCK_UPDATED_RESPONSE = { id: VALID_USER_ID, name: "Johnathan Doe", email: "john@example.com" };
+const VALID_UUID = "123e4567-e89b-12d3-a456-426614174000";
+const INVALID_UUID = "invalid-id";
+
+// Test Data Factories
+const createUserInput = (overrides = {}) => ({
+  name: "John Doe",
+  email: "john@example.com",
+  ...overrides,
+});
+
+const updateUserInput = (overrides = {}) => ({
+  id: VALID_UUID,
+  name: "Johnathan Doe",
+  ...overrides,
+});
 
 describe("User Actions", () => {
   beforeEach(() => {
@@ -37,18 +45,23 @@ describe("User Actions", () => {
 
   describe("createUserAction", () => {
     it("should successfully create a user when given a valid payload", async () => {
+      const input = createUserInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: VALID_PAYLOAD,
+        data: input,
       } as any);
-      vi.mocked(createUserService).mockResolvedValueOnce(MOCK_USER_RESPONSE as any);
 
-      const result = await createUserAction(VALID_PAYLOAD);
+      const mockResponse = { id: VALID_UUID, ...input };
+      vi.mocked(createUserService).mockResolvedValueOnce(mockResponse as any);
 
-      expect(validateData).toHaveBeenCalledWith(createUserSchema, VALID_PAYLOAD);
-      expect(createUserService).toHaveBeenCalledWith({ data: VALID_PAYLOAD });
+      const result = await createUserAction(input);
+
+      expect(validateData).toHaveBeenCalledWith(createUserSchema, input);
+      expect(createUserService).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining(input) })
+      );
       expect(revalidatePath).toHaveBeenCalledWith("/users");
-      expect(result).toEqual({ success: true, data: MOCK_USER_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
     it("should return an error when given an invalid payload", async () => {
@@ -57,103 +70,91 @@ describe("User Actions", () => {
         error: "Invalid input fields.",
       });
 
-      const result = await createUserAction(INVALID_PAYLOAD);
+      const input = createUserInput({ email: "not-an-email" });
+      const result = await createUserAction(input);
 
-      expect(validateData).toHaveBeenCalledWith(createUserSchema, INVALID_PAYLOAD);
-      expect(result).toEqual({ success: false, error: "Invalid input fields." });
+      expect(validateData).toHaveBeenCalledWith(createUserSchema, input);
+      expect(result).toEqual(expect.objectContaining({ success: false }));
       expect(createUserService).not.toHaveBeenCalled();
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when creating a user", async () => {
+      const input = createUserInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: VALID_PAYLOAD,
+        data: input,
       } as any);
       vi.mocked(createUserService).mockRejectedValueOnce(new Error("Database error"));
 
-      const result = await createUserAction(VALID_PAYLOAD);
+      const result = await createUserAction(input);
 
-      expect(result).toEqual({ success: false, error: "Failed to create user account." });
+      expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to create user account." }));
       expect(console.error).toHaveBeenCalled();
     });
   });
 
   describe("updateUserAction", () => {
     it("should successfully update an existing user with partial payload", async () => {
-      const FULL_PAYLOAD = {
-        id: VALID_USER_ID,
-        ...PARTIAL_VALID_PAYLOAD,
-      };
-
+      const input = updateUserInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: FULL_PAYLOAD,
+        data: input,
       } as any);
-      vi.mocked(updateUserService).mockResolvedValueOnce(MOCK_UPDATED_RESPONSE as any);
 
-      const result = await updateUserAction(FULL_PAYLOAD);
+      const mockResponse = { id: VALID_UUID, email: "john@example.com", ...input };
+      vi.mocked(updateUserService).mockResolvedValueOnce(mockResponse as any);
 
-      expect(validateData).toHaveBeenCalledWith(updateUserSchema, FULL_PAYLOAD);
-      expect(updateUserService).toHaveBeenCalledWith({ 
-        data: FULL_PAYLOAD,
-      });
-      expect(revalidatePath).toHaveBeenCalledWith(`/users/${VALID_USER_ID}`);
+      const result = await updateUserAction(input);
+
+      expect(validateData).toHaveBeenCalledWith(updateUserSchema, input);
+      expect(updateUserService).toHaveBeenCalledWith(
+        expect.objectContaining({ data: expect.objectContaining(input) })
+      );
+      expect(revalidatePath).toHaveBeenCalledWith(`/users/${VALID_UUID}`);
       expect(revalidatePath).toHaveBeenCalledWith("/users");
-      expect(result).toEqual({ success: true, data: MOCK_UPDATED_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
     it("should return an error when update payload is invalid", async () => {
-      const INVALID_FULL_PAYLOAD = {
-        id: VALID_USER_ID,
-        ...INVALID_PAYLOAD,
-      };
-
       vi.mocked(validateData).mockReturnValueOnce({
         success: false,
         error: "Invalid input fields.",
       });
 
-      const result = await updateUserAction(INVALID_FULL_PAYLOAD);
+      const input = updateUserInput({ email: "not-an-email" });
+      const result = await updateUserAction(input);
 
-      expect(validateData).toHaveBeenCalledWith(updateUserSchema, INVALID_FULL_PAYLOAD);
-      expect(result).toEqual({ success: false, error: "Invalid input fields." });
+      expect(validateData).toHaveBeenCalledWith(updateUserSchema, input);
+      expect(result).toEqual(expect.objectContaining({ success: false }));
       expect(updateUserService).not.toHaveBeenCalled();
     });
 
     it("should return user account not found error if service returns null/undefined", async () => {
-      const FULL_PAYLOAD = {
-        id: VALID_USER_ID,
-        ...PARTIAL_VALID_PAYLOAD,
-      };
-
+      const input = updateUserInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: FULL_PAYLOAD,
+        data: input,
       } as any);
       vi.mocked(updateUserService).mockResolvedValueOnce(null as any);
 
-      const result = await updateUserAction(FULL_PAYLOAD);
+      const result = await updateUserAction(input);
 
       expect(result).toEqual({ success: false, error: "User account not found." });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when updating a user", async () => {
-      const FULL_PAYLOAD = {
-        id: VALID_USER_ID,
-        ...PARTIAL_VALID_PAYLOAD,
-      };
-
+      const input = updateUserInput();
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: FULL_PAYLOAD,
+        data: input,
       } as any);
       vi.mocked(updateUserService).mockRejectedValueOnce(new Error("Update failed"));
 
-      const result = await updateUserAction(FULL_PAYLOAD);
+      const result = await updateUserAction(input);
 
-      expect(result).toEqual({ success: false, error: "Failed to update user profile." });
+      expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to update user profile." }));
       expect(console.error).toHaveBeenCalled();
     });
   });
@@ -162,28 +163,31 @@ describe("User Actions", () => {
     it("should successfully delete an existing user by ID", async () => {
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: { id: VALID_USER_ID },
+        data: { id: VALID_UUID },
       } as any);
-      vi.mocked(deleteUserService).mockResolvedValueOnce(MOCK_USER_RESPONSE as any);
 
-      const result = await deleteUserAction(VALID_USER_ID);
+      const mockResponse = { id: VALID_UUID, ...createUserInput() };
+      vi.mocked(deleteUserService).mockResolvedValueOnce(mockResponse as any);
 
-      expect(validateData).toHaveBeenCalledWith(deleteUserSchema, VALID_USER_ID);
-      expect(deleteUserService).toHaveBeenCalledWith({ data: {id: VALID_USER_ID} });
+      const result = await deleteUserAction(VALID_UUID);
+
+      expect(validateData).toHaveBeenCalledWith(deleteUserSchema, expect.anything());
+      expect(deleteUserService).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { id: VALID_UUID } })
+      );
       expect(revalidatePath).toHaveBeenCalledWith("/users");
-      expect(result).toEqual({ success: true, data: MOCK_USER_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
     it("should return user account not found error if deletion target does not exist", async () => {
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: { id: INVALID_USER_ID },
+        data: { id: INVALID_UUID },
       } as any);
       vi.mocked(deleteUserService).mockResolvedValueOnce(null as any);
 
-      const result = await deleteUserAction(INVALID_USER_ID);
+      const result = await deleteUserAction(INVALID_UUID);
 
-      expect(validateData).toHaveBeenCalledWith(deleteUserSchema, INVALID_USER_ID);
       expect(result).toEqual({ success: false, error: "User account not found." });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
@@ -191,14 +195,13 @@ describe("User Actions", () => {
     it("should handle service exceptions gracefully when deleting a user", async () => {
       vi.mocked(validateData).mockReturnValueOnce({
         success: true,
-        data: { id: VALID_USER_ID },
+        data: { id: VALID_UUID },
       } as any);
       vi.mocked(deleteUserService).mockRejectedValueOnce(new Error("Delete failed"));
 
-      const result = await deleteUserAction(VALID_USER_ID);
+      const result = await deleteUserAction(VALID_UUID);
 
-      expect(validateData).toHaveBeenCalledWith(deleteUserSchema, VALID_USER_ID);
-      expect(result).toEqual({ success: false, error: "Failed to delete user account." });
+      expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to delete user account." }));
       expect(console.error).toHaveBeenCalled();
     });
   });

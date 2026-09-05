@@ -3,10 +3,19 @@ import { solutions, solutionLikes } from "@/database/schemas";
 import { eq, and } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
+export type DeleteSolutionInput = {
+  id: string;
+};
+
+export type DeleteSolutionLikeInput = {
+  userId: string;
+  solutionId: string;
+};
+
 export async function deleteSolutionService({
   data: { id },
   tx,
-}: ServiceArgs<{ id: string }>) {
+}: ServiceArgs<DeleteSolutionInput>) {
   const [deletedSolution] = await db(tx).delete(solutions).where(eq(solutions.id, id)).returning();
 
   return deletedSolution || null;
@@ -15,7 +24,7 @@ export async function deleteSolutionService({
 export async function deleteSolutionLikeService({
   data: { userId, solutionId },
   tx,
-}: ServiceArgs<{ userId: string; solutionId: string }>) {
+}: ServiceArgs<DeleteSolutionLikeInput>) {
   const [deletedLike] = await db(tx)
     .delete(solutionLikes)
     .where(and(eq(solutionLikes.userId, userId), eq(solutionLikes.solutionId, solutionId)))

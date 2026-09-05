@@ -2,7 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
-import { createUserSchema, deleteUserSchema, updateUserSchema } from "@/zod-validators/zod-users";
+import { 
+  createUserSchema, 
+  deleteUserSchema, 
+  updateUserSchema,
+  type CreateUserInput,
+  type UpdateUserInput,
+  type DeleteUserInput
+} from "@/zod-validators/zod-users";
 import { createUserService } from "@/services/users/create-user";
 import { updateUserService } from "@/services/users/update-user";
 import { deleteUserService } from "@/services/users/delete-user";
@@ -10,8 +17,8 @@ import { deleteUserService } from "@/services/users/delete-user";
 /**
  * Creates a new user after verifying payloads via Zod.
  */
-export async function createUserAction(payload: unknown) {
-  const validation = validateData(createUserSchema, payload);
+export async function createUserAction(input: CreateUserInput) {
+  const validation = validateData(createUserSchema, input);
   if (!validation.success) return validation;
 
   try {
@@ -28,8 +35,8 @@ export async function createUserAction(payload: unknown) {
 /**
  * Updates an existing user's profile details.
  */
-export async function updateUserAction(payload: unknown) {
-  const validation = validateData(updateUserSchema, payload);
+export async function updateUserAction(input: UpdateUserInput) {
+  const validation = validateData(updateUserSchema, input);
   if (!validation.success) return validation;
 
   try {
@@ -49,8 +56,8 @@ export async function updateUserAction(payload: unknown) {
 /**
  * Deletes a user account by their unique ID.
  */
-export async function deleteUserAction(id: string) {
-  const validation = validateData(deleteUserSchema, id);
+export async function deleteUserAction(input: DeleteUserInput) {
+  const validation = validateData(deleteUserSchema, input);
   if (!validation.success) return validation;
 
   try {

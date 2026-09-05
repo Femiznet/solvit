@@ -3,8 +3,14 @@
 import { db } from "@/database";
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
-import { projectLikeSchema } from "@/zod-validators/zod-projects";
-import { solutionLikeSchema } from "@/zod-validators/zod-solutions";
+import { 
+  projectLikeSchema,
+  type ProjectLikeInput 
+} from "@/zod-validators/zod-projects";
+import { 
+  solutionLikeSchema,
+  type SolutionLikeInput 
+} from "@/zod-validators/zod-solutions";
 
 // Project Like Services
 import { selectProjectService } from "@/services/projects/select-project";
@@ -23,8 +29,8 @@ import { projectIdPath, solutionIdPath } from "@/constants/paths";
  * Toggles a project like entry.
  * Increments or decrements the project totalLikes counter atomically.
  */
-export async function createProjectLikeAction(payload: unknown) {
-  const validation = validateData(projectLikeSchema, payload);
+export async function createProjectLikeAction(input: ProjectLikeInput) {
+  const validation = validateData(projectLikeSchema, input);
   if (!validation.success) return validation;
 
   const { userId, projectId } = validation.data;
@@ -71,8 +77,8 @@ export async function createProjectLikeAction(payload: unknown) {
  * Toggles a solution like entry.
  * Increments or decrements the solution likes counter atomically.
  */
-export async function createSolutionLikeAction(payload: unknown) {
-  const validation = validateData(solutionLikeSchema, payload);
+export async function createSolutionLikeAction(input: SolutionLikeInput) {
+  const validation = validateData(solutionLikeSchema, input);
   if (!validation.success) return validation;
 
   const { userId, solutionId } = validation.data;
@@ -100,7 +106,6 @@ export async function createSolutionLikeAction(payload: unknown) {
           tx,
         });
         await updateSolutionService({
-          
           data: { id: solutionId, likes: solution.likes + 1 },
           tx,
         });

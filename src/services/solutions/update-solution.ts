@@ -3,10 +3,12 @@ import { solutions, type NewSolution } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
+export type UpdateSolutionInput = { id: string } & Partial<NewSolution>;
+
 export async function updateSolutionService({
   data: { id, ...updateData },
   tx,
-}: ServiceArgs<{ id: string } & Partial<NewSolution>>) {
+}: ServiceArgs<UpdateSolutionInput>) {
   const [updatedSolution] = await db(tx)
     .update(solutions)
     .set({

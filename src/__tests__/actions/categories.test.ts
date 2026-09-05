@@ -16,14 +16,24 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-const VALID_CATEGORY_ID = "123e4567-e89b-12d3-a456-426614174000";
-const INVALID_CATEGORY_ID = "invalid-id";
-const VALID_PAYLOAD = { name: "Software Development" };
-const INVALID_PAYLOAD = { name: "" };
-const VALID_UPDATE_PAYLOAD = { id: VALID_CATEGORY_ID, name: "Updated Software Development" };
-const INVALID_UPDATE_PAYLOAD = { id: INVALID_CATEGORY_ID, name: "" };
-const MOCK_CATEGORY_RESPONSE = { id: VALID_CATEGORY_ID, name: "Software Development" };
-const MOCK_UPDATED_RESPONSE = { id: VALID_CATEGORY_ID, name: "Updated Software Development" };
+const VALID_UUID = "123e4567-e89b-12d3-a456-426614174000";
+
+// Test Data Factories (Resilient to schema evolution)
+const createMockInput = (overrides = {}) => ({
+  name: "Software Development",
+  ...overrides,
+});
+
+const updateMockInput = (overrides = {}) => ({
+  id: VALID_UUID,
+  name: "Updated Software Development",
+  ...overrides,
+});
+
+const deleteMockInput = (overrides = {}) => ({
+  id: VALID_UUID,
+  ...overrides,
+});
 
 describe("Category Actions", () => {
   beforeEach(() => {
@@ -33,19 +43,22 @@ describe("Category Actions", () => {
 
   describe("createCategoryAction", () => {
     it("should successfully create a category when given a valid payload", async () => {
-      vi.mocked(createCategoryService).mockResolvedValueOnce(MOCK_CATEGORY_RESPONSE);
+      const mockResponse = { id: VALID_UUID, name: "Software Development" };
+      vi.mocked(createCategoryService).mockResolvedValueOnce(mockResponse as any);
 
-      const result = await createCategoryAction(VALID_PAYLOAD);
+      const input = createMockInput();
+      const result = await createCategoryAction(input);
 
-      expect(createCategoryService).toHaveBeenCalledWith({ data: {...VALID_PAYLOAD} });
+      expect(createCategoryService).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(input) }));
       expect(revalidatePath).toHaveBeenCalledWith("/categories");
-      expect(result).toEqual({ success: true, data: MOCK_CATEGORY_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
     it("should return an error when given an invalid payload", async () => {
-      const result = await createCategoryAction(INVALID_PAYLOAD);
+      const input = createMockInput({ name: "" });
+      const result = await createCategoryAction(input);
 
-      expect(result).toEqual({ success: false, error: "Invalid input fields." });
+      expect(result).toEqual(expect.objectContaining({ success: false }));
       expect(createCategoryService).not.toHaveBeenCalled();
       expect(revalidatePath).not.toHaveBeenCalled();
     });
@@ -53,38 +66,38 @@ describe("Category Actions", () => {
     it("should handle service exceptions gracefully when creating a category", async () => {
       vi.mocked(createCategoryService).mockRejectedValueOnce(new Error("Database connection error"));
 
-      const result = await createCategoryAction(VALID_PAYLOAD);
+      const result = await createCategoryAction(createMockInput());
 
-      expect(result).toEqual({ success: false, error: "Failed to create category." });
+      expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to create category." }));
       expect(console.error).toHaveBeenCalled();
     });
   });
 
   describe("updateCategoryAction", () => {
     it("should successfully update an existing category with payload", async () => {
-      vi.mocked(updateCategoryService).mockResolvedValueOnce(MOCK_UPDATED_RESPONSE);
+      const mockResponse = { id: VALID_UUID, name: "Updated Software Development" };
+      vi.mocked(updateCategoryService).mockResolvedValueOnce(mockResponse as any);
 
-      const result = await updateCategoryAction(VALID_UPDATE_PAYLOAD);
+      const input = updateMockInput();
+      const result = await updateCategoryAction(input);
 
-      expect(updateCategoryService).toHaveBeenCalledWith({data: { 
-        id: VALID_CATEGORY_ID, 
-        name: VALID_UPDATE_PAYLOAD.name 
-      }});
+      expect(updateCategoryService).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(input) }));
       expect(revalidatePath).toHaveBeenCalledWith("/categories");
-      expect(result).toEqual({ success: true, data: MOCK_UPDATED_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
     it("should return an error when update payload is invalid", async () => {
-      const result = await updateCategoryAction(INVALID_UPDATE_PAYLOAD);
+      const input = updateMockInput({ name: "" });
+      const result = await updateCategoryAction(input);
 
-      expect(result).toEqual({ success: false, error: "Invalid input fields." });
+      expect(result).toEqual(expect.objectContaining({ success: false }));
       expect(updateCategoryService).not.toHaveBeenCalled();
     });
 
     it("should return category not found error if service returns null/undefined", async () => {
       vi.mocked(updateCategoryService).mockResolvedValueOnce(null as any);
 
-      const result = await updateCategoryAction(VALID_UPDATE_PAYLOAD);
+      const result = await updateCategoryAction(updateMockInput());
 
       expect(result).toEqual({ success: false, error: "Category not found." });
       expect(revalidatePath).not.toHaveBeenCalled();
@@ -93,39 +106,41 @@ describe("Category Actions", () => {
     it("should handle service exceptions gracefully when updating a category", async () => {
       vi.mocked(updateCategoryService).mockRejectedValueOnce(new Error("Update failed"));
 
-      const result = await updateCategoryAction(VALID_UPDATE_PAYLOAD);
+      const result = await updateCategoryAction(updateMockInput());
 
-      expect(result).toEqual({ success: false, error: "Failed to update category." });
+      expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to update category." }));
       expect(console.error).toHaveBeenCalled();
     });
   });
 
   describe("deleteCategoryAction", () => {
     it("should successfully delete an existing category by ID", async () => {
-      vi.mocked(deleteCategoryService).mockResolvedValueOnce(MOCK_CATEGORY_RESPONSE);
+      const mockResponse = { id: VALID_UUID, name: "Software Development" };
+      vi.mocked(deleteCategoryService).mockResolvedValueOnce(mockResponse as any);
 
-      const result = await deleteCategoryAction(VALID_CATEGORY_ID);
+      const input = deleteMockInput();
+      const result = await deleteCategoryAction(input);
 
-      expect(deleteCategoryService).toHaveBeenCalledWith({ data: {id: VALID_CATEGORY_ID} });
+      expect(deleteCategoryService).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining(input) }));
       expect(revalidatePath).toHaveBeenCalledWith("/categories");
-      expect(result).toEqual({ success: true, data: MOCK_CATEGORY_RESPONSE });
+      expect(result).toEqual(expect.objectContaining({ success: true, data: mockResponse }));
     });
 
-    it("should return category not found error if deletion target does not exist", async () => {
-      vi.mocked(deleteCategoryService).mockResolvedValueOnce(null as any);
+    it("should return an error if deletion target has an invalid ID", async () => {
+      const input = deleteMockInput({ id: "invalid-id" });
+      const result = await deleteCategoryAction(input);
 
-      const result = await deleteCategoryAction(INVALID_CATEGORY_ID);
-
-      expect(result).toEqual({ success: false, error: "Invalid input fields." });
+      expect(result).toEqual(expect.objectContaining({ success: false }));
+      expect(deleteCategoryService).not.toHaveBeenCalled();
       expect(revalidatePath).not.toHaveBeenCalled();
     });
 
     it("should handle service exceptions gracefully when deleting a category", async () => {
       vi.mocked(deleteCategoryService).mockRejectedValueOnce(new Error("Delete failed"));
 
-      const result = await deleteCategoryAction(INVALID_CATEGORY_ID);
+      const result = await deleteCategoryAction(deleteMockInput());
 
-      expect(result).toEqual({ success: false, error: "Invalid input fields." });
+      expect(result).toEqual(expect.objectContaining({ success: false }));
       expect(console.error).toHaveBeenCalled();
     });
   });

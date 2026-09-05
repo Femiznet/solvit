@@ -6,13 +6,27 @@ import { ServiceArgs } from "@/types";
 
 type ProjectProgressType = (typeof PROJECT_PROGRESS)[number];
 
+export type SelectUserProjectsInput = {
+  userId: string;
+  status?: ProjectProgressType;
+};
+
+export type SelectProjectsByStatusInput = {
+  userId: string;
+  status: ProjectProgressType;
+};
+
+export type SelectUserProgressStatsInput = {
+  userId: string;
+};
+
 /**
  * Get all projects for a user, optionally filtered by status
  */
 export async function selectUserProjectsService({
   data: { userId, status },
   tx,
-}: ServiceArgs<{ userId: string; status?: ProjectProgressType }>) {
+}: ServiceArgs<SelectUserProjectsInput>) {
   const results = await db(tx)
     .select({
       progress: userProgress,
@@ -40,7 +54,7 @@ export async function selectUserProjectsService({
 export async function selectProjectsByStatusService({
   data: { userId, status },
   tx,
-}: ServiceArgs<{ userId: string; status: ProjectProgressType }>) {
+}: ServiceArgs<SelectProjectsByStatusInput>) {
   const results = await db(tx)
     .select({
       progress: userProgress,
@@ -68,7 +82,7 @@ export async function selectProjectsByStatusService({
 export async function selectUserProgressStatsService({
   data: { userId },
   tx,
-}: ServiceArgs<{ userId: string }>) {
+}: ServiceArgs<SelectUserProgressStatsInput>) {
   const allProgress = await db(tx)
     .select()
     .from(userProgress)
