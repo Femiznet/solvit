@@ -1,6 +1,7 @@
 "use server";
 
 import { validateData } from "@/lib/validate";
+import { safeAction } from "@/utils/file-logger";
 import { searchProjectsService } from "@/services/projects/search-projects";
 import { 
   searchProjectsSchema, 
@@ -11,10 +12,10 @@ export async function searchProjectsAction(input: SearchProjectsInput){
   const validation = validateData(searchProjectsSchema, input);
   if (!validation.success) return validation;
 
-  try {
-    const { level, categoryId, stackIds, query, sort } = validation.data;
+  const { level, categoryId, stackIds, query, sort } = validation.data;
 
-    const projects = await searchProjectsService({
+  const result = await safeAction(async () => {
+    return await searchProjectsService({
       data: {
         level,
         categoryId,
@@ -23,10 +24,9 @@ export async function searchProjectsAction(input: SearchProjectsInput){
         sort,
       }
     });
+  }, "Failed to search projects.");
 
-    return { success: true, data: projects };
-  } catch (error) {
-    console.error("Search projects error:", error);
-    return { success: false, error: "Failed to search projects." };
-  }
+  if (!result.success) return result;
+
+  return { success: true, data: result.data };
 }

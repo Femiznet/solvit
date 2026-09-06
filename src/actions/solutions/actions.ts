@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
+import { safeAction } from "@/utils/file-logger";
 import { 
   createSolutionSchema, 
   deleteSolutionSchema, 
@@ -21,17 +22,16 @@ export async function createSolutionAction(payload: CreateSolutionInput) {
   const validation = validateData(createSolutionSchema, payload);
   if (!validation.success) return validation;
 
-  try {
-    const data = await createSolutionService({ data: { ...validation.data } });
+  const result = await safeAction(async () => {
+    return await createSolutionService({ data: { ...validation.data } });
+  }, "Failed to create solution.");
 
-    revalidatePath(`/projects/${validation.data.projectId}`);
-    revalidatePath("/solutions");
+  if (!result.success) return result;
 
-    return { success: true, data };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to create solution." };
-  }
+  revalidatePath(`/projects/${validation.data.projectId}`);
+  revalidatePath("/solutions");
+
+  return { success: true, data: result.data };
 }
 
 /**
@@ -41,17 +41,16 @@ export async function updateSolutionAction(payload: UpdateSolutionInput) {
   const validation = validateData(updateSolutionSchema, payload);
   if (!validation.success) return validation;
 
-  try {
-    const data = await updateSolutionService({ data: { ...validation.data } });
-    if (!data) return { success: false, error: "Solution entry not found." };
+  const result = await safeAction(async () => {
+    return await updateSolutionService({ data: { ...validation.data } });
+  }, "Failed to update solution.");
 
-    revalidatePath(`/solutions/${validation.data.id}`);
-    revalidatePath(`/projects/${validation.data.projectId}`);
-    return { success: true, data };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to update solution." };
-  }
+  if (!result.success) return result;
+  if (!result.data) return { success: false, error: "Solution entry not found." };
+
+  revalidatePath(`/solutions/${validation.data.id}`);
+  revalidatePath(`/projects/${validation.data.projectId}`);
+  return { success: true, data: result.data };
 }
 
 /**
@@ -61,15 +60,14 @@ export async function deleteSolutionAction(payload: DeleteSolutionInput){
   const validation = validateData(deleteSolutionSchema, payload);
   if (!validation.success) return validation;
 
-  try {
-    const data = await deleteSolutionService({ data: { ...validation.data } });
-    if (!data) return { success: false, error: "Solution entry not found." };
+  const result = await safeAction(async () => {
+    return await deleteSolutionService({ data: { ...validation.data } });
+  }, "Failed to delete solution.");
 
-    revalidatePath(`/projects/${data.projectId}`);
-    revalidatePath("/solutions");
-    return { success: true, data };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to delete solution." };
-  }
+  if (!result.success) return result;
+  if (!result.data) return { success: false, error: "Solution entry not found." };
+
+  revalidatePath(`/projects/${result.data.projectId}`);
+  revalidatePath("/solutions");
+  return { success: true, data: result.data };
 }

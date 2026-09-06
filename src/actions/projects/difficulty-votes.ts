@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
+import { safeAction } from "@/utils/file-logger";
 import { 
   voteDifficultySchema, 
   type VoteDifficultyInput 
@@ -14,19 +15,18 @@ export async function voteDifficultyAction(input: VoteDifficultyInput) {
 
   const { userId, projectId, difficulty } = validation.data;
 
-  try {
-    const data = await upsertProjectDifficultyVoteService({
+  const result = await safeAction(async () => {
+    return await upsertProjectDifficultyVoteService({
       data: {
         userId,
         projectId,
         difficulty,
       }
     });
+  }, "Failed to submit difficulty vote.");
 
-    revalidatePath(`/projects/${projectId}`);
-    return { success: true, data };
-  } catch (error) {
-    console.error("Vote project difficulty error:", error);
-    return { success: false, error: "Failed to submit difficulty vote." };
-  }
+  if (!result.success) return result;
+
+  revalidatePath(`/projects/${projectId}`);
+  return { success: true, data: result.data };
 }

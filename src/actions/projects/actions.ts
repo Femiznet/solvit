@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
+import { safeAction } from "@/utils/file-logger";
 import { 
   createProjectSchema, 
   updateProjectSchema, 
@@ -21,37 +22,33 @@ export async function createProjectAction(input: CreateProjectInput) {
   const validation = validateData(createProjectSchema, input);
   if (!validation.success) return validation;
 
-  try {
-    // Pass data as a destructured property object
-    const data = await createProjectService({ data: validation.data });
-    revalidatePath("/projects");
-    return { success: true, data };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to create project." };
-  }
+  const result = await safeAction(async () => {
+    return await createProjectService({ data: validation.data });
+  }, "Failed to create project.");
+
+  if (!result.success) return result;
+
+  revalidatePath("/projects");
+  return { success: true, data: result.data };
 }
 
 /**
  * Updates an existing project by its unique ID.
  */
 export async function updateProjectAction(input: UpdateProjectInput) {
-  // Utilizing partial parsing for flexible frontend component inputs
   const validation = validateData(updateProjectSchema, input);
   if (!validation.success) return validation;
 
-  try {
-    // Pass id and data as properties of a single destructured argument object
-    const data = await updateProjectService({ data: { ...validation.data } });
-    if (!data) return { success: false, error: "Project entry not found." };
+  const result = await safeAction(async () => {
+    return await updateProjectService({ data: { ...validation.data } });
+  }, "Failed to update project.");
 
-    revalidatePath(`/projects/${validation.data.id}`);
-    revalidatePath("/projects");
-    return { success: true, data };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to update project." };
-  }
+  if (!result.success) return result;
+  if (!result.data) return { success: false, error: "Project entry not found." };
+
+  revalidatePath(`/projects/${validation.data.id}`);
+  revalidatePath("/projects");
+  return { success: true, data: result.data };
 }
 
 /**
@@ -61,15 +58,13 @@ export async function deleteProjectAction(input: DeleteProjectInput) {
   const validation = validateData(deleteProjectSchema, input);
   if (!validation.success) return validation;
 
-  try {
-    // Pass id as a property within the structured parameter object
-    const data = await deleteProjectService({ data: { id: validation.data.id } });
-    if (!data) return { success: false, error: "Project entry not found." };
+  const result = await safeAction(async () => {
+    return await deleteProjectService({ data: { id: validation.data.id } });
+  }, "Failed to delete project.");
 
-    revalidatePath("/projects");
-    return { success: true, data };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to delete project." };
-  }
+  if (!result.success) return result;
+  if (!result.data) return { success: false, error: "Project entry not found." };
+
+  revalidatePath("/projects");
+  return { success: true, data: result.data };
 }
