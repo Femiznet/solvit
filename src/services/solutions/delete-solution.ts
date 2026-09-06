@@ -4,7 +4,8 @@ import { eq, and } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
 export type DeleteSolutionInput = {
-  id: string;
+  userId: string;
+  solutionId: string;
 };
 
 export type DeleteSolutionLikeInput = {
@@ -13,10 +14,14 @@ export type DeleteSolutionLikeInput = {
 };
 
 export async function deleteSolutionService({
-  data: { id },
+  data: { userId, solutionId },
   tx,
 }: ServiceArgs<DeleteSolutionInput>) {
-  const [deletedSolution] = await db(tx).delete(solutions).where(eq(solutions.id, id)).returning();
+  const [deletedSolution] = await db(tx).delete(solutions).where(
+    and(eq(solutionLikes.userId, userId), eq(solutionLikes.solutionId, solutionId))
+  ).returning({
+    projectId: solutions.projectId
+  });
 
   return deletedSolution || null;
 }

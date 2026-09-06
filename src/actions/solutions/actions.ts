@@ -24,7 +24,7 @@ export async function createSolutionAction(payload: CreateSolutionInput) {
   try {
     const data = await createSolutionService({ data: { ...validation.data } });
 
-    revalidatePath(`/projects/${data.projectId}`);
+    revalidatePath(`/projects/${validation.data.projectId}`);
     revalidatePath("/solutions");
 
     return { success: true, data };
@@ -46,7 +46,7 @@ export async function updateSolutionAction(payload: UpdateSolutionInput) {
     if (!data) return { success: false, error: "Solution entry not found." };
 
     revalidatePath(`/solutions/${validation.data.id}`);
-    revalidatePath(`/projects/${data.projectId}`);
+    revalidatePath(`/projects/${validation.data.projectId}`);
     return { success: true, data };
   } catch (error) {
     console.error(error);
@@ -57,8 +57,8 @@ export async function updateSolutionAction(payload: UpdateSolutionInput) {
 /**
  * Deletes a solution by its unique ID.
  */
-export async function deleteSolutionAction(id: DeleteSolutionInput["id"]) {
-  const validation = validateData(deleteSolutionSchema, { id });
+export async function deleteSolutionAction(payload: DeleteSolutionInput){
+  const validation = validateData(deleteSolutionSchema, payload);
   if (!validation.success) return validation;
 
   try {

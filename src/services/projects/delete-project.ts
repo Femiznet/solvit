@@ -16,7 +16,9 @@ export async function deleteProjectService({
   data: { id },
   tx,
 }: ServiceArgs<DeleteProjectInput>) {
-  const [deletedProject] = await db(tx).delete(projects).where(eq(projects.id, id)).returning();
+  const [deletedProject] = await db(tx).delete(projects).where(eq(projects.id, id)).returning({
+    id: projects.id
+  });
 
   return deletedProject || null;
 }

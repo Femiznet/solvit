@@ -8,7 +8,10 @@ export async function createProjectService({
   data, 
   tx 
 }: ServiceArgs<CreateProjectInput>) {
-  const [newProject] = await db(tx).insert(projects).values(data).returning();
+  const [newProject] = await db(tx).insert(projects).values(data).returning({
+    id: projects.id
+  });
+  
   return newProject;
 }
 

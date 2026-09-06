@@ -21,7 +21,7 @@ export async function upsertProjectDifficultyVoteService({
       target: [projectDifficultyVotes.userId, projectDifficultyVotes.projectId],
       set: { difficulty, updatedAt: new Date() },
     })
-    .returning();
+    .returning({ id: projectDifficultyVotes.id, difficulty: projectDifficultyVotes.difficulty });
 
   return result;
 }

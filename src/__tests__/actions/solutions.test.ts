@@ -24,6 +24,7 @@ vi.mock("next/cache", () => ({
 const VALID_SOLUTION_ID = "123e4567-e89b-12d3-a456-426614174000";
 const VALID_PROJECT_ID = "223e4567-e89b-12d3-a456-426614174000";
 const INVALID_SOLUTION_ID = "invalid-id";
+const VALID_USER_ID = "123e4567-e89b-12d3-a456-426614174000";
 
 // Test Data Factories
 const createSolutionInput = (overrides = {}) => ({
@@ -34,6 +35,7 @@ const createSolutionInput = (overrides = {}) => ({
 
 const updateSolutionInput = (overrides = {}) => ({
   id: VALID_SOLUTION_ID,
+  projectId: VALID_PROJECT_ID,
   title: "Updated Solution Title",
   ...overrides,
 });
@@ -109,7 +111,7 @@ describe("Solution Actions", () => {
         data: input,
       } as any);
 
-      const mockResponse = { id: VALID_SOLUTION_ID, projectId: VALID_PROJECT_ID, ...input };
+      const mockResponse = { ...input };
       vi.mocked(updateSolutionService).mockResolvedValueOnce(mockResponse as any);
 
       const result = await updateSolutionAction(input);
@@ -135,9 +137,10 @@ describe("Solution Actions", () => {
       const mockResponse = { id: VALID_SOLUTION_ID, ...createSolutionInput() };
       vi.mocked(deleteSolutionService).mockResolvedValueOnce(mockResponse as any);
 
-      const result = await deleteSolutionAction(VALID_SOLUTION_ID);
+      const payload = { userId: VALID_USER_ID, solutionId: VALID_SOLUTION_ID };
+      const result = await deleteSolutionAction(payload);
 
-      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, { id: VALID_SOLUTION_ID });
+      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, payload);
       expect(deleteSolutionService).toHaveBeenCalledWith(
         expect.objectContaining({ data: { id: VALID_SOLUTION_ID } })
       );
@@ -153,9 +156,10 @@ describe("Solution Actions", () => {
       } as any);
       vi.mocked(deleteSolutionService).mockResolvedValueOnce(null as any);
 
-      const result = await deleteSolutionAction(INVALID_SOLUTION_ID);
+      const payload = { userId: VALID_USER_ID, solutionId: INVALID_SOLUTION_ID };
+      const result = await deleteSolutionAction(payload);
 
-      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, { id: INVALID_SOLUTION_ID });
+      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, payload);
       expect(result).toEqual({ success: false, error: "Solution entry not found." });
       expect(revalidatePath).not.toHaveBeenCalled();
     });
@@ -167,9 +171,10 @@ describe("Solution Actions", () => {
       } as any);
       vi.mocked(deleteSolutionService).mockRejectedValueOnce(new Error("Delete failed"));
 
-      const result = await deleteSolutionAction(VALID_SOLUTION_ID);
+      const payload = {userId: VALID_USER_ID, solutionId:VALID_SOLUTION_ID}
+      const result = await deleteSolutionAction(payload);
 
-      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, { id: VALID_SOLUTION_ID });
+      expect(validateData).toHaveBeenCalledWith(deleteSolutionSchema, payload);
       expect(result).toEqual(expect.objectContaining({ success: false, error: "Failed to delete solution." }));
       expect(console.error).toHaveBeenCalled();
     });

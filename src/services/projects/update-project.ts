@@ -16,7 +16,7 @@ export async function updateProjectService({
       updatedAt: new Date(),
     })
     .where(eq(projects.id, id))
-    .returning();
+    .returning({id: projects.id});
 
   return updatedProject || null;
 }

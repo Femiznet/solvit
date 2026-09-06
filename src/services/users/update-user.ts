@@ -23,7 +23,7 @@ export async function updateUserService({
       updatedAt: new Date(),
     })
     .where(eq(users.id, id))
-    .returning();
+    .returning({id: users.id});
 
   return updatedUser || null;
 }
@@ -45,6 +45,7 @@ export async function updateProgressService({
       )
     )
     .returning({
+      id: userProgress.id,
       status: userProgress.status,
     });
 

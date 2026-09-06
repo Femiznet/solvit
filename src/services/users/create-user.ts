@@ -3,7 +3,9 @@ import { users, userProgress } from "@/database/schemas";
 import { ServiceArgs, CreateUserInput, CreateUserProgressInput } from "@/types";
 
 export async function createUserService({ data, tx }: ServiceArgs<CreateUserInput>) {
-  const [newUser] = await db(tx).insert(users).values(data).returning();
+  const [newUser] = await db(tx).insert(users).values(data).returning({
+    id: users.id
+  });
   return newUser;
 }
 
@@ -18,7 +20,7 @@ export async function createProgressService({
       projectId: data.projectId,
       status: data.status ?? "BOOKMARKED",
     })
-    .returning();
+    .returning({ id: userProgress.id });
 
   return progress;
 }

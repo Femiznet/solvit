@@ -21,7 +21,9 @@ export async function createSolutionService({
   data,
   tx,
 }: ServiceArgs<CreateSolutionInput>) {
-  const [newSolution] = await db(tx).insert(solutions).values(data).returning();
+  const [newSolution] = await db(tx).insert(solutions).values(data).returning({
+    id: solutions.id
+  });
   return newSolution;
 }
 

@@ -57,7 +57,8 @@ export const updateSolutionSchema = createInsertSchema(solutions, {
 
 // 4. Delete Schema
 export const deleteSolutionSchema = z.object({
-  id: z.uuid("Invalid solution ID format."),
+  userId: z.uuid("Invalid user ID format."),
+  solutionId: z.uuid("Invalid solution ID format."),
 });
 
 // 5. Solution Likes Schema

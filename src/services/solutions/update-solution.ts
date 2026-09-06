@@ -16,7 +16,7 @@ export async function updateSolutionService({
       updatedAt: new Date(),
     })
     .where(eq(solutions.id, id))
-    .returning();
+    .returning({id: solutions.id});
 
   return updatedSolution ?? null;
 }

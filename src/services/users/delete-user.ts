@@ -11,7 +11,9 @@ export async function deleteUserService({
   data: { id },
   tx,
 }: ServiceArgs<DeleteUserInput>) {
-  const [deletedUser] = await db(tx).delete(users).where(eq(users.id, id)).returning();
+  const [deletedUser] = await db(tx).delete(users).where(eq(users.id, id)).returning({
+    id: users.id
+  });
 
   return deletedUser || null;
 }
