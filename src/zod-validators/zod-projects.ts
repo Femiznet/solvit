@@ -5,14 +5,33 @@ import { projects, projectLikes } from "@/database/schemas";
 
 // 1. Create Schema
 export const createProjectSchema = createInsertSchema(projects, {
-  name: z.string().min(1, "Name is required").max(255, "Name cannot exceed 255 characters"),
-  description: z.string(),
-  instructions: z.array(z.string()),
-  level: z.enum(PROJECT_LEVELS).default("BEGINNER"),
-  requirements: z.array(z.string()),
-  optRequirements: z.array(z.string()).optional().nullable(),
-  categoryId: z.uuid("Invalid category ID format."),
-  userId: z.uuid("Invalid user ID format."),
+  name: z
+    .string("Name must be a string")
+    .min(1, { error: "Name is required" })
+    .max(255, { error: "Name cannot exceed 255 characters" }),
+  
+  description: z
+    .string("Description must be a string")
+    .min(1, { error: "Description is required" }),
+  
+  instructions: z
+    .array(z.string("Each instruction must be a text string"), { error: "Instructions are required" })
+    .min(1, { error: "At least one instruction must be provided" }),
+  
+  level: z.enum(PROJECT_LEVELS, { error: "Invalid project level selected" }).default("BEGINNER"),
+  
+  requirements: z
+    .array(z.string("Each requirement must be a text string"), { error: "Requirements are required" })
+    .min(1, { error: "At least one requirement must be provided" }),
+  
+  optRequirements: z
+    .array(z.string("Each optional requirement must be a text string"))
+    .optional()
+    .nullable(),
+  
+  categoryId: z.string("Category ID must be a string").uuid({ error: "Invalid category ID format" }),
+  
+  userId: z.string("User ID must be a string").uuid({ error: "Invalid user ID format" }),
 }).pick({
   name: true,
   description: true,
@@ -26,14 +45,33 @@ export const createProjectSchema = createInsertSchema(projects, {
 
 // 2. Update Schema
 export const updateProjectSchema = createInsertSchema(projects, {
-  name: z.string().min(1, "Name is required").max(255, "Name cannot exceed 255 characters").optional(),
-  description: z.string().optional(),
-  instructions: z.array(z.string()).optional(),
-  level: z.enum(PROJECT_LEVELS).optional(),
-  requirements: z.array(z.string()).optional(),
-  optRequirements: z.array(z.string()).optional().nullable(),
-  categoryId: z.uuid("Invalid category ID format.").optional(),
-  userId: z.uuid("Invalid user ID format.").optional(),
+  name: z
+    .string("Name must be a string")
+    .min(1, { error: "Name cannot be empty" })
+    .max(255, { error: "Name cannot exceed 255 characters" })
+    .optional(),
+  
+  description: z.string("Description must be a string").min(1, { error: "Description cannot be empty" }).optional(),
+  
+  instructions: z
+    .array(z.string("Each instruction must be a text string"))
+    .min(1, { error: "At least one instruction must be provided" })
+    .optional(),
+  
+  level: z.enum(PROJECT_LEVELS, { error: "Invalid project level selected" }).optional(),
+  
+  requirements: z
+    .array(z.string("Each requirement must be a text string"))
+    .min(1, { error: "At least one requirement must be provided" })
+    .optional(),
+  
+  optRequirements: z
+    .array(z.string("Each optional requirement must be a text string"))
+    .optional()
+    .nullable(),
+  
+  categoryId: z.string("Category ID must be a string").uuid({ error: "Invalid category ID format" }).optional(),
+  userId: z.string("User ID must be a string").uuid({ error: "Invalid user ID format" }).optional(),
 })
   .pick({
     name: true,
@@ -47,29 +85,29 @@ export const updateProjectSchema = createInsertSchema(projects, {
   })
   .partial()
   .extend({
-    id: z.uuid("Invalid project ID format."),
+    id: z.string("Project ID must be a string").uuid({ error: "Invalid project ID format" }),
   });
 
 // 3. Delete Schema
 export const deleteProjectSchema = z.object({
-  id: z.uuid("Invalid project ID format."),
+  id: z.string("Project ID must be a string").uuid({ error: "Invalid project ID format" }),
 });
 
 // 4. Action Specific Schemas
 export const projectLikeSchema = createInsertSchema(projectLikes, {
-  userId: z.uuid("Invalid user ID format."),
-  projectId: z.uuid("Invalid project ID format."),
+  userId: z.string("User ID must be a string").uuid({ error: "Invalid user ID format" }),
+  projectId: z.string("Project ID must be a string").uuid({ error: "Invalid project ID format" }),
 }).pick({
   userId: true,
   projectId: true,
-})
+});
 
 export const searchProjectsSchema = z.object({
   query: z.string().optional(),
-  categoryId: z.uuid("Invalid category ID format.").optional(),
+  categoryId: z.string().uuid({ error: "Invalid category ID format" }).optional(),
   level: z.array(z.enum(PROJECT_LEVELS)).optional(),
-  stackIds: z.array(z.uuid("Invalid stack ID format.")).optional(),
-  sort: z.enum(PROJECT_SORT_OPTIONS).default("newest"),
+  stackIds: z.array(z.string().uuid({ error: "Invalid stack ID format" })).optional(),
+  sort: z.enum(PROJECT_SORT_OPTIONS, { error: "Invalid sorting option" }).default("newest"),
 });
 
 // Exported Types

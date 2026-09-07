@@ -23,7 +23,7 @@ export async function createSolutionAction(payload: CreateSolutionInput) {
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await createSolutionService({ data: { ...validation.data } });
+    return await createSolutionService({ input: { ...validation.data } });
   }, "Failed to create solution.");
 
   if (!result.success) return result;
@@ -31,7 +31,7 @@ export async function createSolutionAction(payload: CreateSolutionInput) {
   revalidatePath(`/projects/${validation.data.projectId}`);
   revalidatePath("/solutions");
 
-  return { success: true, data: result.data };
+  return { success: true, input: result.data };
 }
 
 /**
@@ -42,7 +42,7 @@ export async function updateSolutionAction(payload: UpdateSolutionInput) {
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await updateSolutionService({ data: { ...validation.data } });
+    return await updateSolutionService({ input: { ...validation.data } });
   }, "Failed to update solution.");
 
   if (!result.success) return result;
@@ -50,7 +50,7 @@ export async function updateSolutionAction(payload: UpdateSolutionInput) {
 
   revalidatePath(`/solutions/${validation.data.id}`);
   revalidatePath(`/projects/${validation.data.projectId}`);
-  return { success: true, data: result.data };
+  return { success: true, input: result.data };
 }
 
 /**
@@ -61,13 +61,13 @@ export async function deleteSolutionAction(payload: DeleteSolutionInput){
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await deleteSolutionService({ data: { ...validation.data } });
+    return await deleteSolutionService({ input: { ...validation.data } });
   }, "Failed to delete solution.");
 
-  if (!result.success) return result;
-  if (!result.data) return { success: false, error: "Solution entry not found." };
-
-  revalidatePath(`/projects/${result.data.projectId}`);
-  revalidatePath("/solutions");
-  return { success: true, data: result.data };
+  if (result.success) {
+    revalidatePath(`/projects/${result.data.projectId}`);
+    revalidatePath("/solutions");
+  }
+  
+  return result;
 }

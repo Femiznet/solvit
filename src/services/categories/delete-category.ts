@@ -4,16 +4,16 @@ import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
 export type DeleteCategoryInput = {
-  id: string;
+  categoryId: string;
 };
 
 export async function deleteCategoryService({
-  data: { id },
+  input: { categoryId },
   tx,
 }: ServiceArgs<DeleteCategoryInput>) {
   const [deletedCategory] = await db(tx)
     .delete(categories)
-    .where(eq(categories.id, id))
+    .where(eq(categories.id, categoryId))
     .returning({
       id: categories.id,
       name: categories.name,

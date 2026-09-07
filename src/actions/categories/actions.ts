@@ -24,13 +24,14 @@ export async function createCategoryAction(input: CreateCategoryInput) {
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await createCategoryService({ data: { ...validation.data } });
+    return await createCategoryService({ input: { ...validation.data } });
   }, "Failed to create category.");
 
-  if (!result.success) return result;
-
-  revalidatePath(CATEGORY_PATH);
-  return { success: true, data: result.data };
+  if (result.success) {
+    revalidatePath(CATEGORY_PATH);
+  }
+  
+  return result;
 }
 
 /**
@@ -41,14 +42,14 @@ export async function updateCategoryAction(input: UpdateCategoryInput) {
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await updateCategoryService({ data: { ...validation.data } });
+    return await updateCategoryService({ input: { ...validation.data } });
   }, "Failed to update category.");
 
-  if (!result.success) return result;
-  if (!result.data) return { success: false, error: "Category not found." };
-
-  revalidatePath(CATEGORY_PATH);
-  return { success: true, data: result.data };
+  if (result.success) {
+    revalidatePath(CATEGORY_PATH);
+  }
+  
+  return result;
 }
 
 /**
@@ -59,12 +60,13 @@ export async function deleteCategoryAction(input: DeleteCategoryInput) {
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await deleteCategoryService({ data: { ...validation.data } });
+    return await deleteCategoryService({ input: { ...validation.data } });
   }, "Failed to delete category.");
 
-  if (!result.success) return result;
-  if (!result.data) return { success: false, error: "Category not found." };
-
-  revalidatePath(CATEGORY_PATH);
-  return { success: true, data: result.data };
+  if (result.success) {
+    if (!result.data) return { success: false, error: "Category not found" };
+    revalidatePath(CATEGORY_PATH);
+  }
+  
+  return result;
 }

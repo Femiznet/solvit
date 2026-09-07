@@ -6,7 +6,7 @@ import { ServiceArgs } from "@/types";
 export type UpdateSolutionInput = { id: string } & Partial<NewSolution>;
 
 export async function updateSolutionService({
-  data: { id, ...updateData },
+  input: { id, ...updateData },
   tx,
 }: ServiceArgs<UpdateSolutionInput>) {
   const [updatedSolution] = await db(tx)

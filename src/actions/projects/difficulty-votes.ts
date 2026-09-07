@@ -17,7 +17,7 @@ export async function voteDifficultyAction(input: VoteDifficultyInput) {
 
   const result = await safeAction(async () => {
     return await upsertProjectDifficultyVoteService({
-      data: {
+      input: {
         userId,
         projectId,
         difficulty,
@@ -25,8 +25,9 @@ export async function voteDifficultyAction(input: VoteDifficultyInput) {
     });
   }, "Failed to submit difficulty vote.");
 
-  if (!result.success) return result;
+  if (result.success) {
+    revalidatePath(`/projects/${projectId}`);
+  }
 
-  revalidatePath(`/projects/${projectId}`);
-  return { success: true, data: result.data };
+  return result;
 }

@@ -8,7 +8,7 @@ export type SelectProjectDifficultyStatsInput = {
 };
 
 export async function upsertProjectDifficultyVoteService({
-  data: { userId, projectId, difficulty },
+  input: { userId, projectId, difficulty },
   tx,
 }: ServiceArgs<CreateProjectDifficultyVoteInput>) {
   const client = db(tx);
@@ -27,7 +27,7 @@ export async function upsertProjectDifficultyVoteService({
 }
 
 export async function selectProjectDifficultyStatsService({
-  data: { projectId },
+  input: { projectId },
   tx,
 }: ServiceArgs<SelectProjectDifficultyStatsInput>) {
   const client = db(tx);

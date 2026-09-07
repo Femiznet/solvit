@@ -6,13 +6,13 @@ import { ServiceArgs } from "@/types";
 export type UpdateProjectInput = { id: string } & Partial<NewProject>;
 
 export async function updateProjectService({
-  data: { id, ...data },
+  input: { id, ...input },
   tx,
 }: ServiceArgs<UpdateProjectInput>) {
   const [updatedProject] = await db(tx)
     .update(projects)
     .set({
-      ...data,
+      ...input,
       updatedAt: new Date(),
     })
     .where(eq(projects.id, id))

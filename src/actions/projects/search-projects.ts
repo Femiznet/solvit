@@ -13,10 +13,10 @@ export async function searchProjectsAction(input: SearchProjectsInput){
   if (!validation.success) return validation;
 
   const { level, categoryId, stackIds, query, sort } = validation.data;
-
-  const result = await safeAction(async () => {
+  
+  return await safeAction(async () => {
     return await searchProjectsService({
-      data: {
+      input: {
         level,
         categoryId,
         stackIds,
@@ -26,7 +26,4 @@ export async function searchProjectsAction(input: SearchProjectsInput){
     });
   }, "Failed to search projects.");
 
-  if (!result.success) return result;
-
-  return { success: true, data: result.data };
 }

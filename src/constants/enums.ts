@@ -9,8 +9,5 @@ export const PROJECT_SORT_OPTIONS = [
 ] as const;
 export type ProjectSortOption = (typeof PROJECT_SORT_OPTIONS)[number];
 
-export const PROJECT_PROGRESS = ["BOOKMARKED", "IN_PROGRESS", "COMPLETED"] as const;
-export type ProjectProgress = (typeof PROJECT_PROGRESS)[number];
-
 
 

@@ -1,77 +1,38 @@
-import { PROJECT_PROGRESS } from "@/constants/enums";
 import { db } from "@/database";
-import { userProgress, projects } from "@/database/schemas";
+import { projectBookMarks, projects } from "@/database/schemas";
 import { eq, and } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
-type ProjectProgressType = (typeof PROJECT_PROGRESS)[number];
 
-export type SelectUserProjectsInput = {
+export type UserProjectGlobalSelect = {
   userId: string;
-  status?: ProjectProgressType;
-};
-
-export type SelectProjectsByStatusInput = {
-  userId: string;
-  status: ProjectProgressType;
-};
-
-export type SelectUserProgressStatsInput = {
-  userId: string;
+  projectId: string;
 };
 
 /**
  * Get all projects for a user, optionally filtered by status
  */
 export async function selectUserProjectsService({
-  data: { userId, status },
+  input: { userId, projectId },
   tx,
-}: ServiceArgs<SelectUserProjectsInput>) {
+}: ServiceArgs<UserProjectGlobalSelect>) {
   const results = await db(tx)
     .select({
-      progress: userProgress,
+      bookMarks: projectBookMarks,
       project: projects,
     })
-    .from(userProgress)
-    .innerJoin(projects, eq(userProgress.projectId, projects.id))
+    .from(projectBookMarks)
+    .innerJoin(projects, eq(projectBookMarks.projectId, projects.id))
     .where(
       and(
-        eq(userProgress.userId, userId),
-        status ? eq(userProgress.status, status) : undefined
+        eq(projectBookMarks.userId, userId),
+        eq(projectBookMarks.projectId, projectId)
       )
     )
-    .orderBy(userProgress.updatedAt);
+    .orderBy(projectBookMarks.updatedAt);
 
   return results.map((r) => ({
-    ...r.progress,
-    project: r.project,
-  }));
-}
-
-/**
- * Get all projects by specific status for a user
- */
-export async function selectProjectsByStatusService({
-  data: { userId, status },
-  tx,
-}: ServiceArgs<SelectProjectsByStatusInput>) {
-  const results = await db(tx)
-    .select({
-      progress: userProgress,
-      project: projects,
-    })
-    .from(userProgress)
-    .innerJoin(projects, eq(userProgress.projectId, projects.id))
-    .where(
-      and(
-        eq(userProgress.userId, userId),
-        eq(userProgress.status, status)
-      )
-    )
-    .orderBy(userProgress.updatedAt);
-
-  return results.map((r) => ({
-    ...r.progress,
+    ...r.bookMarks,
     project: r.project,
   }));
 }
@@ -79,28 +40,17 @@ export async function selectProjectsByStatusService({
 /**
  * Get completion stats for a user
  */
-export async function selectUserProgressStatsService({
-  data: { userId },
+export async function selectAllUserProjectBookMarks({
+  input: { userId },
   tx,
-}: ServiceArgs<SelectUserProgressStatsInput>) {
+}: ServiceArgs<UserProjectGlobalSelect>) {
   const allProgress = await db(tx)
     .select()
-    .from(userProgress)
-    .where(eq(userProgress.userId, userId));
+    .from(projectBookMarks)
+    .where(eq(projectBookMarks.userId, userId));
 
   const stats = {
     total: allProgress.length,
-    bookmarked: allProgress.filter((p) => p.status === "BOOKMARKED").length,
-    inProgress: allProgress.filter((p) => p.status === "IN_PROGRESS").length,
-    completed: allProgress.filter((p) => p.status === "COMPLETED").length,
-    completionRate:
-      allProgress.length > 0
-        ? Math.round(
-            (allProgress.filter((p) => p.status === "COMPLETED").length /
-              allProgress.length) *
-              100
-          )
-        : 0,
   };
 
   return stats;

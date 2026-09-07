@@ -14,7 +14,7 @@ export type DeleteSolutionLikeInput = {
 };
 
 export async function deleteSolutionService({
-  data: { userId, solutionId },
+  input: { userId, solutionId },
   tx,
 }: ServiceArgs<DeleteSolutionInput>) {
   const [deletedSolution] = await db(tx).delete(solutions).where(
@@ -26,14 +26,3 @@ export async function deleteSolutionService({
   return deletedSolution || null;
 }
 
-export async function deleteSolutionLikeService({
-  data: { userId, solutionId },
-  tx,
-}: ServiceArgs<DeleteSolutionLikeInput>) {
-  const [deletedLike] = await db(tx)
-    .delete(solutionLikes)
-    .where(and(eq(solutionLikes.userId, userId), eq(solutionLikes.solutionId, solutionId)))
-    .returning();
-
-  return deletedLike || null;
-}

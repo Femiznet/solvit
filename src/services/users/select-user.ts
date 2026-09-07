@@ -1,5 +1,5 @@
 import { db } from "@/database";
-import { users, userProgress } from "@/database/schemas";
+import { users, projectBookMarks } from "@/database/schemas";
 import { eq, and } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
@@ -7,12 +7,12 @@ export type SelectUserInput = {
   id: string;
 };
 
-export type SelectProgressInput = {
+export type SelectUserProjectBookMarkInput = {
   userId: string;
   projectId: string;
 };
 
-export async function selectUserService({ data: { id }, tx }: ServiceArgs<SelectUserInput>) {
+export async function selectUserService({ input: { id }, tx }: ServiceArgs<SelectUserInput>) {
   const [user] = await db(tx).select().from(users).where(eq(users.id, id));
 
   return user || null;
@@ -25,16 +25,16 @@ export async function selectManyUsersService(args?: { tx?: ServiceArgs<never>["t
 }
 
 export async function selectProgressService({
-  data: { userId, projectId },
+  input: { userId, projectId },
   tx,
-}: ServiceArgs<SelectProgressInput>) {
+}: ServiceArgs<SelectUserProjectBookMarkInput>) {
   const [progress] = await db(tx)
     .select()
-    .from(userProgress)
+    .from(projectBookMarks)
     .where(
       and(
-        eq(userProgress.userId, userId),
-        eq(userProgress.projectId, projectId)
+        eq(projectBookMarks.userId, userId),
+        eq(projectBookMarks.projectId, projectId)
       )
     );
 

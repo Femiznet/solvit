@@ -17,5 +17,5 @@ export const projectStacks = pgTable(
     ]
 );
   
-export type ProjectLike = typeof projectStacks.$inferSelect;
-export type NewProjectLike = typeof projectStacks.$inferInsert;
+export type ProjectStacks = typeof projectStacks.$inferSelect;
+export type NewProjectStack = typeof projectStacks.$inferInsert;

@@ -26,10 +26,11 @@ export async function createUserAction(input: CreateUserInput) {
     return await createUserService({ data: validation.data });
   }, "Failed to create user account.");
 
-  if (!result.success) return result;
-
-  revalidatePath("/users");
-  return { success: true, data: result.data };
+  if (result.success) {
+    revalidatePath("/users");
+  }
+  
+  return result;
 }
 
 /**
@@ -43,12 +44,12 @@ export async function updateUserAction(input: UpdateUserInput) {
     return await updateUserService({ data: { ...validation.data } });
   }, "Failed to update user profile.");
 
-  if (!result.success) return result;
-  if (!result.data) return { success: false, error: "User account not found." };
-
-  revalidatePath(`/users/${validation.data.id}`);
-  revalidatePath("/users");
-  return { success: true, data: result.data };
+  if (result.success) {
+    revalidatePath(`/users/${validation.data.id}`);
+    revalidatePath("/users");
+  }
+  
+  return result;
 }
 
 /**
@@ -62,9 +63,9 @@ export async function deleteUserAction(input: DeleteUserInput) {
     return await deleteUserService({ data: { id: validation.data.id } });
   }, "Failed to delete user account.");
 
-  if (!result.success) return result;
-  if (!result.data) return { success: false, error: "User account not found." };
-
-  revalidatePath("/users");
-  return { success: true, data: result.data };
+  if (result.success) {
+    revalidatePath("/users");
+  }
+  
+  return result;
 }

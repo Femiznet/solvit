@@ -1,14 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { searchProjectsAction } from "@/actions/projects/search-projects";
+import { logServerError } from "@/utils/file-logger";
 
-export async function GET(request: Request): Promise<NextResponse> {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const queryParams: Record<string, unknown> = {};
 
     searchParams.forEach((value, key) => {
       if (key === "stackIds") {
-        queryParams[key] = searchParams.getAll(key);
+        const rawValue = searchParams.get(key);
+        queryParams[key] = rawValue ? rawValue.split(",").map(id => id.trim()) : [];
       } else {
         queryParams[key] = value;
       }
@@ -17,7 +19,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     const result = await searchProjectsAction(queryParams as any);
     return NextResponse.json(result, { status: result.success ? 200 : 400 });
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = logServerError(error);
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

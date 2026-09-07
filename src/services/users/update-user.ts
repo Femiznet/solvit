@@ -13,7 +13,7 @@ export type UpdateProgressInput = {
 };
 
 export async function updateUserService({
-  data: { id, ...updatedData },
+  input: { id, ...updatedData },
   tx,
 }: ServiceArgs<UpdateUserInput>) {
   const [updatedUser] = await db(tx)
@@ -29,7 +29,7 @@ export async function updateUserService({
 }
 
 export async function updateProgressService({
-  data: { userId, projectId, status },
+  input: { userId, projectId, status },
   tx,
 }: ServiceArgs<UpdateProgressInput>) {
   const [updated] = await db(tx)
