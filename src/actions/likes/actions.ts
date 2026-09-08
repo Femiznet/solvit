@@ -1,6 +1,5 @@
 "use server";
 
-import { db } from "@/database";
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
 import { 
@@ -12,16 +11,8 @@ import {
   type SolutionLikeInput 
 } from "@/zod-validators/zod-solutions";
 
-// Project Like Services
-import { selectSingleProjectService } from "@/services/projects/select-project";
-import { updateProjectService } from "@/services/projects/update-project";
-
-// Solution Like Services
-import { selectSingleSolutionService } from "@/services/solutions/select-solution";
-import { updateSolutionService } from "@/services/solutions/update-solution";
 import { projectIdPath, solutionIdPath } from "@/constants/paths";
 import { safeAction } from "@/utils/file-logger";
-import { ClientError } from "@/lib/errors";
 import { toggleSolutionLikeService } from "@/services/likes/like-solutions";
 import { toggleProjectLikeService } from "@/services/likes/like-projects";
 

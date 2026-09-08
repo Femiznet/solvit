@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { 
   createCategoryAction, 
-  updateCategoryAction, 
-  deleteCategoryAction 
 } from "@/actions/categories/actions";
 import { logServerError } from "@/utils/file-logger";
 

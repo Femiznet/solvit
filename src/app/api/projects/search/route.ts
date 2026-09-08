@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchProjectsAction } from "@/actions/projects/search";
 import { logServerError } from "@/utils/file-logger";
+import type { SearchProjectsInput } from "@/zod-validators/zod-projects";
 
 export async function GET(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    const result = await searchProjectsAction(queryParams as any);
+    const result = await searchProjectsAction(queryParams as SearchProjectsInput);
     return NextResponse.json(result, { status: result.success ? 200 : 400 });
   } catch (error: unknown) {
     const message = logServerError(error);

@@ -1,10 +1,10 @@
 // src/app/api/projects/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createProjectAction } from "@/actions/projects/actions";
 import { selectManyProjectsService } from "@/services/projects/select-project";
 import { logServerError } from "@/utils/file-logger";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const projects = await selectManyProjectsService();
     return NextResponse.json({ success: true, data: projects }, { status: 200 });
