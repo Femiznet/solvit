@@ -44,7 +44,7 @@ export async function DELETE(
 ): Promise<NextResponse> {
   try {
     const { id } = await params;
-    const body = await request.json().catch(() => ({}));
+    const body = await request.json();
     const result = await deleteProjectAction({ ...body, id });
     return NextResponse.json(result, { status: result.success ? 200 : 400 });
   } catch (error: unknown) {

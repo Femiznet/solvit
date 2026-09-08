@@ -1,15 +1,11 @@
 import { db } from "@/database";
-import { projects, projectLikes } from "@/database/schemas";
-import { eq, and } from "drizzle-orm";
+import { projects } from "@/database/schemas";
+import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
+import { ClientError } from "@/lib/errors";
 
 export type DeleteProjectInput = {
   id: string;
-};
-
-export type DeleteProjectLikeInput = {
-  userId: string;
-  projectId: string;
 };
 
 export async function deleteProjectService({
@@ -20,5 +16,9 @@ export async function deleteProjectService({
     id: projects.id
   });
 
-  return deletedProject || null;
+  if (!deletedProject) {
+    throw new ClientError("Project not found.");
+  }
+
+  return deletedProject;
 }
