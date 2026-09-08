@@ -22,8 +22,8 @@ import { updateSolutionService } from "@/services/solutions/update-solution";
 import { projectIdPath, solutionIdPath } from "@/constants/paths";
 import { safeAction } from "@/utils/file-logger";
 import { ClientError } from "@/lib/errors";
-import { toggleSolutionLikeService } from "@/services/solutions/like-solutions";
-import { toggleProjectLikeService } from "@/services/projects/like-projects";
+import { toggleSolutionLikeService } from "@/services/likes/like-solutions";
+import { toggleProjectLikeService } from "@/services/likes/like-projects";
 
 /**
  * Toggles a project like entry.

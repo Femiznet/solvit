@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchProjectsAction } from "@/actions/projects/search-projects";
+import { searchProjectsAction } from "@/actions/projects/search";
 import { logServerError } from "@/utils/file-logger";
 
 export async function GET(request: NextRequest) {

@@ -23,7 +23,7 @@ vi.mock("@/services/projects/select-project", () => ({
   selectManyProjectsService: mocks.selectManyProjectsService,
   selectSingleProjectService: mocks.selectSingleProjectService,
 }));
-vi.mock("@/actions/projects/search-projects", () => ({ searchProjectsAction: mocks.searchProjectsAction }));
+vi.mock("@/actions/projects/search", () => ({ searchProjectsAction: mocks.searchProjectsAction }));
 vi.mock("@/utils/file-logger", () => ({ logServerError: mocks.logServerError }));
 
 afterEach(() => vi.clearAllMocks());
