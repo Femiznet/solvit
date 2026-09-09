@@ -3,6 +3,21 @@ import {
   createCategoryAction, 
 } from "@/actions/categories/actions";
 import { logServerError } from "@/utils/file-logger";
+import { selectManyCategoriesService } from "@/services/categories/select-category";
+
+
+export async function GET() {
+  try {
+    const categories = await selectManyCategoriesService();
+    return NextResponse.json({ success: true, data: categories }, { status: 200 });
+  } catch (error) {
+    const message = logServerError(error)
+    return NextResponse.json(
+      { success: false, error: message },
+      { status: 500 }
+    );
+  }
+}
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {

@@ -2,6 +2,7 @@ import { db } from "@/database";
 import { categories } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
+import { ClientError } from "@/lib/errors";
 
 export type UpdateCategoryInput = {
   categoryId: string;
@@ -23,5 +24,7 @@ export async function updateCategoryService({
       name: categories.name,
     });
 
-  return updatedCategory || null;
+  if (!updatedCategory) throw new ClientError("Category not found");
+
+  return updatedCategory;
 }

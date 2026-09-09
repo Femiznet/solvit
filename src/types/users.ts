@@ -4,8 +4,3 @@ export interface CreateUserProjectBookMarkInput {
   projectId: string;
 }
 
-export interface CreateUserInput {
-  name: string;
-  email: string;
-  image?: string;
-}

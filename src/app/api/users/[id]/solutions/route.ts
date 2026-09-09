@@ -3,14 +3,19 @@ import { logServerError } from "@/utils/file-logger";
 import { NextRequest, NextResponse } from "next/server";
 
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+interface RouteParams {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export async function GET(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const userId = searchParams.get("id");
+    const { id: userId } = await params;
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, error: "Missing required query parameter: userId" },
+        { success: false, error: "Missing required query parameter: id" },
         { status: 400 }
       );
     }

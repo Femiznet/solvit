@@ -2,6 +2,7 @@ import { db } from "@/database";
 import { projects, type NewProject } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
+import { ClientError } from "@/lib/errors";
 
 export type UpdateProjectInput = { id: string } & Partial<NewProject>;
 
@@ -18,5 +19,6 @@ export async function updateProjectService({
     .where(eq(projects.id, id))
     .returning({id: projects.id});
 
-  return updatedProject || null;
+  if (!updatedProject) throw new ClientError("Project not found");
+  return updatedProject;
 }

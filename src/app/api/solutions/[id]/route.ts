@@ -39,10 +39,18 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
   }
 }
 
-export async function PUT(request: Request): Promise<NextResponse> {
+export async function PUT(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
+    const { id: solutionId } = await params;
+
+    if (!solutionId) {
+      return NextResponse.json(
+        { success: false, error: "Missing required solution ID" },
+        { status: 400 }
+      );
+    }
     const body = await request.json();
-    const result = await updateSolutionAction(body);
+    const result = await updateSolutionAction({ ...body, solutionId });
     return NextResponse.json(result, { status: result.success ? 200 : 400 });
   } catch (error: unknown) {
     const message = logServerError(error);
@@ -50,10 +58,18 @@ export async function PUT(request: Request): Promise<NextResponse> {
   }
 }
 
-export async function DELETE(request: Request): Promise<NextResponse> {
+export async function DELETE(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
+    const { id: solutionId } = await params;
+
+    if (!solutionId) {
+      return NextResponse.json(
+        { success: false, error: "Missing required solution ID" },
+        { status: 400 }
+      );
+    }
     const body = await request.json();
-    const result = await deleteSolutionAction(body.id ?? body);
+    const result = await deleteSolutionAction({ ...body, solutionId });
     return NextResponse.json(result, { status: result.success ? 200 : 400 });
   } catch (error: unknown) {
     const message = logServerError(error);

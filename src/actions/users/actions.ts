@@ -15,6 +15,11 @@ import { createUserService } from "@/services/users/create-user";
 import { updateUserService } from "@/services/users/update-user";
 import { deleteUserService } from "@/services/users/delete-user";
 
+const USER_CONSTRAINTS = {
+    users_email_unique: "An account with this email already exists.",
+    users_username_unique: "This username is already taken."
+}
+
 /**
  * Creates a new user after verifying payloads via Zod.
  */
@@ -22,15 +27,16 @@ export async function createUserAction(input: CreateUserInput) {
   const validation = validateData(createUserSchema, input);
   if (!validation.success) return validation;
 
-  const result = await safeAction(async () => {
-    return await createUserService({ data: validation.data });
-  }, "Failed to create user account.");
-
-  if (result.success) {
-    revalidatePath("/users");
-  }
-  
-  return result;
+  return await safeAction(
+    async () => {
+      return await createUserService({ input: validation.data });
+    },
+    "Failed to create user.",
+    {
+      input,
+      constraintErrors: USER_CONSTRAINTS
+    }
+  );
 }
 
 /**
@@ -41,8 +47,13 @@ export async function updateUserAction(input: UpdateUserInput) {
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await updateUserService({ data: { ...validation.data } });
-  }, "Failed to update user profile.");
+    return await updateUserService({ input: { ...validation.data } });
+  }, "Failed to update user profile.",
+  {
+    input,
+    constraintErrors: USER_CONSTRAINTS
+    }
+  );
 
   if (result.success) {
     revalidatePath(`/users/${validation.data.id}`);
@@ -60,7 +71,7 @@ export async function deleteUserAction(input: DeleteUserInput) {
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await deleteUserService({ data: { id: validation.data.id } });
+    return await deleteUserService({ input: { id: validation.data.id } });
   }, "Failed to delete user account.");
 
   if (result.success) {

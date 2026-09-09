@@ -8,7 +8,8 @@ export const levelEnum = pgEnum("project_level", PROJECT_LEVELS);
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
   userId: uuid("user_id").references(() => users.id).notNull(),
-  categoryId: uuid("category_id").references(() => categories.id).notNull(),
+  categoryId: uuid("category_id")
+    .references(() => categories.id, { onDelete: "cascade" }).notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description").notNull(),
   level: levelEnum("level").default("BEGINNER").notNull(),

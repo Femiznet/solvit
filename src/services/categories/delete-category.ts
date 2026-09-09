@@ -2,6 +2,7 @@ import { db } from "@/database";
 import { categories } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
+import { ClientError } from "@/lib/errors";
 
 export type DeleteCategoryInput = {
   categoryId: string;
@@ -19,5 +20,7 @@ export async function deleteCategoryService({
       name: categories.name,
     });
 
-  return deletedCategory || null;
+  if (!deletedCategory) throw new ClientError("Category not found");
+  
+  return deletedCategory;
 }

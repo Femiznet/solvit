@@ -1,3 +1,4 @@
+import { handleDbError } from "@/lib/db-error";
 import { ClientError } from "@/lib/errors";
 import { DrizzleQueryError } from "drizzle-orm";
 import fs from "fs";
@@ -12,7 +13,7 @@ interface DbError extends Error {
   cause?: DbError;
 }
 
-function writeErrorLog(fileName: string, error: unknown): void {
+function writeErrorLog(fileName: string, error: unknown, input?: unknown): void {
   const logDir = path.join(process.cwd(), "logs");
   const logFile = path.join(logDir, fileName);
 
@@ -44,12 +45,10 @@ function writeErrorLog(fileName: string, error: unknown): void {
       if (match) {
         const fnName = match[1];
         
-        // Skip if it's a raw path instead of a function name
         if (fnName.includes(":\\") || fnName.includes("/")) {
           continue;
         }
 
-        // Extract just the line number if present
         const lineColMatch = line.match(/:(\d+):\d+\)?$/);
         const lineNum = lineColMatch ? `:${lineColMatch[1]}` : "";
 
@@ -71,6 +70,14 @@ function writeErrorLog(fileName: string, error: unknown): void {
     logEntry += `    N/A\n`;
   }
 
+  // Include the input payload
+  try {
+    const formattedInput = typeof input === "string" ? input : JSON.stringify(input, null, 2);
+    logEntry += `  Input      :\n${formattedInput.split("\n").map(line => `    ${line}`).join("\n")}\n`;
+  } catch {
+    logEntry += `  Input      : [Unserializable Input]\n`;
+  }
+
   if (dbError.code) {
     logEntry += `  Type       : Database Error\n`;
     logEntry += `  Code       : ${dbError.code}\n`;
@@ -85,39 +92,116 @@ function writeErrorLog(fileName: string, error: unknown): void {
   fs.appendFileSync(logFile, logEntry, "utf-8");
 }
 
-export type SafeActionResult<T> = 
-  | { success: true, data: T } | { success: false; error: string }
 
-export async function safeAction<T extends object>(
+
+
+
+
+// export type SafeActionResult<T> = 
+//   | { success: true; data: T } 
+//   | { success: false; error: string };
+
+//   export async function safeAction<T extends object>(
+//     fn: () => Promise<T>,
+//     fallbackErrorMsg: string,
+//     input?: unknown,
+//     fileName: string = "actions-errors.log",
+//     constraintErrors?: Record<string, string>
+//   ): Promise<SafeActionResult<T>> {
+//     try {
+//       const data = await fn();
+//       return { success: true, data };
+//     } catch (err: unknown) {
+//       // 1. If constraint mappings were provided, let handleDbError 
+//       //    translate matching database errors into a ClientError.
+//       if (constraintErrors) {
+//         try {
+//           handleDbError(err, constraintErrors);
+//         } catch (mappedErr) {
+//           err = mappedErr; // If handleDbError threw a ClientError, capture it here
+//         }
+//       }
+  
+//       // 2. If it's a ClientError (either thrown by service or translated from a constraint), return it
+//       if (err instanceof ClientError) {
+//         return { success: false, error: err.message };
+//       }
+  
+//       // 3. Otherwise, it's an unexpected server/database crash -> log it
+//       writeErrorLog(fileName, err, input);
+  
+//       if (err instanceof DrizzleQueryError) {
+//         return { success: false, error: fallbackErrorMsg };
+//       }
+  
+//       throw err;
+//     }
+// }
+  
+export function logServerError(
+  error: unknown,
+  fileName: string = "server-errors.log",
+  input?: unknown
+) {
+  writeErrorLog(fileName, error, input);
+
+  return "Server Error";
+}
+
+
+
+
+
+
+
+
+
+interface DbError extends Error {
+  code?: string;
+  constraint?: string;
+  detail?: string;
+  cause?: DbError;
+}
+
+
+export type SafeActionResult<T> = 
+  | { success: true; data: T } 
+  | { success: false; error: string };
+
+export async function safeAction<T>(
   fn: () => Promise<T>,
   fallbackErrorMsg: string,
-  fileName: string = "actions-errors.log"
+  options?: {
+    input?: unknown;
+    fileName?: string;
+    constraintErrors?: Record<string, string>;
+  }
 ): Promise<SafeActionResult<T>> {
   try {
     const data = await fn();
     return { success: true, data };
   } catch (err: unknown) {
-    // If it's a known user-facing error, return the message directly (no file log)
+    // 1. Check database constraints if provided
+    if (options?.constraintErrors) {
+      try {
+        handleDbError(err, options.constraintErrors);
+      } catch (mappedErr) {
+        err = mappedErr;
+      }
+    }
+
+    // 2. If it's a ClientError, return it cleanly
     if (err instanceof ClientError) {
       return { success: false, error: err.message };
     }
 
+    // 3. Otherwise, log it as an unexpected server crash
+    writeErrorLog(options?.fileName ?? "actions-errors.log", err, options?.input);
+
     if (err instanceof DrizzleQueryError) {
-      writeErrorLog(fileName, err);
       return { success: false, error: fallbackErrorMsg };
     }
 
-    // Otherwise, it's an unexpected server crash—log it and re-throw
-    writeErrorLog(fileName, err);
     throw err;
   }
-}
-
-export function logServerError(
-  error: unknown,
-  fileName: string = "server-errors.log"
-) {
-  writeErrorLog(fileName, error);
-
-  return "Server Error";
 }
