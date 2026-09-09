@@ -1,6 +1,6 @@
 import { selectUserSolutionsService } from "@/services/solutions/select-solution";
-import { logServerError } from "@/utils/file-logger";
 import { NextRequest, NextResponse } from "next/server";
+import { routeErrorToResponse } from "@/lib/http-response";
 
 interface RouteParams {
   params: Promise<{
@@ -23,7 +23,6 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
 
     return NextResponse.json({ success: true, data: solutions }, { status: 200 });
   } catch (error: unknown) {
-    const message = logServerError(error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return routeErrorToResponse(error);
   }
 }

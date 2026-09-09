@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { selectUserBookmarksService } from "@/services/users/select-user";
-import { logServerError } from "@/utils/file-logger";
+import { routeErrorToResponse } from "@/lib/http-response";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -17,7 +17,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     return NextResponse.json({ success: true, data: bookmarks }, { status: 200 });
   } catch (error) {
-    const message = logServerError(error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return routeErrorToResponse(error);
   }
 }

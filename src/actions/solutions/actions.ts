@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
-import { safeAction } from "@/utils/file-logger";
+import { safeAction, SafeActionResult } from "@/utils/file-logger";
 import {
   createSolutionSchema,
   deleteSolutionSchema,
@@ -21,7 +21,7 @@ const SOLUTION_CONSTRAINTS = {
 /**
  * Creates a new solution after verifying payloads via Zod.
  */
-export async function createSolutionAction(input: CreateSolutionInput) {
+export async function createSolutionAction(input: CreateSolutionInput): Promise<SafeActionResult<unknown>> {
   const validation = validateData(createSolutionSchema, input);
   if (!validation.success) return validation;
 
@@ -40,13 +40,13 @@ export async function createSolutionAction(input: CreateSolutionInput) {
   revalidatePath(`/projects/${validation.data.projectId}`);
   revalidatePath("/solutions");
 
-  return { success: true, input: result.data };
+  return result;
 }
 
 /**
  * Updates an existing solution by its unique ID.
  */
-export async function updateSolutionAction(input: UpdateSolutionInput) {
+export async function updateSolutionAction(input: UpdateSolutionInput): Promise<SafeActionResult<unknown>> {
   const validation = validateData(updateSolutionSchema, input);
   if (!validation.success) return validation;
 
@@ -65,7 +65,7 @@ export async function updateSolutionAction(input: UpdateSolutionInput) {
 /**
  * Deletes a solution by its unique ID.
  */
-export async function deleteSolutionAction(input: DeleteSolutionInput) {
+export async function deleteSolutionAction(input: DeleteSolutionInput): Promise<SafeActionResult<unknown>> {
   const validation = validateData(deleteSolutionSchema, input);
   if (!validation.success) return validation;
 

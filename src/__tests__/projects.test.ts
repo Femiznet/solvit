@@ -59,19 +59,19 @@ describe("project API routes", () => {
   });
 
   it.each([
-    [createProject, mocks.createProjectAction, PAYLOADS.project],
-    [updateProject, mocks.updateProjectAction, PAYLOADS.project],
-    [deleteProject, mocks.deleteProjectAction, { id: UUIDS.project }],
-  ])("maps mutation success and validation failure", async (handler, action, payload) => {
+    [createProject, mocks.createProjectAction, PAYLOADS.project, undefined],
+    [updateProject, mocks.updateProjectAction, PAYLOADS.project, UUIDS.project],
+    [deleteProject, mocks.deleteProjectAction, { id: UUIDS.project }, UUIDS.project],
+  ])("maps mutation success and validation failure", async (handler, action, payload, id) => {
     action.mockResolvedValueOnce(RESULTS.success).mockResolvedValueOnce(RESULTS.failure);
     const first =
-      handler === createProject
-        ? handler(request(URLS.projects, payload))
-        : handler(request(URLS.project, payload), routeParams(UUIDS.project));
+      id === undefined
+        ? (handler as typeof createProject)(request(URLS.projects, payload))
+        : (handler as typeof updateProject)(request(URLS.project, payload), routeParams(id));
     const second =
-      handler === createProject
-        ? handler(request(URLS.projects, payload))
-        : handler(request(URLS.project, payload), routeParams(UUIDS.project));
+      id === undefined
+        ? (handler as typeof createProject)(request(URLS.projects, payload))
+        : (handler as typeof updateProject)(request(URLS.project, payload), routeParams(id));
 
     expect((await json(await first)).status).toBe(STATUS.ok);
     expect((await json(await second)).status).toBe(STATUS.badRequest);
@@ -167,11 +167,11 @@ describe("stack API routes", () => {
       .mockResolvedValueOnce(stackRows)
       .mockRejectedValueOnce(new Error(ERROR_MESSAGE));
 
-    expect(await json(await listStacks(request(URLS.stacks)))).toEqual({
+    expect(await json(await listStacks())).toEqual({
       status: STATUS.ok,
       body: { success: true, data: stackRows },
     });
-    expect(await json(await listStacks(request(URLS.stacks)))).toEqual({
+    expect(await json(await listStacks())).toEqual({
       status: STATUS.serverError,
       body: { success: false, error: ERROR_MESSAGE },
     });

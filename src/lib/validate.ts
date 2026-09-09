@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export type ValidationResult<T> =
   | { success: true; data: T }
-  | { success: false; error: string; fieldErrors?: Record<string, string[]> };
+  | { success: false; error: string; status: number; fieldErrors?: Record<string, string[]> };
 
 export function validateData<T extends z.ZodType>(
   schema: T,
@@ -27,6 +27,7 @@ export function validateData<T extends z.ZodType>(
     return {
       success: false,
       error: "Invalid input fields.",
+      status: 400,
       fieldErrors, // Returns exact fields and their specific error arrays
     };
   }

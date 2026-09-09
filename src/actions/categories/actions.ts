@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
-import { safeAction } from "@/utils/file-logger";
+import { safeAction, SafeActionResult } from "@/utils/file-logger";
 import {
   createCategorySchema,
   updateCategorySchema,
@@ -23,7 +23,7 @@ const CATEGORY_CONSTRAINTS = {
 /**
  * Creates a new category after validating the input.
  */
-export async function createCategoryAction(input: CreateCategoryInput) {
+export async function createCategoryAction(input: CreateCategoryInput): Promise<SafeActionResult<{ name: string }>> {
   const validation = validateData(createCategorySchema, input);
   if (!validation.success) return validation;
 
@@ -47,7 +47,7 @@ export async function createCategoryAction(input: CreateCategoryInput) {
 /**
  * Updates an existing category by its ID.
  */
-export async function updateCategoryAction(input: UpdateCategoryInput) {
+export async function updateCategoryAction(input: UpdateCategoryInput): Promise<SafeActionResult<{ name: string }>> {
   const validation = validateData(updateCategorySchema, input);
   if (!validation.success) return validation;
 
@@ -71,7 +71,7 @@ export async function updateCategoryAction(input: UpdateCategoryInput) {
 /**
  * Deletes a category by its ID.
  */
-export async function deleteCategoryAction(input: DeleteCategoryInput) {
+export async function deleteCategoryAction(input: DeleteCategoryInput): Promise<SafeActionResult<{ id: string; name: string }>> {
   const validation = validateData(deleteCategorySchema, input);
   if (!validation.success) return validation;
 
@@ -80,7 +80,7 @@ export async function deleteCategoryAction(input: DeleteCategoryInput) {
   }, "Failed to delete category.");
 
   if (result.success) {
-    if (!result.data) return { success: false, error: "Category not found" };
+    if (!result.data) return { success: false, error: "Category not found", status: 400 };
     revalidatePath(CATEGORY_PATH);
   }
 

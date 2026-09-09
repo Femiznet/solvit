@@ -1,3 +1,4 @@
+import { AuthenticationError, AuthorizationError } from "@/lib/auth/errors";
 import { handleDbError } from "@/lib/db-error";
 import { ClientError } from "@/lib/errors";
 import { DrizzleQueryError } from "drizzle-orm";
@@ -95,47 +96,6 @@ function writeErrorLog(fileName: string, error: unknown, input?: unknown): void 
   fs.appendFileSync(logFile, logEntry, "utf-8");
 }
 
-// export type SafeActionResult<T> =
-//   | { success: true; data: T }
-//   | { success: false; error: string };
-
-//   export async function safeAction<T extends object>(
-//     fn: () => Promise<T>,
-//     fallbackErrorMsg: string,
-//     input?: unknown,
-//     fileName: string = "actions-errors.log",
-//     constraintErrors?: Record<string, string>
-//   ): Promise<SafeActionResult<T>> {
-//     try {
-//       const data = await fn();
-//       return { success: true, data };
-//     } catch (err: unknown) {
-//       // 1. If constraint mappings were provided, let handleDbError
-//       //    translate matching database errors into a ClientError.
-//       if (constraintErrors) {
-//         try {
-//           handleDbError(err, constraintErrors);
-//         } catch (mappedErr) {
-//           err = mappedErr; // If handleDbError threw a ClientError, capture it here
-//         }
-//       }
-
-//       // 2. If it's a ClientError (either thrown by service or translated from a constraint), return it
-//       if (err instanceof ClientError) {
-//         return { success: false, error: err.message };
-//       }
-
-//       // 3. Otherwise, it's an unexpected server/database crash -> log it
-//       writeErrorLog(fileName, err, input);
-
-//       if (err instanceof DrizzleQueryError) {
-//         return { success: false, error: fallbackErrorMsg };
-//       }
-
-//       throw err;
-//     }
-// }
-
 export function logServerError(
   error: unknown,
   fileName: string = "server-errors.log",
@@ -153,7 +113,9 @@ interface DbError extends Error {
   cause?: DbError;
 }
 
-export type SafeActionResult<T> = { success: true; data: T } | { success: false; error: string };
+export type SafeActionResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string; status: number; fieldErrors?: Record<string, string[]> };
 
 export async function safeAction<T>(
   fn: () => Promise<T>,
@@ -177,16 +139,25 @@ export async function safeAction<T>(
       }
     }
 
-    // 2. If it's a ClientError, return it cleanly
-    if (err instanceof ClientError) {
-      return { success: false, error: err.message };
+    // 2. Auth errors — carry their protocol status through
+    if (err instanceof AuthenticationError) {
+      return { success: false, error: err.message, status: err.status };
     }
 
-    // 3. Otherwise, log it as an unexpected server crash
+    if (err instanceof AuthorizationError) {
+      return { success: false, error: err.message, status: err.status };
+    }
+
+    // 3. If it's a ClientError, return it cleanly
+    if (err instanceof ClientError) {
+      return { success: false, error: err.message, status: 400 };
+    }
+
+    // 4. Otherwise, log it as an unexpected server crash
     writeErrorLog(options?.fileName ?? "actions-errors.log", err, options?.input);
 
     if (err instanceof DrizzleQueryError) {
-      return { success: false, error: fallbackErrorMsg };
+      return { success: false, error: fallbackErrorMsg, status: 400 };
     }
 
     throw err;

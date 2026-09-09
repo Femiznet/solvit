@@ -15,6 +15,13 @@
       "when": 1788875703213,
       "tag": "0001_pretty_carlie_cooper",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788988583756,
+      "tag": "0002_overrated_the_leader",
+      "breakpoints": true
     }
   ]
 }

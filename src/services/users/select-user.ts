@@ -15,6 +15,10 @@ export type SelectUserInput = {
   id: string;
 };
 
+export type SelectUserByEmailInput = {
+  email: string;
+};
+
 export type SelectUserProjectBookMarkInput = {
   userId: string;
   projectId: string;
@@ -23,6 +27,14 @@ export type SelectUserProjectBookMarkInput = {
 export async function selectUserService({ input: { id }, tx }: ServiceArgs<SelectUserInput>) {
   const [user] = await db(tx).select().from(users).where(eq(users.id, id));
 
+  return user || null;
+}
+
+export async function selectUserByEmailService({
+  input: { email },
+  tx,
+}: ServiceArgs<SelectUserByEmailInput>) {
+  const [user] = await db(tx).select().from(users).where(eq(users.email, email));
   return user || null;
 }
 

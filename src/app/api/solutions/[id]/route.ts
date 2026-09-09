@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateSolutionAction, deleteSolutionAction } from "@/actions/solutions/actions";
-import { logServerError } from "@/utils/file-logger";
 import { selectSingleSolutionService } from "@/services/solutions/select-solution";
+import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
 
 interface RouteParams {
   params: Promise<{
@@ -28,8 +28,7 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
 
     return NextResponse.json({ success: true, data: solution }, { status: 200 });
   } catch (error: unknown) {
-    const message = logServerError(error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return routeErrorToResponse(error);
   }
 }
 
@@ -45,10 +44,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
     }
     const body = await request.json();
     const result = await updateSolutionAction({ ...body, solutionId });
-    return NextResponse.json(result, { status: result.success ? 200 : 400 });
+    return actionResultToResponse(result);
   } catch (error: unknown) {
-    const message = logServerError(error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return routeErrorToResponse(error);
   }
 }
 
@@ -63,9 +61,8 @@ export async function DELETE(request: NextRequest, { params }: RouteParams): Pro
       );
     }
     const result = await deleteSolutionAction({ solutionId });
-    return NextResponse.json(result, { status: result.success ? 200 : 400 });
+    return actionResultToResponse(result);
   } catch (error: unknown) {
-    const message = logServerError(error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return routeErrorToResponse(error);
   }
 }

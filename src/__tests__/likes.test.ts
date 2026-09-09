@@ -63,7 +63,10 @@ describe("like, bookmark, and vote API routes", () => {
     expect(
       (
         await json(
-          await voteProject(request(URLS.projectVote, PAYLOADS.vote), routeParams(UUIDS.project))
+          await voteProject(
+            request(URLS.projectVote, PAYLOADS.vote),
+            routeParams(UUIDS.project)
+          )
         )
       ).status
     ).toBe(STATUS.ok);
@@ -71,7 +74,7 @@ describe("like, bookmark, and vote API routes", () => {
       (
         await json(
           await voteProject(
-            new Request(URLS.projectVote, { method: "POST", body: "not-json" }),
+            request(URLS.projectVote, PAYLOADS.vote),
             routeParams(UUIDS.project)
           )
         )

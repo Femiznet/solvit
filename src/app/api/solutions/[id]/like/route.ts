@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSolutionLikeAction } from "@/actions/likes/actions";
-import { logServerError } from "@/utils/file-logger";
+import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
 
 export async function POST(
   request: NextRequest,
@@ -11,9 +11,8 @@ export async function POST(
 
     const body = await request.json();
     const result = await createSolutionLikeAction({ ...body, solutionId });
-    return NextResponse.json(result, { status: result.success ? 200 : 400 });
+    return actionResultToResponse(result);
   } catch (error: unknown) {
-    const message = logServerError(error);
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
+    return routeErrorToResponse(error);
   }
 }
