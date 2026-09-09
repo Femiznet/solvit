@@ -13,15 +13,17 @@ export type SelectCategoryInput = {
 };
 
 export async function selectCategoryService({
-  data: { id },
+  input: { id },
   tx,
 }: ServiceArgs<SelectCategoryInput>) {
-  const [category] = await db(tx).select(categoryFields).from(categories).where(eq(categories.id, id));
-  return category || null;
+  const [category] = await db(tx)
+    .select(categoryFields)
+    .from(categories)
+    .where(eq(categories.id, id));
+  return category;
 }
 
 export async function selectManyCategoriesService(args?: { tx?: ServiceArgs<never>["tx"] }) {
   const { tx } = args || {};
-
   return await db(tx).select(categoryFields).from(categories);
 }

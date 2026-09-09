@@ -2,22 +2,25 @@ import { db } from "@/database";
 import { categories } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
+import { ClientError } from "@/lib/errors";
 
 export type DeleteCategoryInput = {
-  id: string;
+  categoryId: string;
 };
 
 export async function deleteCategoryService({
-  data: { id },
+  input: { categoryId },
   tx,
 }: ServiceArgs<DeleteCategoryInput>) {
   const [deletedCategory] = await db(tx)
     .delete(categories)
-    .where(eq(categories.id, id))
+    .where(eq(categories.id, categoryId))
     .returning({
       id: categories.id,
       name: categories.name,
     });
 
-  return deletedCategory || null;
+  if (!deletedCategory) throw new ClientError("Category not found");
+
+  return deletedCategory;
 }

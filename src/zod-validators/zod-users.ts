@@ -6,8 +6,8 @@ import { users } from "@/database/schemas";
 export const userSchema = createSelectSchema(users, {
   id: z.uuid("Invalid user ID format."),
   name: z.string().min(1, "Name is required").max(255, "Name cannot exceed 255 characters"),
-  email: z.email("Invalid email address").max(255),
-  image: z.url("Invalid image URL").max(1000).optional(),
+  email: z.email({ error: "Invalid email address" }).max(255),
+  image: z.url({ error: "Invalid image URL" }).max(1000).optional(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -15,8 +15,8 @@ export const userSchema = createSelectSchema(users, {
 // 2. Create Schema (Insert)
 export const createUserSchema = createInsertSchema(users, {
   name: z.string().min(1, "Name is required").max(255, "Name cannot exceed 255 characters"),
-  email: z.email("Invalid email address").max(255),
-  image: z.url("Invalid image URL").max(1000).optional(),
+  email: z.email({ error: "Invalid email address" }).max(255),
+  image: z.url({ error: "Invalid image URL" }).max(1000).optional(),
 }).pick({
   name: true,
   email: true,
@@ -25,9 +25,13 @@ export const createUserSchema = createInsertSchema(users, {
 
 // 3. Update Schema
 export const updateUserSchema = createInsertSchema(users, {
-  name: z.string().min(1, "Name is required").max(255, "Name cannot exceed 255 characters").optional(),
-  email: z.email("Invalid email address").max(255).optional(),
-  image: z.url("Invalid image URL").max(1000).nullable().optional(),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(255, "Name cannot exceed 255 characters")
+    .optional(),
+  email: z.email({ error: "Invalid email address" }).max(255).optional(),
+  image: z.url({ error: "Invalid image URL" }).max(1000).nullable().optional(),
 })
   .pick({
     name: true,

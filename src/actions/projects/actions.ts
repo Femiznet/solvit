@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
 import { safeAction } from "@/utils/file-logger";
-import { 
-  createProjectSchema, 
-  updateProjectSchema, 
+import {
+  createProjectSchema,
+  updateProjectSchema,
   deleteProjectSchema,
   type CreateProjectInput,
   type UpdateProjectInput,
-  type DeleteProjectInput
+  type DeleteProjectInput,
 } from "@/zod-validators/zod-projects";
 import { createProjectService } from "@/services/projects/create-project";
 import { updateProjectService } from "@/services/projects/update-project";
@@ -23,13 +23,13 @@ export async function createProjectAction(input: CreateProjectInput) {
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await createProjectService({ data: validation.data });
+    return await createProjectService({ input: validation.data });
   }, "Failed to create project.");
 
-  if (!result.success) return result;
-
-  revalidatePath("/projects");
-  return { success: true, data: result.data };
+  if (result.success) {
+    revalidatePath("/projects");
+  }
+  return result;
 }
 
 /**
@@ -40,15 +40,15 @@ export async function updateProjectAction(input: UpdateProjectInput) {
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await updateProjectService({ data: { ...validation.data } });
+    return await updateProjectService({ input: { ...validation.data } });
   }, "Failed to update project.");
 
-  if (!result.success) return result;
-  if (!result.data) return { success: false, error: "Project entry not found." };
+  if (result.success) {
+    revalidatePath(`/projects/${validation.data.id}`);
+    revalidatePath("/projects");
+  }
 
-  revalidatePath(`/projects/${validation.data.id}`);
-  revalidatePath("/projects");
-  return { success: true, data: result.data };
+  return result;
 }
 
 /**
@@ -59,12 +59,12 @@ export async function deleteProjectAction(input: DeleteProjectInput) {
   if (!validation.success) return validation;
 
   const result = await safeAction(async () => {
-    return await deleteProjectService({ data: { id: validation.data.id } });
+    return await deleteProjectService({ input: { id: validation.data.id } });
   }, "Failed to delete project.");
 
-  if (!result.success) return result;
-  if (!result.data) return { success: false, error: "Project entry not found." };
+  if (result.success) {
+    revalidatePath("/projects");
+  }
 
-  revalidatePath("/projects");
-  return { success: true, data: result.data };
+  return result;
 }

@@ -1,4 +1,4 @@
-import { PROJECT_LEVELS, PROJECT_DIFFICULTY_ENUM } from "@/constants/enums";
+import { PROJECT_LEVELS } from "@/constants/enums";
 
 export interface CreateProjectInput {
   userId: string;
@@ -14,7 +14,7 @@ export interface CreateProjectInput {
 export interface CreateProjectDifficultyVoteInput {
   userId: string;
   projectId: string;
-  difficulty: (typeof PROJECT_DIFFICULTY_ENUM)[number];
+  difficulty: (typeof PROJECT_LEVELS)[number];
 }
 
 export interface CreateProjectStackInput {

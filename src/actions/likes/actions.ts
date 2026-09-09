@@ -1,29 +1,14 @@
 "use server";
 
-import { db } from "@/database";
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
-import { 
-  projectLikeSchema,
-  type ProjectLikeInput 
-} from "@/zod-validators/zod-projects";
-import { 
-  solutionLikeSchema,
-  type SolutionLikeInput 
-} from "@/zod-validators/zod-solutions";
+import { projectLikeSchema, type ProjectLikeInput } from "@/zod-validators/zod-projects";
+import { solutionLikeSchema, type SolutionLikeInput } from "@/zod-validators/zod-solutions";
 
-// Project Like Services
-import { selectProjectService } from "@/services/projects/select-project";
-import { updateProjectService } from "@/services/projects/update-project";
-import { deleteProjectLikeService } from "@/services/projects/delete-project";
-import { createProjectLikeService } from "@/services/projects/create-project";
-
-// Solution Like Services
-import { selectSolutionService } from "@/services/solutions/select-solution";
-import { updateSolutionService } from "@/services/solutions/update-solution";
-import { deleteSolutionLikeService } from "@/services/solutions/delete-solution";
-import { createSolutionLikeService } from "@/services/solutions/create-solution";
 import { projectIdPath, solutionIdPath } from "@/constants/paths";
+import { safeAction } from "@/utils/file-logger";
+import { toggleSolutionLikeService } from "@/services/likes/like-solutions";
+import { toggleProjectLikeService } from "@/services/likes/like-projects";
 
 /**
  * Toggles a project like entry.
@@ -35,42 +20,17 @@ export async function createProjectLikeAction(input: ProjectLikeInput) {
 
   const { userId, projectId } = validation.data;
 
-  try {
-    const result = await db().transaction(async (tx) => {
-      // 1. Fetch current project to get totalLikes (passing tx context object)
-      const project = await selectProjectService({ data: { projectId }, tx });
-      if (!project) throw new Error("Project not found");
+  const projectLikeFn = async () => {
+    return await toggleProjectLikeService({ input: { userId, projectId } });
+  };
 
-      // 2. Check if like entry exists by attempting a clean conditional deletion
-      const deletedLike = await deleteProjectLikeService({ data: { userId, projectId }, tx });
+  const result = await safeAction(projectLikeFn, "Failed to like project");
 
-      if (deletedLike) {
-        // Like existed, so we decrement
-        await updateProjectService({
-          data: { id: projectId, totalLikes: Math.max(0, project.totalLikes - 1) },
-          tx,
-        });
-        return { liked: false };
-      } else {
-        // Like did not exist, so we create it and increment
-        await createProjectLikeService({
-          data: { userId, projectId },
-          tx,
-        });
-        await updateProjectService({
-          data: { id: projectId, totalLikes: project.totalLikes + 1 },
-          tx,
-        });
-        return { liked: true };
-      }
-    });
-
+  if (result.success) {
     revalidatePath(projectIdPath(projectId));
-    return { success: true, liked: result.liked };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to toggle project like." };
   }
+
+  return result;
 }
 
 /**
@@ -83,40 +43,15 @@ export async function createSolutionLikeAction(input: SolutionLikeInput) {
 
   const { userId, solutionId } = validation.data;
 
-  try {
-    const result = await db().transaction(async (tx) => {
-      // 1. Fetch current solution to get current likes count
-      const solution = await selectSolutionService({ data: { solutionId }, tx });
-      if (!solution) throw new Error("Solution not found");
+  const solutionLikeFn = async () => {
+    return await toggleSolutionLikeService({ input: { userId, solutionId } });
+  };
 
-      // 2. Attempt conditional deletion to see if user already liked it
-      const deletedLike = await deleteSolutionLikeService({ data: { userId, solutionId }, tx });
+  const result = await safeAction(solutionLikeFn, "Failed to like solution");
 
-      if (deletedLike) {
-        // Like existed, decrement
-        await updateSolutionService({
-          data: { id: solutionId, likes: Math.max(0, solution.likes - 1) },
-          tx,
-        });
-        return { liked: false };
-      } else {
-        // Like did not exist, create and increment
-        await createSolutionLikeService({
-          data: { userId, solutionId },
-          tx,
-        });
-        await updateSolutionService({
-          data: { id: solutionId, likes: solution.likes + 1 },
-          tx,
-        });
-        return { liked: true };
-      }
-    });
-
+  if (result.success) {
     revalidatePath(solutionIdPath(solutionId));
-    return { success: true, liked: result.liked };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "Failed to toggle solution like." };
   }
+
+  return result;
 }

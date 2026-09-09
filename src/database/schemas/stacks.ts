@@ -1,5 +1,5 @@
 // src/database/schemas/stacks.ts
-import { pgTable, uuid, varchar} from "drizzle-orm/pg-core";
+import { pgTable, uuid, varchar } from "drizzle-orm/pg-core";
 
 export const stacks = pgTable("stacks", {
   id: uuid("id").primaryKey().defaultRandom(),

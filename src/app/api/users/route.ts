@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import { 
-  createUserAction, 
-  updateUserAction, 
-  deleteUserAction 
-} from "@/actions/users/actions";
+import { createUserAction, updateUserAction, deleteUserAction } from "@/actions/users/actions";
+import { logServerError } from "@/utils/file-logger";
 
 export async function POST(req: Request) {
   try {
@@ -16,11 +13,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.error("API POST Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Invalid request payload or internal error." }, 
-      { status: 500 }
-    );
+    const message = logServerError(error);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
@@ -35,11 +29,8 @@ export async function PUT(req: Request) {
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.error("API PUT Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Invalid request payload or internal error." }, 
-      { status: 500 }
-    );
+    const message = logServerError(error);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
@@ -54,10 +45,7 @@ export async function DELETE(req: Request) {
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
-    console.error("API DELETE Error:", error);
-    return NextResponse.json(
-      { success: false, error: "Invalid request payload or internal error." }, 
-      { status: 500 }
-    );
+    const message = logServerError(error);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }

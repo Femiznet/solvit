@@ -2,14 +2,15 @@ import { db } from "@/database";
 import { categories } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
+import { ClientError } from "@/lib/errors";
 
 export type UpdateCategoryInput = {
-  id: string;
+  categoryId: string;
   name: string;
 };
 
 export async function updateCategoryService({
-  data: { id, name },
+  input: { categoryId, name },
   tx,
 }: ServiceArgs<UpdateCategoryInput>) {
   const [updatedCategory] = await db(tx)
@@ -18,10 +19,12 @@ export async function updateCategoryService({
       name,
       updatedAt: new Date(),
     })
-    .where(eq(categories.id, id))
+    .where(eq(categories.id, categoryId))
     .returning({
       name: categories.name,
     });
 
-  return updatedCategory || null;
+  if (!updatedCategory) throw new ClientError("Category not found");
+
+  return updatedCategory;
 }

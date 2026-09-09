@@ -1,19 +1,17 @@
 import { db } from "@/database";
-import { users, userProgress, type NewUser } from "@/database/schemas";
-import { eq, and } from "drizzle-orm";
+import { users } from "@/database/schemas";
+import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
-import { PROJECT_PROGRESS } from "@/constants/enums";
+import { ClientError } from "@/lib/errors";
 
-export type UpdateUserInput = { id: string } & Partial<NewUser>;
-
-export type UpdateProgressInput = {
-  userId: string;
-  projectId: string;
-  status?: (typeof PROJECT_PROGRESS)[number];
+export type UpdateUserInput = {
+  id: string;
+  name?: string;
+  email?: string;
 };
 
 export async function updateUserService({
-  data: { id, ...updatedData },
+  input: { id, ...updatedData },
   tx,
 }: ServiceArgs<UpdateUserInput>) {
   const [updatedUser] = await db(tx)
@@ -23,31 +21,11 @@ export async function updateUserService({
       updatedAt: new Date(),
     })
     .where(eq(users.id, id))
-    .returning({id: users.id});
+    .returning({ id: users.id });
+
+  if (!updatedUser) {
+    throw new ClientError("User not found.");
+  }
 
   return updatedUser || null;
-}
-
-export async function updateProgressService({
-  data: { userId, projectId, status },
-  tx,
-}: ServiceArgs<UpdateProgressInput>) {
-  const [updated] = await db(tx)
-    .update(userProgress)
-    .set({
-      status,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(userProgress.userId, userId),
-        eq(userProgress.projectId, projectId)
-      )
-    )
-    .returning({
-      id: userProgress.id,
-      status: userProgress.status,
-    });
-
-  return updated || null;
 }

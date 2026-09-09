@@ -7,12 +7,9 @@ export type DeleteUserInput = {
   id: string;
 };
 
-export async function deleteUserService({
-  data: { id },
-  tx,
-}: ServiceArgs<DeleteUserInput>) {
+export async function deleteUserService({ input: { id }, tx }: ServiceArgs<DeleteUserInput>) {
   const [deletedUser] = await db(tx).delete(users).where(eq(users.id, id)).returning({
-    id: users.id
+    id: users.id,
   });
 
   return deletedUser || null;

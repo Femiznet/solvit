@@ -1,39 +1,25 @@
 import { db } from "@/database";
-import { solutions, solutionLikes } from "@/database/schemas";
-import { eq, and } from "drizzle-orm";
+import { solutions } from "@/database/schemas";
+import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
+import { ClientError } from "@/lib/errors";
 
 export type DeleteSolutionInput = {
-  userId: string;
-  solutionId: string;
-};
-
-export type DeleteSolutionLikeInput = {
-  userId: string;
   solutionId: string;
 };
 
 export async function deleteSolutionService({
-  data: { userId, solutionId },
+  input: { solutionId },
   tx,
 }: ServiceArgs<DeleteSolutionInput>) {
-  const [deletedSolution] = await db(tx).delete(solutions).where(
-    and(eq(solutionLikes.userId, userId), eq(solutionLikes.solutionId, solutionId))
-  ).returning({
-    projectId: solutions.projectId
-  });
+  const [deletedSolution] = await db(tx)
+    .delete(solutions)
+    .where(eq(solutions.id, solutionId))
+    .returning({
+      projectId: solutions.projectId,
+    });
 
-  return deletedSolution || null;
-}
+  if (!deletedSolution) throw new ClientError("Solution not found");
 
-export async function deleteSolutionLikeService({
-  data: { userId, solutionId },
-  tx,
-}: ServiceArgs<DeleteSolutionLikeInput>) {
-  const [deletedLike] = await db(tx)
-    .delete(solutionLikes)
-    .where(and(eq(solutionLikes.userId, userId), eq(solutionLikes.solutionId, solutionId)))
-    .returning();
-
-  return deletedLike || null;
+  return deletedSolution;
 }

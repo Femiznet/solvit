@@ -1,4 +1,13 @@
-import { pgTable, uuid, varchar, text, integer, jsonb, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  uuid,
+  varchar,
+  text,
+  integer,
+  jsonb,
+  timestamp,
+  pgEnum,
+} from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { categories } from "./categories";
 import { PROJECT_LEVELS } from "@/constants/enums";
@@ -7,8 +16,12 @@ export const levelEnum = pgEnum("project_level", PROJECT_LEVELS);
 
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom().notNull(),
-  userId: uuid("user_id").references(() => users.id).notNull(),
-  categoryId: uuid("category_id").references(() => categories.id).notNull(),
+  userId: uuid("user_id")
+    .references(() => users.id)
+    .notNull(),
+  categoryId: uuid("category_id")
+    .references(() => categories.id, { onDelete: "cascade" })
+    .notNull(),
   name: varchar("name", { length: 255 }).notNull(),
   description: text("description").notNull(),
   level: levelEnum("level").default("BEGINNER").notNull(),
