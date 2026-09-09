@@ -24,7 +24,6 @@ const mocks = vi.hoisted(() => ({
   createProjectAction: vi.fn(),
   updateProjectAction: vi.fn(),
   deleteProjectAction: vi.fn(),
-  selectManyProjectsService: vi.fn(),
   selectSingleProjectService: vi.fn(),
   searchProjectsAction: vi.fn(),
   selectManyStacksService: vi.fn(),
@@ -37,7 +36,6 @@ vi.mock("@/actions/projects/actions", () => ({
   deleteProjectAction: mocks.deleteProjectAction,
 }));
 vi.mock("@/services/projects/select-project", () => ({
-  selectManyProjectsService: mocks.selectManyProjectsService,
   selectSingleProjectService: mocks.selectSingleProjectService,
 }));
 vi.mock("@/actions/projects/search", () => ({ searchProjectsAction: mocks.searchProjectsAction }));
@@ -49,19 +47,15 @@ vi.mock("@/services/stacks/select-stacks", () => ({
 afterEach(() => vi.clearAllMocks());
 
 describe("project API routes", () => {
-  it("lists projects and returns server errors", async () => {
-    mocks.selectManyProjectsService
-      .mockResolvedValueOnce(RESULTS.projects)
-      .mockRejectedValueOnce(new Error(ERROR_MESSAGE));
+  it("lists projects with the unified search shape", async () => {
+    mocks.searchProjectsAction
+      .mockResolvedValueOnce(RESULTS.success)
+      .mockResolvedValueOnce(RESULTS.failure);
 
-    expect(await json(await listProjects(request(URLS.projects)))).toEqual({
-      status: STATUS.ok,
-      body: { success: true, data: RESULTS.projects },
-    });
-    expect(await json(await listProjects(request(URLS.projects)))).toEqual({
-      status: STATUS.serverError,
-      body: { success: false, error: ERROR_MESSAGE },
-    });
+    expect((await json(await listProjects(request(URLS.projects)))).status).toBe(STATUS.ok);
+    // No query params -> the action applies its defaults (sort=newest, limit=20, offset=0)
+    expect(mocks.searchProjectsAction).toHaveBeenCalledWith({});
+    expect((await json(await listProjects(request(URLS.projects)))).status).toBe(STATUS.badRequest);
   });
 
   it.each([

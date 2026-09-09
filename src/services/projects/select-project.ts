@@ -79,9 +79,3 @@ export async function selectUserProjectsService({
     stacks: stacksMap.get(project.id) || [],
   }));
 }
-
-export async function selectManyProjectsService(args?: { tx?: ServiceArgs<never>["tx"] }) {
-  const { tx } = args || {};
-
-  return await db(tx).select().from(projects);
-}
