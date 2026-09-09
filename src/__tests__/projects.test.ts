@@ -6,6 +6,7 @@ import {
   PUT as updateProject,
 } from "@/app/api/projects/[id]/route";
 import { GET as searchProjects } from "@/app/api/projects/search/route";
+import { GET as listStacks } from "@/app/api/stacks/route";
 import { searchProjectsSchema } from "@/zod-validators/zod-projects";
 import {
   ERROR_MESSAGE,
@@ -26,6 +27,7 @@ const mocks = vi.hoisted(() => ({
   selectManyProjectsService: vi.fn(),
   selectSingleProjectService: vi.fn(),
   searchProjectsAction: vi.fn(),
+  selectManyStacksService: vi.fn(),
   logServerError: vi.fn(() => ERROR_MESSAGE),
 }));
 
@@ -40,6 +42,9 @@ vi.mock("@/services/projects/select-project", () => ({
 }));
 vi.mock("@/actions/projects/search", () => ({ searchProjectsAction: mocks.searchProjectsAction }));
 vi.mock("@/utils/file-logger", () => ({ logServerError: mocks.logServerError }));
+vi.mock("@/services/stacks/select-stacks", () => ({
+  selectManyStacksService: mocks.selectManyStacksService,
+}));
 
 afterEach(() => vi.clearAllMocks());
 
@@ -155,5 +160,26 @@ describe("search projects schema", () => {
     expect(searchProjectsSchema.safeParse({ sort: "bogus" }).success).toBe(false);
     expect(searchProjectsSchema.safeParse({ limit: 51 }).success).toBe(false);
     expect(searchProjectsSchema.safeParse({ offset: -1 }).success).toBe(false);
+  });
+});
+
+describe("stack API routes", () => {
+  it("returns many stacks and server errors", async () => {
+    const stackRows = [
+      { id: UUIDS.stack, name: "TypeScript" },
+      { id: UUIDS.otherProject, name: "Next.js" },
+    ];
+    mocks.selectManyStacksService
+      .mockResolvedValueOnce(stackRows)
+      .mockRejectedValueOnce(new Error(ERROR_MESSAGE));
+
+    expect(await json(await listStacks(request(URLS.stacks)))).toEqual({
+      status: STATUS.ok,
+      body: { success: true, data: stackRows },
+    });
+    expect(await json(await listStacks(request(URLS.stacks)))).toEqual({
+      status: STATUS.serverError,
+      body: { success: false, error: ERROR_MESSAGE },
+    });
   });
 });

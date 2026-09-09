@@ -25,6 +25,7 @@ export const URLS = {
   userSolutions: `http://localhost/api/users/${UUIDS.user}`,
   categories: "http://localhost/api/categories",
   category: `http://localhost/api/categories/${UUIDS.category}`,
+  stacks: "http://localhost/api/stacks",
 };
 
 export const PAYLOADS = {
