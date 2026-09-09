@@ -6,6 +6,7 @@ import {
   PUT as updateProject,
 } from "@/app/api/projects/[id]/route";
 import { GET as searchProjects } from "@/app/api/projects/search/route";
+import { searchProjectsSchema } from "@/zod-validators/zod-projects";
 import {
   ERROR_MESSAGE,
   PAYLOADS,
@@ -104,5 +105,55 @@ describe("project API routes", () => {
     expect((await json(await searchProjects(request(URLS.projectSearch)))).status).toBe(
       STATUS.badRequest
     );
+  });
+
+  it("parses repeated levels, pagination, and comma-separated filters into the action", async () => {
+    mocks.searchProjectsAction.mockResolvedValue(RESULTS.success);
+
+    const searchURL =
+      "http://localhost/api/projects/search?level=BEGINNER&level=ADVANCED" +
+      "&limit=5&offset=2&stackIds=77777777-7777-4777-8777-777777777777&requirements=api,docker";
+
+    await searchProjects(request(searchURL));
+
+    expect(mocks.searchProjectsAction).toHaveBeenCalledWith({
+      level: ["BEGINNER", "ADVANCED"],
+      limit: 5,
+      offset: 2,
+      stackIds: [UUIDS.stack],
+      requirements: ["api", "docker"],
+    });
+  });
+});
+
+describe("search projects schema", () => {
+  it("applies default sort, limit, and offset", () => {
+    const parsed = searchProjectsSchema.safeParse({ query: "next" });
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.sort).toBe("newest");
+    expect(parsed.data.limit).toBe(20);
+    expect(parsed.data.offset).toBe(0);
+  });
+
+  it("coerces numeric query strings and accepts filter arrays", () => {
+    const parsed = searchProjectsSchema.safeParse({
+      level: ["BEGINNER", "ADVANCED"],
+      limit: "5",
+      offset: 2,
+      requirements: ["auth"],
+      optRequirements: ["docker"],
+    });
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data.limit).toBe(5);
+    expect(parsed.data.level).toEqual(["BEGINNER", "ADVANCED"]);
+    expect(parsed.data.requirements).toEqual(["auth"]);
+  });
+
+  it("rejects invalid sort, oversized limits, and negative offsets", () => {
+    expect(searchProjectsSchema.safeParse({ sort: "bogus" }).success).toBe(false);
+    expect(searchProjectsSchema.safeParse({ limit: 51 }).success).toBe(false);
+    expect(searchProjectsSchema.safeParse({ offset: -1 }).success).toBe(false);
   });
 });

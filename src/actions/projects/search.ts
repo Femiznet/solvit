@@ -9,7 +9,17 @@ export async function searchProjectsAction(input: SearchProjectsInput) {
   const validation = validateData(searchProjectsSchema, input);
   if (!validation.success) return validation;
 
-  const { level, categoryId, stackIds, query, sort } = validation.data;
+  const {
+    level,
+    categoryId,
+    stackIds,
+    requirements,
+    optRequirements,
+    query,
+    sort,
+    limit,
+    offset,
+  } = validation.data;
 
   return await safeAction(async () => {
     return await searchProjectsService({
@@ -17,8 +27,12 @@ export async function searchProjectsAction(input: SearchProjectsInput) {
         level,
         categoryId,
         stackIds,
+        requirements,
+        optRequirements,
         query,
         sort,
+        limit,
+        offset,
       },
     });
   }, "Failed to search projects.");

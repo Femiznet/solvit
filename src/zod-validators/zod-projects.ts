@@ -119,7 +119,20 @@ export const searchProjectsSchema = z.object({
   categoryId: z.string().uuid({ error: "Invalid category ID format" }).optional(),
   level: z.array(z.enum(PROJECT_LEVELS)).optional(),
   stackIds: z.array(z.string().uuid({ error: "Invalid stack ID format" })).optional(),
+  requirements: z.array(z.string()).optional(),
+  optRequirements: z.array(z.string()).optional(),
   sort: z.enum(PROJECT_SORT_OPTIONS, { error: "Invalid sorting option" }).default("newest"),
+  limit: z.coerce
+    .number()
+    .int({ error: "Limit must be a whole number" })
+    .min(1, { error: "Limit must be at least 1" })
+    .max(50, { error: "Limit cannot exceed 50" })
+    .default(20),
+  offset: z.coerce
+    .number()
+    .int({ error: "Offset must be a whole number" })
+    .min(0, { error: "Offset cannot be negative" })
+    .default(0),
 });
 
 // Exported Types
