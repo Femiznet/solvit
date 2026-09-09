@@ -14,8 +14,9 @@ export const solutionSchema = createSelectSchema(solutions, {
   description: z.string().nullable().optional(),
   repoUrl: z.url({ error: "Invalid repository URL" }).max(500).nullable().optional(),
   demoUrl: z.url({ error: "Invalid demo URL" }).max(500).nullable().optional(),
-  implFeat: z.array(z.string("Each feature must be a text string"))
-      .min(1, { error: "At least one feature must be provided" })
+  implFeat: z
+    .array(z.string("Each feature must be a text string"))
+    .min(1, { error: "At least one feature must be provided" }),
 });
 
 // 2. Create Schema (Insert)
@@ -29,8 +30,9 @@ export const createSolutionSchema = createInsertSchema(solutions, {
   description: z.string().nullable().optional(),
   repoUrl: z.url({ error: "Invalid repository URL" }).max(500).nullable().optional(),
   demoUrl: z.url({ error: "Invalid demo URL" }).max(500).nullable().optional(),
-  implFeat: z.array(z.string("Each feature must be a text string"))
-      .min(1, { error: "At least one feature must be provided" }),
+  implFeat: z
+    .array(z.string("Each feature must be a text string"))
+    .min(1, { error: "At least one feature must be provided" }),
 }).pick({
   projectId: true,
   userId: true,
@@ -53,7 +55,8 @@ export const updateSolutionSchema = createInsertSchema(solutions, {
   description: z.string().optional(),
   repoUrl: z.url({ error: "Invalid repository URL" }).max(500).optional(),
   demoUrl: z.url({ error: "Invalid demo URL" }).max(500).optional(),
-  implFeat: z.array(z.string("Each feature must be a text string"))
+  implFeat: z
+    .array(z.string("Each feature must be a text string"))
     .min(1, { error: "At least one feature must be provided" })
     .optional(),
 })
@@ -72,7 +75,6 @@ export const updateSolutionSchema = createInsertSchema(solutions, {
 
 // 4. Delete Schema
 export const deleteSolutionSchema = z.object({
-  userId: z.uuid({ error: "Invalid user ID format." }),
   solutionId: z.uuid({ error: "Invalid solution ID format." }),
 });
 

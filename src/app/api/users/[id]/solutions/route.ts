@@ -2,7 +2,6 @@ import { selectUserSolutionsService } from "@/services/solutions/select-solution
 import { logServerError } from "@/utils/file-logger";
 import { NextRequest, NextResponse } from "next/server";
 
-
 interface RouteParams {
   params: Promise<{
     id: string;

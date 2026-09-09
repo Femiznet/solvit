@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
 import { safeAction } from "@/utils/file-logger";
-import { 
-  createCategorySchema, 
-  updateCategorySchema, 
+import {
+  createCategorySchema,
+  updateCategorySchema,
   deleteCategorySchema,
   type CreateCategoryInput,
   type UpdateCategoryInput,
-  type DeleteCategoryInput
+  type DeleteCategoryInput,
 } from "@/zod-validators/zod-categories";
 import { createCategoryService } from "@/services/categories/create-category";
 import { updateCategoryService } from "@/services/categories/update-category";
@@ -17,7 +17,7 @@ import { deleteCategoryService } from "@/services/categories/delete-category";
 import { CATEGORY_PATH } from "@/constants/paths";
 
 const CATEGORY_CONSTRAINTS = {
-  "categories_name_unique": "Category name already exists"
+  categories_name_unique: "Category name already exists",
 };
 
 /**
@@ -27,16 +27,20 @@ export async function createCategoryAction(input: CreateCategoryInput) {
   const validation = validateData(createCategorySchema, input);
   if (!validation.success) return validation;
 
-  const result = await safeAction(async () => {
-    return await createCategoryService({ input: { ...validation.data } });
-  }, "Failed to create category.", {
-    constraintErrors: CATEGORY_CONSTRAINTS
-  });
+  const result = await safeAction(
+    async () => {
+      return await createCategoryService({ input: { ...validation.data } });
+    },
+    "Failed to create category.",
+    {
+      constraintErrors: CATEGORY_CONSTRAINTS,
+    }
+  );
 
   if (result.success) {
     revalidatePath(CATEGORY_PATH);
   }
-  
+
   return result;
 }
 
@@ -47,16 +51,20 @@ export async function updateCategoryAction(input: UpdateCategoryInput) {
   const validation = validateData(updateCategorySchema, input);
   if (!validation.success) return validation;
 
-  const result = await safeAction(async () => {
-    return await updateCategoryService({ input: { ...validation.data } });
-  }, "Failed to update category.", {
-    constraintErrors: CATEGORY_CONSTRAINTS
-  });
+  const result = await safeAction(
+    async () => {
+      return await updateCategoryService({ input: { ...validation.data } });
+    },
+    "Failed to update category.",
+    {
+      constraintErrors: CATEGORY_CONSTRAINTS,
+    }
+  );
 
   if (result.success) {
     revalidatePath(CATEGORY_PATH);
   }
-  
+
   return result;
 }
 
@@ -75,6 +83,6 @@ export async function deleteCategoryAction(input: DeleteCategoryInput) {
     if (!result.data) return { success: false, error: "Category not found" };
     revalidatePath(CATEGORY_PATH);
   }
-  
+
   return result;
 }

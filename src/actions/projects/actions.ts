@@ -3,13 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
 import { safeAction } from "@/utils/file-logger";
-import { 
-  createProjectSchema, 
-  updateProjectSchema, 
+import {
+  createProjectSchema,
+  updateProjectSchema,
   deleteProjectSchema,
   type CreateProjectInput,
   type UpdateProjectInput,
-  type DeleteProjectInput
+  type DeleteProjectInput,
 } from "@/zod-validators/zod-projects";
 import { createProjectService } from "@/services/projects/create-project";
 import { updateProjectService } from "@/services/projects/update-project";
@@ -25,7 +25,7 @@ export async function createProjectAction(input: CreateProjectInput) {
   const result = await safeAction(async () => {
     return await createProjectService({ input: validation.data });
   }, "Failed to create project.");
-  
+
   if (result.success) {
     revalidatePath("/projects");
   }

@@ -10,8 +10,7 @@ export interface CreateUserInput {
 
 export async function createUserService({ input, tx }: ServiceArgs<CreateUserInput>) {
   const [newUser] = await db(tx).insert(users).values(input).returning({
-    id: users.id
+    id: users.id,
   });
   return newUser;
 }
-

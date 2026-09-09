@@ -21,6 +21,6 @@ export async function deleteCategoryService({
     });
 
   if (!deletedCategory) throw new ClientError("Category not found");
-  
+
   return deletedCategory;
 }

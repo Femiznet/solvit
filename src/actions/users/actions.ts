@@ -3,22 +3,22 @@
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
 import { safeAction } from "@/utils/file-logger";
-import { 
-  createUserSchema, 
-  deleteUserSchema, 
+import {
+  createUserSchema,
+  deleteUserSchema,
   updateUserSchema,
   type CreateUserInput,
   type UpdateUserInput,
-  type DeleteUserInput
+  type DeleteUserInput,
 } from "@/zod-validators/zod-users";
 import { createUserService } from "@/services/users/create-user";
 import { updateUserService } from "@/services/users/update-user";
 import { deleteUserService } from "@/services/users/delete-user";
 
 const USER_CONSTRAINTS = {
-    users_email_unique: "An account with this email already exists.",
-    users_username_unique: "This username is already taken."
-}
+  users_email_unique: "An account with this email already exists.",
+  users_username_unique: "This username is already taken.",
+};
 
 /**
  * Creates a new user after verifying payloads via Zod.
@@ -34,7 +34,7 @@ export async function createUserAction(input: CreateUserInput) {
     "Failed to create user.",
     {
       input,
-      constraintErrors: USER_CONSTRAINTS
+      constraintErrors: USER_CONSTRAINTS,
     }
   );
 }
@@ -46,12 +46,14 @@ export async function updateUserAction(input: UpdateUserInput) {
   const validation = validateData(updateUserSchema, input);
   if (!validation.success) return validation;
 
-  const result = await safeAction(async () => {
-    return await updateUserService({ input: { ...validation.data } });
-  }, "Failed to update user profile.",
-  {
-    input,
-    constraintErrors: USER_CONSTRAINTS
+  const result = await safeAction(
+    async () => {
+      return await updateUserService({ input: { ...validation.data } });
+    },
+    "Failed to update user profile.",
+    {
+      input,
+      constraintErrors: USER_CONSTRAINTS,
     }
   );
 
@@ -59,7 +61,7 @@ export async function updateUserAction(input: UpdateUserInput) {
     revalidatePath(`/users/${validation.data.id}`);
     revalidatePath("/users");
   }
-  
+
   return result;
 }
 
@@ -77,6 +79,6 @@ export async function deleteUserAction(input: DeleteUserInput) {
   if (result.success) {
     revalidatePath("/users");
   }
-  
+
   return result;
 }

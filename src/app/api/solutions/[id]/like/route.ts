@@ -8,7 +8,7 @@ export async function POST(
 ): Promise<NextResponse> {
   try {
     const { id: solutionId } = await params;
-    
+
     const body = await request.json();
     const result = await createSolutionLikeAction({ ...body, solutionId });
     return NextResponse.json(result, { status: result.success ? 200 : 400 });

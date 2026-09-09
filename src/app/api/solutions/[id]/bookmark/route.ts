@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { 
-  bookmarkSolution 
-} from "@/actions/bookmarks/actions";
+import { bookmarkSolution } from "@/actions/bookmarks/actions";
 import { logServerError } from "@/utils/file-logger";
 
 export async function POST(

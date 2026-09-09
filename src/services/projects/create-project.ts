@@ -7,10 +7,7 @@ import { ServiceArgs } from "@/types/service-args";
 import { CreateProjectInput } from "@/zod-validators/zod-projects";
 import { and, eq, gte, count, sql } from "drizzle-orm";
 
-export async function createProjectService({ 
-  input, 
-  tx 
-}: ServiceArgs<CreateProjectInput>) {
+export async function createProjectService({ input, tx }: ServiceArgs<CreateProjectInput>) {
   const activeDb = db(tx);
 
   // Check creation logs for today (unaffected by project deletions)
@@ -34,8 +31,8 @@ export async function createProjectService({
   });
 
   const [newProject] = await activeDb.insert(projects).values(input).returning({
-    id: projects.id
+    id: projects.id,
   });
-  
+
   return newProject;
 }

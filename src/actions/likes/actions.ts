@@ -2,14 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { validateData } from "@/lib/validate";
-import { 
-  projectLikeSchema,
-  type ProjectLikeInput 
-} from "@/zod-validators/zod-projects";
-import { 
-  solutionLikeSchema,
-  type SolutionLikeInput 
-} from "@/zod-validators/zod-solutions";
+import { projectLikeSchema, type ProjectLikeInput } from "@/zod-validators/zod-projects";
+import { solutionLikeSchema, type SolutionLikeInput } from "@/zod-validators/zod-solutions";
 
 import { projectIdPath, solutionIdPath } from "@/constants/paths";
 import { safeAction } from "@/utils/file-logger";
@@ -28,14 +22,14 @@ export async function createProjectLikeAction(input: ProjectLikeInput) {
 
   const projectLikeFn = async () => {
     return await toggleProjectLikeService({ input: { userId, projectId } });
-  }
+  };
 
   const result = await safeAction(projectLikeFn, "Failed to like project");
 
   if (result.success) {
     revalidatePath(projectIdPath(projectId));
   }
-  
+
   return result;
 }
 
@@ -51,13 +45,13 @@ export async function createSolutionLikeAction(input: SolutionLikeInput) {
 
   const solutionLikeFn = async () => {
     return await toggleSolutionLikeService({ input: { userId, solutionId } });
-  }
+  };
 
   const result = await safeAction(solutionLikeFn, "Failed to like solution");
 
   if (result.success) {
     revalidatePath(solutionIdPath(solutionId));
   }
-  
+
   return result;
 }

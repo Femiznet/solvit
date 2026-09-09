@@ -4,10 +4,7 @@ import { selectSingleProjectService } from "@/services/projects/select-project";
 import { updateProjectAction, deleteProjectAction } from "@/actions/projects/actions";
 import { logServerError } from "@/utils/file-logger";
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
     const project = await selectSingleProjectService({ input: { projectId: id } });
@@ -44,8 +41,7 @@ export async function DELETE(
 ): Promise<NextResponse> {
   try {
     const { id } = await params;
-    const body = await request.json();
-    const result = await deleteProjectAction({ ...body, id });
+    const result = await deleteProjectAction({ id });
     return NextResponse.json(result, { status: result.success ? 200 : 400 });
   } catch (error: unknown) {
     const message = logServerError(error);

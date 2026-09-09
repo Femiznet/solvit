@@ -13,7 +13,7 @@ export function validateData<T extends z.ZodType>(
   if (!result.success) {
     // Map issues into a clean dictionary of field -> error messages
     const fieldErrors: Record<string, string[]> = {};
-    
+
     for (const issue of result.error.issues) {
       const fieldName = issue.path.join(".");
       if (!fieldErrors[fieldName]) {

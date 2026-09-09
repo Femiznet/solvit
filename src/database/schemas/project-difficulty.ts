@@ -3,7 +3,7 @@ import { users } from "./users";
 import { projects } from "./projects";
 import { PROJECT_LEVELS } from "@/constants/enums";
 
-export const project_difficulty = pgEnum('project_difficulty', PROJECT_LEVELS);
+export const project_difficulty = pgEnum("project_difficulty", PROJECT_LEVELS);
 
 export const projectDifficultyVotes = pgTable(
   "project_difficulty_votes",
@@ -19,7 +19,5 @@ export const projectDifficultyVotes = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (t) => [
-    unique("user_project_difficulty_idx").on(t.userId, t.projectId),
-  ]
+  (t) => [unique("user_project_difficulty_idx").on(t.userId, t.projectId)]
 );

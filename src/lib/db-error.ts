@@ -8,11 +8,10 @@ interface DbError extends Error {
 }
 
 export function handleDbError(err: unknown, constraintErrors?: Record<string, string>): void {
-    const dbErr = err as DbError;
-    const actualDbErr = dbErr.cause || dbErr;
-  
-    if (actualDbErr.constraint && constraintErrors && constraintErrors[actualDbErr.constraint]) {
-      throw new ClientError(constraintErrors[actualDbErr.constraint]);
-    }
+  const dbErr = err as DbError;
+  const actualDbErr = dbErr.cause || dbErr;
+
+  if (actualDbErr.constraint && constraintErrors && constraintErrors[actualDbErr.constraint]) {
+    throw new ClientError(constraintErrors[actualDbErr.constraint]);
   }
-  
+}

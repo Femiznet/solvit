@@ -8,16 +8,11 @@ export async function toggleProjectBookmarkService({
   projectId,
 }: SelectProjectBookmarkInput) {
   const existingBookmark = await db().query.projectBookMarks.findFirst({
-    where: and(
-      eq(projectBookMarks.userId, userId),
-      eq(projectBookMarks.projectId, projectId)
-    ),
+    where: and(eq(projectBookMarks.userId, userId), eq(projectBookMarks.projectId, projectId)),
   });
 
   if (existingBookmark) {
-    await db()
-      .delete(projectBookMarks)
-      .where(eq(projectBookMarks.id, existingBookmark.id));
+    await db().delete(projectBookMarks).where(eq(projectBookMarks.id, existingBookmark.id));
     return { bookmarked: false };
   } else {
     await db().insert(projectBookMarks).values({

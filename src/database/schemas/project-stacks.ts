@@ -3,19 +3,17 @@ import { projects } from "./projects";
 import { stacks } from "./stacks";
 
 export const projectStacks = pgTable(
-    "project_stacks",
-    {
-      projectId: uuid("project_id")
-        .notNull()
-        .references(() => projects.id, { onDelete: "cascade" }),
-      stackId: uuid("stack_id")
-        .notNull()
-        .references(() => stacks.id, { onDelete: "cascade" }),
-    },
-    (t) => [
-      primaryKey({ columns: [t.projectId, t.stackId] }),
-    ]
+  "project_stacks",
+  {
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    stackId: uuid("stack_id")
+      .notNull()
+      .references(() => stacks.id, { onDelete: "cascade" }),
+  },
+  (t) => [primaryKey({ columns: [t.projectId, t.stackId] })]
 );
-  
+
 export type ProjectStacks = typeof projectStacks.$inferSelect;
 export type NewProjectStack = typeof projectStacks.$inferInsert;

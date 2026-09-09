@@ -16,7 +16,10 @@ export async function selectCategoryService({
   input: { id },
   tx,
 }: ServiceArgs<SelectCategoryInput>) {
-  const [category] = await db(tx).select(categoryFields).from(categories).where(eq(categories.id, id));
+  const [category] = await db(tx)
+    .select(categoryFields)
+    .from(categories)
+    .where(eq(categories.id, id));
   return category;
 }
 

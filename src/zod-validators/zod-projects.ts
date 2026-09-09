@@ -9,28 +9,34 @@ export const createProjectSchema = createInsertSchema(projects, {
     .string("Name must be a string")
     .min(1, { error: "Name is required" })
     .max(255, { error: "Name cannot exceed 255 characters" }),
-  
+
   description: z
     .string("Description must be a string")
     .min(1, { error: "Description is required" }),
-  
+
   instructions: z
-    .array(z.string("Each instruction must be a text string"), { error: "Instructions are required" })
+    .array(z.string("Each instruction must be a text string"), {
+      error: "Instructions are required",
+    })
     .min(1, { error: "At least one instruction must be provided" }),
-  
+
   level: z.enum(PROJECT_LEVELS, { error: "Invalid project level selected" }).default("BEGINNER"),
-  
+
   requirements: z
-    .array(z.string("Each requirement must be a text string"), { error: "Requirements are required" })
+    .array(z.string("Each requirement must be a text string"), {
+      error: "Requirements are required",
+    })
     .min(1, { error: "At least one requirement must be provided" }),
-  
+
   optRequirements: z
     .array(z.string("Each optional requirement must be a text string"))
     .optional()
     .nullable(),
-  
-  categoryId: z.string("Category ID must be a string").uuid({ error: "Invalid category ID format" }),
-  
+
+  categoryId: z
+    .string("Category ID must be a string")
+    .uuid({ error: "Invalid category ID format" }),
+
   userId: z.string("User ID must be a string").uuid({ error: "Invalid user ID format" }),
 }).pick({
   name: true,
@@ -50,27 +56,33 @@ export const updateProjectSchema = createInsertSchema(projects, {
     .min(1, { error: "Name cannot be empty" })
     .max(255, { error: "Name cannot exceed 255 characters" })
     .optional(),
-  
-  description: z.string("Description must be a string").min(1, { error: "Description cannot be empty" }).optional(),
-  
+
+  description: z
+    .string("Description must be a string")
+    .min(1, { error: "Description cannot be empty" })
+    .optional(),
+
   instructions: z
     .array(z.string("Each instruction must be a text string"))
     .min(1, { error: "At least one instruction must be provided" })
     .optional(),
-  
+
   level: z.enum(PROJECT_LEVELS, { error: "Invalid project level selected" }).optional(),
-  
+
   requirements: z
     .array(z.string("Each requirement must be a text string"))
     .min(1, { error: "At least one requirement must be provided" })
     .optional(),
-  
+
   optRequirements: z
     .array(z.string("Each optional requirement must be a text string"))
     .optional()
     .nullable(),
-  
-  categoryId: z.string("Category ID must be a string").uuid({ error: "Invalid category ID format" }).optional(),
+
+  categoryId: z
+    .string("Category ID must be a string")
+    .uuid({ error: "Invalid category ID format" })
+    .optional(),
   userId: z.string("User ID must be a string").uuid({ error: "Invalid user ID format" }).optional(),
 })
   .pick({

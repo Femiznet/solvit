@@ -25,7 +25,11 @@ export const createUserSchema = createInsertSchema(users, {
 
 // 3. Update Schema
 export const updateUserSchema = createInsertSchema(users, {
-  name: z.string().min(1, "Name is required").max(255, "Name cannot exceed 255 characters").optional(),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(255, "Name cannot exceed 255 characters")
+    .optional(),
   email: z.email({ error: "Invalid email address" }).max(255).optional(),
   image: z.url({ error: "Invalid image URL" }).max(1000).nullable().optional(),
 })

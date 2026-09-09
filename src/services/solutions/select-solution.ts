@@ -43,9 +43,8 @@ export type SelectSolutionInput = {
 };
 
 export type SelectUserSolutiontInput = {
-    userId: string;
-}
-
+  userId: string;
+};
 
 export async function selectSingleSolutionService({
   input: { solutionId },
@@ -67,7 +66,10 @@ export async function selectSingleSolutionService({
   };
 }
 
-export async function selectUserSolutionsService({ input, tx }: ServiceArgs<SelectUserSolutiontInput>) {
+export async function selectUserSolutionsService({
+  input,
+  tx,
+}: ServiceArgs<SelectUserSolutiontInput>) {
   const results = await db(tx)
     .select()
     .from(solutions)

@@ -32,7 +32,7 @@ export async function bookmarkProject(input: CreateProjectBookmarkInput) {
     revalidatePath(DASHBOARD_PATH);
     revalidatePath(PROJECTS_PATH);
   }
-  
+
   return result;
 }
 
@@ -50,10 +50,10 @@ export async function bookmarkSolution(input: CreateSolutionBookmarkInput) {
       solutionId: validation.data.solutionId,
     });
   }, "Failed to bookmark solution");
-  
+
   if (result.success) {
     revalidatePath(DASHBOARD_PATH);
   }
-  
+
   return result;
 }

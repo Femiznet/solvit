@@ -28,7 +28,7 @@ export const updateCategorySchema = createInsertSchema(categories, {
   name: z
     .string({ error: "Name is required" })
     .min(1, { error: "Name is required" })
-    .max(255, { error: "Name cannot exceed 255 characters" })
+    .max(255, { error: "Name cannot exceed 255 characters" }),
 })
   .pick({
     name: true,

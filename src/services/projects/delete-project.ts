@@ -8,12 +8,9 @@ export type DeleteProjectInput = {
   id: string;
 };
 
-export async function deleteProjectService({
-  input: { id },
-  tx,
-}: ServiceArgs<DeleteProjectInput>) {
+export async function deleteProjectService({ input: { id }, tx }: ServiceArgs<DeleteProjectInput>) {
   const [deletedProject] = await db(tx).delete(projects).where(eq(projects.id, id)).returning({
-    id: projects.id
+    id: projects.id,
   });
 
   if (!deletedProject) {

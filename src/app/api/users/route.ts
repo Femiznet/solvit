@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
-import { 
-  createUserAction, 
-  updateUserAction, 
-  deleteUserAction 
-} from "@/actions/users/actions";
+import { createUserAction, updateUserAction, deleteUserAction } from "@/actions/users/actions";
 import { logServerError } from "@/utils/file-logger";
 
 export async function POST(req: Request) {

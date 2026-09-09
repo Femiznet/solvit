@@ -31,9 +31,9 @@ function writeErrorLog(fileName: string, error: unknown, input?: unknown): void 
 
     for (const line of stackLines) {
       if (
-        !line.includes("at ") || 
-        line.includes("node_modules") || 
-        line.includes("node:internal") || 
+        !line.includes("at ") ||
+        line.includes("node_modules") ||
+        line.includes("node:internal") ||
         line.includes("file-logger") ||
         line.includes("processTicksAndRejections")
       ) {
@@ -41,10 +41,10 @@ function writeErrorLog(fileName: string, error: unknown, input?: unknown): void 
       }
 
       const match = line.match(/at\s+(?:async\s+)?([^\s]+)/);
-      
+
       if (match) {
         const fnName = match[1];
-        
+
         if (fnName.includes(":\\") || fnName.includes("/")) {
           continue;
         }
@@ -59,7 +59,7 @@ function writeErrorLog(fileName: string, error: unknown, input?: unknown): void 
 
   let logEntry = `[${timestamp}] ERROR\n`;
   logEntry += `  Source:\n`;
-  
+
   if (cleanedSteps.length > 0) {
     const reversed = cleanedSteps.reverse();
     reversed.forEach((step, idx) => {
@@ -73,7 +73,10 @@ function writeErrorLog(fileName: string, error: unknown, input?: unknown): void 
   // Include the input payload
   try {
     const formattedInput = typeof input === "string" ? input : JSON.stringify(input, null, 2);
-    logEntry += `  Input      :\n${formattedInput.split("\n").map(line => `    ${line}`).join("\n")}\n`;
+    logEntry += `  Input      :\n${formattedInput
+      .split("\n")
+      .map((line) => `    ${line}`)
+      .join("\n")}\n`;
   } catch {
     logEntry += `  Input      : [Unserializable Input]\n`;
   }
@@ -92,13 +95,8 @@ function writeErrorLog(fileName: string, error: unknown, input?: unknown): void 
   fs.appendFileSync(logFile, logEntry, "utf-8");
 }
 
-
-
-
-
-
-// export type SafeActionResult<T> = 
-//   | { success: true; data: T } 
+// export type SafeActionResult<T> =
+//   | { success: true; data: T }
 //   | { success: false; error: string };
 
 //   export async function safeAction<T extends object>(
@@ -112,7 +110,7 @@ function writeErrorLog(fileName: string, error: unknown, input?: unknown): void 
 //       const data = await fn();
 //       return { success: true, data };
 //     } catch (err: unknown) {
-//       // 1. If constraint mappings were provided, let handleDbError 
+//       // 1. If constraint mappings were provided, let handleDbError
 //       //    translate matching database errors into a ClientError.
 //       if (constraintErrors) {
 //         try {
@@ -121,23 +119,23 @@ function writeErrorLog(fileName: string, error: unknown, input?: unknown): void 
 //           err = mappedErr; // If handleDbError threw a ClientError, capture it here
 //         }
 //       }
-  
+
 //       // 2. If it's a ClientError (either thrown by service or translated from a constraint), return it
 //       if (err instanceof ClientError) {
 //         return { success: false, error: err.message };
 //       }
-  
+
 //       // 3. Otherwise, it's an unexpected server/database crash -> log it
 //       writeErrorLog(fileName, err, input);
-  
+
 //       if (err instanceof DrizzleQueryError) {
 //         return { success: false, error: fallbackErrorMsg };
 //       }
-  
+
 //       throw err;
 //     }
 // }
-  
+
 export function logServerError(
   error: unknown,
   fileName: string = "server-errors.log",
@@ -148,14 +146,6 @@ export function logServerError(
   return "Server Error";
 }
 
-
-
-
-
-
-
-
-
 interface DbError extends Error {
   code?: string;
   constraint?: string;
@@ -163,10 +153,7 @@ interface DbError extends Error {
   cause?: DbError;
 }
 
-
-export type SafeActionResult<T> = 
-  | { success: true; data: T } 
-  | { success: false; error: string };
+export type SafeActionResult<T> = { success: true; data: T } | { success: false; error: string };
 
 export async function safeAction<T>(
   fn: () => Promise<T>,

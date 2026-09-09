@@ -4,7 +4,17 @@ import { POST as likeProject } from "@/app/api/projects/[id]/like/route";
 import { POST as voteProject } from "@/app/api/projects/[id]/vote/route";
 import { POST as bookmarkSolution } from "@/app/api/solutions/[id]/bookmark/route";
 import { POST as likeSolution } from "@/app/api/solutions/[id]/like/route";
-import { ERROR_MESSAGE, PAYLOADS, RESULTS, STATUS, URLS, UUIDS, json, request, routeParams } from "./api-fixtures";
+import {
+  ERROR_MESSAGE,
+  PAYLOADS,
+  RESULTS,
+  STATUS,
+  URLS,
+  UUIDS,
+  json,
+  request,
+  routeParams,
+} from "./api-fixtures";
 
 const mocks = vi.hoisted(() => ({
   bookmarkProject: vi.fn(),
@@ -23,7 +33,9 @@ vi.mock("@/actions/likes/actions", () => ({
   createProjectLikeAction: mocks.createProjectLikeAction,
   createSolutionLikeAction: mocks.createSolutionLikeAction,
 }));
-vi.mock("@/actions/projects/difficulty-votes", () => ({ voteDifficultyAction: mocks.voteDifficultyAction }));
+vi.mock("@/actions/projects/difficulty-votes", () => ({
+  voteDifficultyAction: mocks.voteDifficultyAction,
+}));
 vi.mock("@/utils/file-logger", () => ({ logServerError: mocks.logServerError }));
 
 afterEach(() => vi.clearAllMocks());
@@ -37,14 +49,33 @@ describe("like, bookmark, and vote API routes", () => {
   ])("handles engagement success and validation failure", async (handler, action, url, id) => {
     action.mockResolvedValueOnce(RESULTS.success).mockResolvedValueOnce(RESULTS.failure);
 
-    expect((await json(await handler(request(url, PAYLOADS.bookmark), routeParams(id)))).status).toBe(STATUS.ok);
-    expect((await json(await handler(request(url, PAYLOADS.bookmark), routeParams(id)))).status).toBe(STATUS.badRequest);
+    expect(
+      (await json(await handler(request(url, PAYLOADS.bookmark), routeParams(id)))).status
+    ).toBe(STATUS.ok);
+    expect(
+      (await json(await handler(request(url, PAYLOADS.bookmark), routeParams(id)))).status
+    ).toBe(STATUS.badRequest);
   });
 
   it("votes on difficulty and returns 500 for malformed JSON", async () => {
     mocks.voteDifficultyAction.mockResolvedValueOnce(RESULTS.success);
 
-    expect((await json(await voteProject(request(URLS.projectVote, PAYLOADS.vote)))).status).toBe(STATUS.ok);
-    expect((await json(await voteProject(new Request(URLS.projectVote, { method: "POST", body: "not-json" })))).status).toBe(STATUS.serverError);
+    expect(
+      (
+        await json(
+          await voteProject(request(URLS.projectVote, PAYLOADS.vote), routeParams(UUIDS.project))
+        )
+      ).status
+    ).toBe(STATUS.ok);
+    expect(
+      (
+        await json(
+          await voteProject(
+            new Request(URLS.projectVote, { method: "POST", body: "not-json" }),
+            routeParams(UUIDS.project)
+          )
+        )
+      ).status
+    ).toBe(STATUS.serverError);
   });
 });

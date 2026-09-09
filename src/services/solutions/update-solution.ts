@@ -29,14 +29,14 @@ export async function updateSolutionService({
       and(
         eq(solutions.id, solutionId),
         eq(solutions.userId, userId),
-        projectId ? eq(solutions.projectId, projectId) : undefined,
+        projectId ? eq(solutions.projectId, projectId) : undefined
       )
     )
     .returning({ id: solutions.id });
-  
+
   if (!updatedSolution) {
     throw new ClientError("Solution not found or unauthorized.");
   }
-  
+
   return updatedSolution;
 }

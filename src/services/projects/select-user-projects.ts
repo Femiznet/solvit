@@ -3,7 +3,6 @@ import { projectBookMarks, projects } from "@/database/schemas";
 import { eq, and } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
-
 export type UserProjectGlobalSelect = {
   userId: string;
   projectId: string;
@@ -23,12 +22,7 @@ export async function selectUserProjectsService({
     })
     .from(projectBookMarks)
     .innerJoin(projects, eq(projectBookMarks.projectId, projects.id))
-    .where(
-      and(
-        eq(projectBookMarks.userId, userId),
-        eq(projectBookMarks.projectId, projectId)
-      )
-    )
+    .where(and(eq(projectBookMarks.userId, userId), eq(projectBookMarks.projectId, projectId)))
     .orderBy(projectBookMarks.updatedAt);
 
   return results.map((r) => ({

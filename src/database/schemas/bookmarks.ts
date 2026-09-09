@@ -19,9 +19,7 @@ export const projectBookMarks = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [
-    unique("user_progress_userId_projectId").on(table.userId, table.projectId),
-  ]
+  (table) => [unique("user_progress_userId_projectId").on(table.userId, table.projectId)]
 );
 
 export const solutionBookMarks = pgTable(
@@ -40,9 +38,7 @@ export const solutionBookMarks = pgTable(
       .notNull()
       .$onUpdate(() => new Date()),
   },
-  (table) => [
-    unique("user_progress_userId_solutionId").on(table.userId, table.solutionId),
-  ]
+  (table) => [unique("user_progress_userId_solutionId").on(table.userId, table.solutionId)]
 );
 
 export type ProjectBookMark = typeof projectBookMarks.$inferSelect;

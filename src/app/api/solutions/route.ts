@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { 
-  createSolutionAction, 
-} from "@/actions/solutions/actions";
+import { createSolutionAction } from "@/actions/solutions/actions";
 import { logServerError } from "@/utils/file-logger";
 
 export async function POST(request: Request): Promise<NextResponse> {
@@ -14,4 +12,3 @@ export async function POST(request: Request): Promise<NextResponse> {
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
-

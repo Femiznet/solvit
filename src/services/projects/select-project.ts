@@ -9,12 +9,9 @@ export type SelectProjectInput = {
 
 export type SelectUserProjectInput = {
   userId: string;
-}
+};
 
-export async function selectSingleProjectService({
-  input,
-  tx,
-}: ServiceArgs<SelectProjectInput>) {
+export async function selectSingleProjectService({ input, tx }: ServiceArgs<SelectProjectInput>) {
   const [projectResult, projectSolutions] = await Promise.all([
     db(tx).select().from(projects).where(eq(projects.id, input.projectId)),
     db(tx).select().from(solutions).where(eq(solutions.projectId, input.projectId)),
@@ -32,7 +29,10 @@ export async function selectSingleProjectService({
   };
 }
 
-export async function selectUserProjectsService({ input, tx }: ServiceArgs<SelectUserProjectInput>) {
+export async function selectUserProjectsService({
+  input,
+  tx,
+}: ServiceArgs<SelectUserProjectInput>) {
   const userProjects = await db(tx)
     .select()
     .from(projects)

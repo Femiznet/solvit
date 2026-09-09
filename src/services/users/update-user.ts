@@ -8,7 +8,7 @@ export type UpdateUserInput = {
   id: string;
   name?: string;
   email?: string;
-}
+};
 
 export async function updateUserService({
   input: { id, ...updatedData },
@@ -21,11 +21,11 @@ export async function updateUserService({
       updatedAt: new Date(),
     })
     .where(eq(users.id, id))
-    .returning({id: users.id});
-  
+    .returning({ id: users.id });
+
   if (!updatedUser) {
-      throw new ClientError("User not found.");
+    throw new ClientError("User not found.");
   }
-  
+
   return updatedUser || null;
 }

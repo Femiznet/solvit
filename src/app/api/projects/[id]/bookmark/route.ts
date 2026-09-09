@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { 
-  bookmarkProject, 
-} from "@/actions/bookmarks/actions";
+import { bookmarkProject } from "@/actions/bookmarks/actions";
 
 export async function POST(
   request: NextRequest,

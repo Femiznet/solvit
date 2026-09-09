@@ -8,6 +8,3 @@ export const PROJECT_SORT_OPTIONS = [
   "alphabetical",
 ] as const;
 export type ProjectSortOption = (typeof PROJECT_SORT_OPTIONS)[number];
-
-
-

@@ -16,7 +16,7 @@ export const URLS = {
   projectSearch: `http://localhost/api/projects/search?query=next&stackIds=${UUIDS.stack}, ${UUIDS.category}`,
   projectBookmark: `http://localhost/api/projects/${UUIDS.project}/bookmark`,
   projectLike: `http://localhost/api/projects/${UUIDS.project}/like`,
-  projectVote: "http://localhost/api/projects/vote",
+  projectVote: `http://localhost/api/projects/${UUIDS.project}/vote`,
   solutions: "http://localhost/api/solutions",
   solution: `http://localhost/api/solutions/${UUIDS.solution}`,
   solutionBookmark: `http://localhost/api/solutions/${UUIDS.solution}/bookmark`,
@@ -33,7 +33,7 @@ export const PAYLOADS = {
   user: { name: "Ada Lovelace", email: "ada@example.com" },
   category: { name: "Web development" },
   bookmark: { userId: UUIDS.user },
-  vote: { projectId: UUIDS.project, userId: UUIDS.user, difficulty: 3 },
+  vote: { projectId: UUIDS.project, userId: UUIDS.user, difficulty: "INTERMEDIATE" },
   search: { query: "next", stackIds: [UUIDS.stack, UUIDS.category] },
 };
 
@@ -50,8 +50,14 @@ export const STATUS = { ok: 200, badRequest: 400, notFound: 404, serverError: 50
 export const ERROR_MESSAGE = "database unavailable";
 
 export const request = (url: string, body?: unknown) =>
-  new NextRequest(url, body === undefined ? undefined : { method: "POST", body: JSON.stringify(body) });
+  new NextRequest(
+    url,
+    body === undefined ? undefined : { method: "POST", body: JSON.stringify(body) }
+  );
 
 export const routeParams = (id: string) => ({ params: Promise.resolve({ id }) });
 
-export const json = async (response: Response) => ({ status: response.status, body: await response.json() });
+export const json = async (response: Response) => ({
+  status: response.status,
+  body: await response.json(),
+});

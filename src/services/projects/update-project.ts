@@ -17,7 +17,7 @@ export async function updateProjectService({
       updatedAt: new Date(),
     })
     .where(eq(projects.id, id))
-    .returning({id: projects.id});
+    .returning({ id: projects.id });
 
   if (!updatedProject) throw new ClientError("Project not found");
   return updatedProject;

@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     searchParams.forEach((value, key) => {
       if (key === "stackIds") {
         const rawValue = searchParams.get(key);
-        queryParams[key] = rawValue ? rawValue.split(",").map(id => id.trim()) : [];
+        queryParams[key] = rawValue ? rawValue.split(",").map((id) => id.trim()) : [];
       } else {
         queryParams[key] = value;
       }

@@ -9,15 +9,12 @@ export async function createCategoryService({
   input: { name },
   tx,
 }: ServiceArgs<CreateCategoryInput>) {
-  const [newCategory] = await db(tx)
-    .insert(categories)
-    .values({ name })
-    .returning({
-      id: categories.id,
-      name: categories.name,
-    });
-  
+  const [newCategory] = await db(tx).insert(categories).values({ name }).returning({
+    id: categories.id,
+    name: categories.name,
+  });
+
   if (!newCategory) throw new ClientError("Category not created");
-  
+
   return newCategory;
 }

@@ -8,16 +8,11 @@ export async function toggleSolutionBookmarkService({
   solutionId,
 }: SelectSolutionBookmarkInput) {
   const existingBookmark = await db().query.solutionBookMarks.findFirst({
-    where: and(
-      eq(solutionBookMarks.userId, userId),
-      eq(solutionBookMarks.solutionId, solutionId)
-    ),
+    where: and(eq(solutionBookMarks.userId, userId), eq(solutionBookMarks.solutionId, solutionId)),
   });
 
   if (existingBookmark) {
-    await db()
-      .delete(solutionBookMarks)
-      .where(eq(solutionBookMarks.id, existingBookmark.id));
+    await db().delete(solutionBookMarks).where(eq(solutionBookMarks.id, existingBookmark.id));
     return { bookmarked: false };
   } else {
     await db().insert(solutionBookMarks).values({

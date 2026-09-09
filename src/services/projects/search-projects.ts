@@ -33,7 +33,7 @@ export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInp
     limit = 20,
     offset = 0,
   } = input;
-  
+
   const conditions = [];
 
   if (level) {
@@ -50,27 +50,18 @@ export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInp
 
   if (query) {
     const searchTerm = `%${query}%`;
-    conditions.push(
-      or(
-        ilike(projects.name, searchTerm),
-        ilike(projects.description, searchTerm)
-      )
-    );
+    conditions.push(or(ilike(projects.name, searchTerm), ilike(projects.description, searchTerm)));
   }
 
   if (requirements && requirements.length > 0) {
     for (const feat of requirements) {
-      conditions.push(
-        sql`${projects.requirements} @> ${JSON.stringify([feat])}::jsonb`
-      );
+      conditions.push(sql`${projects.requirements} @> ${JSON.stringify([feat])}::jsonb`);
     }
   }
 
   if (optRequirements && optRequirements.length > 0) {
     for (const feat of optRequirements) {
-      conditions.push(
-        sql`${projects.optRequirements} @> ${JSON.stringify([feat])}::jsonb`
-      );
+      conditions.push(sql`${projects.optRequirements} @> ${JSON.stringify([feat])}::jsonb`);
     }
   }
 
@@ -97,21 +88,15 @@ export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInp
   const sortMapping = {
     "most-liked": desc(projects.totalLikes),
     "recently-updated": desc(projects.updatedAt),
-    "alphabetical": asc(projects.name),
-    "newest": desc(projects.createdAt),
+    alphabetical: asc(projects.name),
+    newest: desc(projects.createdAt),
   };
 
-  const paginatedQuery = filteredQuery
-    .orderBy(sortMapping[sort])
-    .limit(limit)
-    .offset(offset);
+  const paginatedQuery = filteredQuery.orderBy(sortMapping[sort]).limit(limit).offset(offset);
 
   // 1. Fetch total count and paginated projects concurrently
-  const [[countResult], projectsResult] = await Promise.all([
-    actualCountQuery,
-    paginatedQuery,
-  ]);
-    
+  const [[countResult], projectsResult] = await Promise.all([actualCountQuery, paginatedQuery]);
+
   const total = Number(countResult?.count ?? 0);
 
   if (projectsResult.length === 0) {

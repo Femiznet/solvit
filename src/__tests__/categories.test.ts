@@ -1,7 +1,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { DELETE as deleteCategory, PUT as updateCategory } from "@/app/api/categories/[id]/route";
 import { POST as createCategory } from "@/app/api/categories/route";
-import { ERROR_MESSAGE, PAYLOADS, RESULTS, STATUS, URLS, UUIDS, json, request, routeParams } from "./api-fixtures";
+import {
+  ERROR_MESSAGE,
+  PAYLOADS,
+  RESULTS,
+  STATUS,
+  URLS,
+  UUIDS,
+  json,
+  request,
+  routeParams,
+} from "./api-fixtures";
 
 const mocks = vi.hoisted(() => ({
   createCategoryAction: vi.fn(),
@@ -25,21 +35,38 @@ describe("category API routes", () => {
     mocks.updateCategoryAction.mockResolvedValueOnce(RESULTS.success);
     mocks.deleteCategoryAction.mockResolvedValueOnce(RESULTS.success);
 
-    expect((await json(await createCategory(request(URLS.categories, PAYLOADS.category)))).status).toBe(STATUS.ok);
-    expect((await json(await updateCategory(request(URLS.category, PAYLOADS.category), routeParams(UUIDS.category)))).status).toBe(STATUS.ok);
-    expect((await json(await deleteCategory(request(URLS.category), routeParams(UUIDS.category)))).status).toBe(STATUS.ok);
+    expect(
+      (await json(await createCategory(request(URLS.categories, PAYLOADS.category)))).status
+    ).toBe(STATUS.ok);
+    expect(
+      (
+        await json(
+          await updateCategory(
+            request(URLS.category, PAYLOADS.category),
+            routeParams(UUIDS.category)
+          )
+        )
+      ).status
+    ).toBe(STATUS.ok);
+    expect(
+      (await json(await deleteCategory(request(URLS.category), routeParams(UUIDS.category)))).status
+    ).toBe(STATUS.ok);
   });
 
   it("returns bad request for validation failures", async () => {
     mocks.createCategoryAction.mockResolvedValue(RESULTS.failure);
 
-    expect((await json(await createCategory(request(URLS.categories, PAYLOADS.category)))).status).toBe(STATUS.badRequest);
+    expect(
+      (await json(await createCategory(request(URLS.categories, PAYLOADS.category)))).status
+    ).toBe(STATUS.badRequest);
   });
 
   it("returns server errors when an action throws", async () => {
     mocks.createCategoryAction.mockRejectedValueOnce(new Error(ERROR_MESSAGE));
 
-    expect((await json(await createCategory(request(URLS.categories, PAYLOADS.category)))).body).toEqual({
+    expect(
+      (await json(await createCategory(request(URLS.categories, PAYLOADS.category)))).body
+    ).toEqual({
       success: false,
       error: ERROR_MESSAGE,
     });
