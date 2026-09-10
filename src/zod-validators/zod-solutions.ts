@@ -1,6 +1,22 @@
 import { z } from "zod";
 import { createSelectSchema, createInsertSchema } from "drizzle-zod";
 import { solutions, solutionLikes } from "@/database/schemas";
+import {
+  DEMO_URL_ERROR,
+  isAllowedRepoHost,
+  isSafeDemoUrl,
+  REPO_URLS_ERROR,
+} from "@/constants/solution-urls";
+
+// Closed-net repo URL: https + allowlisted git host. Open demo URL: any public https URL.
+const repoUrlField = z
+  .url({ error: "Invalid repository URL" })
+  .max(500)
+  .refine(isAllowedRepoHost, { error: REPO_URLS_ERROR });
+const demoUrlField = z
+  .url({ error: "Invalid demo URL" })
+  .max(500)
+  .refine(isSafeDemoUrl, { error: DEMO_URL_ERROR });
 
 // 1. Full Database Entity Schema (Select)
 export const solutionSchema = createSelectSchema(solutions, {
@@ -12,8 +28,8 @@ export const solutionSchema = createSelectSchema(solutions, {
     .min(1, { error: "Title is required" })
     .max(255, { error: "Title cannot exceed 255 characters" }),
   description: z.string().nullable().optional(),
-  repoUrl: z.url({ error: "Invalid repository URL" }).max(500).nullable().optional(),
-  demoUrl: z.url({ error: "Invalid demo URL" }).max(500).nullable().optional(),
+  repoUrl: repoUrlField.nullable().optional(),
+  demoUrl: demoUrlField.nullable().optional(),
   implFeat: z
     .array(z.string("Each feature must be a text string"))
     .min(1, { error: "At least one feature must be provided" }),
@@ -28,8 +44,8 @@ export const createSolutionSchema = createInsertSchema(solutions, {
     .min(1, { error: "Title is required" })
     .max(255, { error: "Title cannot exceed 255 characters" }),
   description: z.string().nullable().optional(),
-  repoUrl: z.url({ error: "Invalid repository URL" }).max(500).nullable().optional(),
-  demoUrl: z.url({ error: "Invalid demo URL" }).max(500).nullable().optional(),
+  repoUrl: repoUrlField.nullable().optional(),
+  demoUrl: demoUrlField.nullable().optional(),
   implFeat: z
     .array(z.string("Each feature must be a text string"))
     .min(1, { error: "At least one feature must be provided" }),
@@ -53,8 +69,8 @@ export const updateSolutionSchema = createInsertSchema(solutions, {
     .max(255, { error: "Title cannot exceed 255 characters" })
     .optional(),
   description: z.string().optional(),
-  repoUrl: z.url({ error: "Invalid repository URL" }).max(500).optional(),
-  demoUrl: z.url({ error: "Invalid demo URL" }).max(500).optional(),
+  repoUrl: repoUrlField.optional(),
+  demoUrl: demoUrlField.optional(),
   implFeat: z
     .array(z.string("Each feature must be a text string"))
     .min(1, { error: "At least one feature must be provided" })
