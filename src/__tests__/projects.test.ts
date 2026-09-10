@@ -43,6 +43,11 @@ vi.mock("@/utils/file-logger", () => ({ logServerError: mocks.logServerError }))
 vi.mock("@/services/stacks/select-stacks", () => ({
   selectManyStacksService: mocks.selectManyStacksService,
 }));
+vi.mock("@/actions/stacks/actions", () => ({
+  createStackAction: vi.fn(),
+  updateStackAction: vi.fn(),
+  deleteStackAction: vi.fn(),
+}));
 
 afterEach(() => vi.clearAllMocks());
 

@@ -14,7 +14,7 @@ import {
 import { createUserService } from "@/services/users/create-user";
 import { updateUserService } from "@/services/users/update-user";
 import { deleteUserService } from "@/services/users/delete-user";
-import { requireUserId } from "@/lib/auth/dal";
+import { requireUserId, requireSelfOrAdmin } from "@/lib/auth/dal";
 
 const USER_CONSTRAINTS = {
   users_email_unique: "An account with this email already exists.",
@@ -42,16 +42,17 @@ export async function createUserAction(input: CreateUserInput) {
 
 /**
  * Updates an existing user's profile details.
+ * Only the user themselves may update their own profile.
  */
 export async function updateUserAction(input: UpdateUserInput) {
   const validation = validateData(updateUserSchema, input);
   if (!validation.success) return validation;
 
-  const userId = await requireUserId();
+  await requireSelfOrAdmin(validation.data.id);
 
   const result = await safeAction(
     async () => {
-      return await updateUserService({ input: { ...validation.data, userId } });
+      return await updateUserService({ input: { ...validation.data, userId: validation.data.id } });
     },
     "Failed to update user profile.",
     {
@@ -70,16 +71,17 @@ export async function updateUserAction(input: UpdateUserInput) {
 
 /**
  * Deletes a user account by their unique ID.
+ * The user themselves OR an admin may delete (admin moderation).
  */
 export async function deleteUserAction(input: DeleteUserInput) {
   const validation = validateData(deleteUserSchema, input);
   if (!validation.success) return validation;
 
-  const userId = await requireUserId();
+  const user = await requireSelfOrAdmin(validation.data.id);
 
   const result = await safeAction(
     async () => {
-      return await deleteUserService({ input: { id: validation.data.id, userId } });
+      return await deleteUserService({ input: { id: validation.data.id, userId: user.id, isAdmin: user.role === "admin" } });
     },
     "Failed to delete user account."
   );

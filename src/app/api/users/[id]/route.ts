@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { selectUserService } from "@/services/users/select-user";
-import { routeErrorToResponse } from "@/lib/http-response";
+import { routeErrorToResponse, actionResultToResponse } from "@/lib/http-response";
+import { setUserRoleAction } from "@/actions/users/admin-actions";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -20,6 +21,20 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json({ success: true, data: user }, { status: 200 });
+  } catch (error) {
+    return routeErrorToResponse(error);
+  }
+}
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: targetUserId } = await params;
+    const body = await request.json();
+    const result = await setUserRoleAction({ ...body, targetUserId });
+    return actionResultToResponse(result);
   } catch (error) {
     return routeErrorToResponse(error);
   }

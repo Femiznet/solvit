@@ -8,6 +8,7 @@ export const userSchema = createSelectSchema(users, {
   name: z.string().min(1, "Name is required").max(255, "Name cannot exceed 255 characters"),
   email: z.email({ error: "Invalid email address" }).max(255),
   image: z.url({ error: "Invalid image URL" }).max(1000).optional(),
+  role: z.enum(["user", "admin"]),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -48,8 +49,15 @@ export const deleteUserSchema = z.object({
   id: z.uuid("Invalid user ID format."),
 });
 
+// 5. Set Role Schema (admin-only)
+export const setUserRoleSchema = z.object({
+  targetUserId: z.uuid("Invalid target user ID format."),
+  role: z.enum(["user", "admin"], { error: "Invalid role value" }),
+});
+
 // Exported Types
 export type User = z.infer<typeof userSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type UpdateUserInput = z.infer<typeof updateUserSchema>;
 export type DeleteUserInput = z.infer<typeof deleteUserSchema>;
+export type SetUserRoleInput = z.infer<typeof setUserRoleSchema>;

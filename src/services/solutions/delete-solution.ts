@@ -7,15 +7,20 @@ import { AuthorizationError } from "@/lib/errors";
 export type DeleteSolutionInput = {
   solutionId: string;
   userId: string;
+  isAdmin?: boolean;
 };
 
 export async function deleteSolutionService({
-  input: { solutionId, userId },
+  input: { solutionId, userId, isAdmin },
   tx,
 }: ServiceArgs<DeleteSolutionInput>) {
+  const where = isAdmin
+    ? eq(solutions.id, solutionId)
+    : and(eq(solutions.id, solutionId), eq(solutions.userId, userId));
+
   const [deletedSolution] = await db(tx)
     .delete(solutions)
-    .where(and(eq(solutions.id, solutionId), eq(solutions.userId, userId)))
+    .where(where)
     .returning({
       projectId: solutions.projectId,
     });

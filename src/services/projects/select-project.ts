@@ -79,3 +79,18 @@ export async function selectUserProjectsService({
     stacks: stacksMap.get(project.id) || [],
   }));
 }
+
+/**
+ * Lightweight owner lookup — returns the project owner's user ID or null.
+ * Used for authorization checks without loading the full project.
+ */
+export async function selectProjectOwnerService({
+  input: { projectId },
+  tx,
+}: ServiceArgs<SelectProjectInput>) {
+  const [project] = await db(tx)
+    .select({ userId: projects.userId })
+    .from(projects)
+    .where(eq(projects.id, projectId));
+  return project?.userId ?? null;
+}

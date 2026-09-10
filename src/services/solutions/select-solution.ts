@@ -82,8 +82,17 @@ export async function selectUserSolutionsService({
   }));
 }
 
-export async function selectManySolutionsService(args?: { tx?: ServiceArgs<never>["tx"] }) {
-  const { tx } = args || {};
-
-  return await db(tx).select().from(solutions);
+/**
+ * Lightweight owner lookup — returns the solution owner's user ID or null.
+ * Used for authorization checks without loading the full solution.
+ */
+export async function selectSolutionOwnerService({
+  input: { solutionId },
+  tx,
+}: ServiceArgs<SelectSolutionInput>) {
+  const [solution] = await db(tx)
+    .select({ userId: solutions.userId })
+    .from(solutions)
+    .where(eq(solutions.id, solutionId));
+  return solution?.userId ?? null;
 }

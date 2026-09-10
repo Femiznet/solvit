@@ -15,42 +15,88 @@
     }
   ],
   "tags": [
-    { "name": "Auth", "description": "Authentication and session endpoints" },
-    { "name": "Categories", "description": "Global reference categories of projects" },
-    { "name": "Projects", "description": "Projects that users create for coder-coder practice" },
-    { "name": "Solutions", "description": "Solutions submitted to projects" },
-    { "name": "Stacks", "description": "Technology stacks" },
-    { "name": "Users", "description": "User profiles and related resources" }
+    {
+      "name": "Auth",
+      "description": "Authentication and session endpoints"
+    },
+    {
+      "name": "Categories",
+      "description": "Global reference categories of projects"
+    },
+    {
+      "name": "Projects",
+      "description": "Projects that users create for coder-coder practice"
+    },
+    {
+      "name": "Solutions",
+      "description": "Solutions submitted to projects"
+    },
+    {
+      "name": "Stacks",
+      "description": "Technology stacks"
+    },
+    {
+      "name": "Users",
+      "description": "User profiles and related resources"
+    }
   ],
   "security": [
-    { "cookieAuth": [] },
-    { "bearerAuth": [] }
+    {
+      "cookieAuth": []
+    },
+    {
+      "bearerAuth": []
+    }
   ],
   "paths": {
     "/api/auth/signup": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Create an account",
         "description": "Public endpoint. Returns a session cookie (`solvit_session`, httpOnly, 7-day) plus a JWT token in the body. The token can be used as `Authorization: Bearer <token>`; the cookie is sent automatically same-origin.",
         "operationId": "createAccount",
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/Signup" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Signup"
+              }
+            }
           }
         },
         "responses": {
           "201": {
             "description": "Account created",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResult" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResult"
+                }
+              }
+            }
           },
           "400": {
             "description": "Validation error (invalid email, short password, etc.)",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "409": {
             "description": "Email already registered",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "security": []
@@ -58,28 +104,52 @@
     },
     "/api/auth/login": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Sign in",
         "description": "Public endpoint. On success sets a session cookie and returns a JWT token in the body.",
         "operationId": "login",
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/Login" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Login"
+              }
+            }
           }
         },
         "responses": {
           "200": {
             "description": "Signed in",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/AuthResult" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResult"
+                }
+              }
+            }
           },
           "400": {
             "description": "Validation error",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
             "description": "Invalid credentials",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         },
         "security": []
@@ -87,7 +157,9 @@
     },
     "/api/auth/me": {
       "get": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Get current user",
         "description": "Returns the authenticated user. Cookie or Bearer token required.",
         "operationId": "getMe",
@@ -99,10 +171,17 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean", "example": true },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
                     "data": {
                       "type": "object",
-                      "properties": { "user": { "$ref": "#/components/schemas/User" } }
+                      "properties": {
+                        "user": {
+                          "$ref": "#/components/schemas/User"
+                        }
+                      }
                     }
                   }
                 }
@@ -111,14 +190,22 @@
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/auth/logout": {
       "post": {
-        "tags": ["Auth"],
+        "tags": [
+          "Auth"
+        ],
         "summary": "Sign out",
         "description": "Clears the session cookie and revokes the current session.",
         "operationId": "logout",
@@ -127,7 +214,15 @@
             "description": "Signed out",
             "content": {
               "application/json": {
-                "schema": { "type": "object", "properties": { "success": { "type": "boolean", "example": true } } }
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
               }
             }
           }
@@ -136,7 +231,9 @@
     },
     "/api/categories": {
       "get": {
-        "tags": ["Categories"],
+        "tags": [
+          "Categories"
+        ],
         "summary": "List categories",
         "description": "Public list of all categories.",
         "operationId": "listCategories",
@@ -148,10 +245,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
+                    "success": {
+                      "type": "boolean"
+                    },
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Category" }
+                      "items": {
+                        "$ref": "#/components/schemas/Category"
+                      }
                     }
                   }
                 }
@@ -161,40 +262,84 @@
         }
       },
       "post": {
-        "tags": ["Categories"],
-        "summary": "Create a category",
-        "description": "Authenticated users can create categories (global reference data). No owner check since categories have no userId column.",
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Create a category (admin only)",
+        "description": "Admin-only. Adds a new category to the global reference list. Returns 401 if unauthenticated, 403 if not an admin.",
         "operationId": "createCategory",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/CreateCategory" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategory"
+              }
+            }
           }
         },
         "responses": {
           "200": {
             "description": "Category created",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessOnly" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessOnly"
+                }
+              }
+            }
           },
           "400": {
             "description": "Validation error or name already exists",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller is not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/categories/{id}": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "get": {
-        "tags": ["Categories"],
+        "tags": [
+          "Categories"
+        ],
         "summary": "Get a category",
         "operationId": "getCategory",
         "responses": {
@@ -205,8 +350,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Category" }
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Category"
+                    }
                   }
                 }
               }
@@ -214,48 +363,98 @@
           },
           "404": {
             "description": "Category not found",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       },
       "put": {
-        "tags": ["Categories"],
-        "summary": "Update a category",
-        "description": "Authenticated users can update any category.",
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Update a category (admin only)",
+        "description": "Admin-only. Renames the category identified by {id}. Returns 401 if unauthenticated, 403 if not an admin.",
         "operationId": "updateCategory",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateCategory" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategory"
+              }
+            }
           }
         },
         "responses": {
           "200": {
             "description": "Category updated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessOnly" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessOnly"
+                }
+              }
+            }
           },
           "400": {
             "description": "Validation error or name already exists",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
-            "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller is not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       },
       "delete": {
-        "tags": ["Categories"],
-        "summary": "Delete a category",
-        "description": "Authenticated users can delete any category.",
+        "tags": [
+          "Categories"
+        ],
+        "summary": "Delete a category (admin only)",
+        "description": "Admin-only. Deletes the category identified by {id}. Returns 401 if unauthenticated, 403 if not an admin.",
         "operationId": "deleteCategory",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "responses": {
           "200": {
@@ -264,54 +463,169 @@
               "application/json": {
                 "schema": {
                   "oneOf": [
-                    { "$ref": "#/components/schemas/SuccessOnly" },
-                    { "$ref": "#/components/schemas/Error" }
+                    {
+                      "$ref": "#/components/schemas/SuccessOnly"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Error"
+                    }
                   ]
                 }
               }
             }
           },
           "401": {
-            "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller is not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/projects": {
       "get": {
-        "tags": ["Projects"],
+        "tags": [
+          "Projects"
+        ],
         "summary": "List projects",
         "description": "Public list of newest projects by default. Shares the same response shape as /api/projects/search.",
         "operationId": "listProjects",
         "parameters": [
-          { "name": "query", "in": "query", "required": false, "schema": { "type": "string" },
-            "description": "Text search across project name/description/instructions" },
-          { "name": "categoryId", "in": "query", "required": false, "schema": { "type": "string", "format": "uuid" },
-            "description": "Filter by category" },
-          { "name": "level", "in": "query", "required": false,
-            "schema": { "type": "array", "items": { "type": "string", "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED"] } },
-            "style": "form", "explode": false,
-            "description": "Filter by one or more levels (repeatable or comma-separated)" },
-          { "name": "stackIds", "in": "query", "required": false,
-            "schema": { "type": "array", "items": { "type": "string", "format": "uuid" } },
-            "style": "form", "explode": false,
-            "description": "Projects that use at least one of these stacks (repeatable or comma-separated)" },
-          { "name": "requirements", "in": "query", "required": false,
-            "schema": { "type": "array", "items": { "type": "string" } },
-            "style": "form", "explode": false,
-            "description": "Term matches project requirements (repeatable or comma-separated)" },
-          { "name": "optRequirements", "in": "query", "required": false,
-            "schema": { "type": "array", "items": { "type": "string" } },
-            "style": "form", "explode": false,
-            "description": "Term matches optional requirements (repeatable or comma-separated)" },
-          { "name": "sort", "in": "query", "required": false,
-            "schema": { "type": "string", "enum": ["newest", "most-liked", "recently-updated", "alphabetical"], "default": "newest" },
-            "description": "Sort mode" },
-          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 },
-            "description": "Page size" },
-          { "name": "offset", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 0, "default": 0 },
-            "description": "Pagination offset" }
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Text search across project name/description/instructions"
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "Filter by category"
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "BEGINNER",
+                  "INTERMEDIATE",
+                  "ADVANCED"
+                ]
+              }
+            },
+            "style": "form",
+            "explode": false,
+            "description": "Filter by one or more levels (repeatable or comma-separated)"
+          },
+          {
+            "name": "stackIds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "style": "form",
+            "explode": false,
+            "description": "Projects that use at least one of these stacks (repeatable or comma-separated)"
+          },
+          {
+            "name": "requirements",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": false,
+            "description": "Term matches project requirements (repeatable or comma-separated)"
+          },
+          {
+            "name": "optRequirements",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": false,
+            "description": "Term matches optional requirements (repeatable or comma-separated)"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "newest",
+                "most-liked",
+                "recently-updated",
+                "alphabetical"
+              ],
+              "default": "newest"
+            },
+            "description": "Sort mode"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            },
+            "description": "Page size"
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "description": "Pagination offset"
+          }
         ],
         "responses": {
           "200": {
@@ -321,20 +635,30 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
+                    "success": {
+                      "type": "boolean"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
                         "projects": {
                           "type": "array",
-                          "items": { "$ref": "#/components/schemas/Project" }
+                          "items": {
+                            "$ref": "#/components/schemas/Project"
+                          }
                         },
                         "pagination": {
                           "type": "object",
                           "properties": {
-                            "total": { "type": "integer" },
-                            "limit": { "type": "integer" },
-                            "offset": { "type": "integer" }
+                            "total": {
+                              "type": "integer"
+                            },
+                            "limit": {
+                              "type": "integer"
+                            },
+                            "offset": {
+                              "type": "integer"
+                            }
                           }
                         }
                       }
@@ -347,66 +671,195 @@
         }
       },
       "post": {
-        "tags": ["Projects"],
+        "tags": [
+          "Projects"
+        ],
         "summary": "Create a project",
         "description": "Authenticated users can create projects. The `userId` is **not** sent in the body; it is derived from the session and set by the service.",
         "operationId": "createProject",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/CreateProject" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateProject"
+              }
+            }
           }
         },
         "responses": {
           "200": {
             "description": "Project created",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Project" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
           },
           "400": {
             "description": "Validation error",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "429": {
             "description": "Daily project creation limit reached",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/projects/search": {
       "get": {
-        "tags": ["Projects"],
+        "tags": [
+          "Projects"
+        ],
         "summary": "Search projects",
         "description": "Explicit search endpoint. Same parameters and response shape as /api/projects?query.",
         "operationId": "searchProjects",
         "parameters": [
-          { "name": "query", "in": "query", "required": false, "schema": { "type": "string" } },
-          { "name": "categoryId", "in": "query", "required": false, "schema": { "type": "string", "format": "uuid" } },
-          { "name": "level", "in": "query", "required": false,
-            "schema": { "type": "array", "items": { "type": "string", "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED"] } },
-            "style": "form", "explode": false },
-          { "name": "stackIds", "in": "query", "required": false,
-            "schema": { "type": "array", "items": { "type": "string", "format": "uuid" } },
-            "style": "form", "explode": false },
-          { "name": "requirements", "in": "query", "required": false,
-            "schema": { "type": "array", "items": { "type": "string" } },
-            "style": "form", "explode": false },
-          { "name": "optRequirements", "in": "query", "required": false,
-            "schema": { "type": "array", "items": { "type": "string" } },
-            "style": "form", "explode": false },
-          { "name": "sort", "in": "query", "required": false,
-            "schema": { "type": "string", "enum": ["newest", "most-liked", "recently-updated", "alphabetical"], "default": "newest" },
-            "description": "Sort mode" },
-          { "name": "limit", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 20 } },
-          { "name": "offset", "in": "query", "required": false, "schema": { "type": "integer", "minimum": 0, "default": 0 } }
+          {
+            "name": "query",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoryId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "level",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "BEGINNER",
+                  "INTERMEDIATE",
+                  "ADVANCED"
+                ]
+              }
+            },
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "stackIds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              }
+            },
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "requirements",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "optRequirements",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "style": "form",
+            "explode": false
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "newest",
+                "most-liked",
+                "recently-updated",
+                "alphabetical"
+              ],
+              "default": "newest"
+            },
+            "description": "Sort mode"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
         ],
         "responses": {
           "200": {
@@ -416,20 +869,30 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
+                    "success": {
+                      "type": "boolean"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
                         "projects": {
                           "type": "array",
-                          "items": { "$ref": "#/components/schemas/Project" }
+                          "items": {
+                            "$ref": "#/components/schemas/Project"
+                          }
                         },
                         "pagination": {
                           "type": "object",
                           "properties": {
-                            "total": { "type": "integer" },
-                            "limit": { "type": "integer" },
-                            "offset": { "type": "integer" }
+                            "total": {
+                              "type": "integer"
+                            },
+                            "limit": {
+                              "type": "integer"
+                            },
+                            "offset": {
+                              "type": "integer"
+                            }
                           }
                         }
                       }
@@ -443,9 +906,15 @@
       }
     },
     "/api/projects/{id}": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "get": {
-        "tags": ["Projects"],
+        "tags": [
+          "Projects"
+        ],
         "summary": "Get a project",
         "operationId": "getProject",
         "responses": {
@@ -456,8 +925,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Project" }
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Project"
+                    }
                   }
                 }
               }
@@ -465,79 +938,153 @@
           },
           "404": {
             "description": "Project not found",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       },
       "put": {
-        "tags": ["Projects"],
+        "tags": [
+          "Projects"
+        ],
         "summary": "Update a project",
         "description": "Only the project owner can update. The `userId` is **not** in the body; it is derived from the session via `requireOwner` and passed to the service.",
         "operationId": "updateProject",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateProject" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProject"
+              }
+            }
           }
         },
         "responses": {
           "200": {
             "description": "Project updated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Project" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
           },
           "400": {
             "description": "Validation error or project not found",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "403": {
             "description": "Not the owner of the project",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       },
       "delete": {
-        "tags": ["Projects"],
+        "tags": [
+          "Projects"
+        ],
         "summary": "Delete a project",
         "description": "Only the project owner can delete. The userId is derived from the session via `requireOwner`.",
         "operationId": "deleteProject",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "responses": {
           "200": {
             "description": "Project deleted",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessOnly" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessOnly"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "403": {
             "description": "Not the owner",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/projects/{id}/like": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "post": {
-        "tags": ["Projects"],
+        "tags": [
+          "Projects"
+        ],
         "summary": "Toggle a project like",
         "description": "Toggles a like entry for the authenticated user. The `projectId` is taken from the URL path; the `userId` is derived from the session. Body is an empty object {} (optional — the route spreads body+projectId).",
         "operationId": "toggleProjectLike",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
@@ -553,115 +1100,218 @@
         "responses": {
           "200": {
             "description": "Like toggled",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessOnly" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessOnly"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/projects/{id}/bookmark": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "post": {
-        "tags": ["Projects"],
+        "tags": [
+          "Projects"
+        ],
         "summary": "Toggle a project bookmark",
         "description": "Toggles a bookmark for the authenticated user. `projectId` comes from the URL path; `userId` from the session.",
         "operationId": "toggleProjectBookmark",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "type": "object", "description": "Optional empty object." }
+              "schema": {
+                "type": "object",
+                "description": "Optional empty object."
+              }
             }
           }
         },
         "responses": {
           "200": {
             "description": "Bookmark toggled",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessOnly" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessOnly"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/projects/{id}/vote": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "post": {
-        "tags": ["Projects"],
+        "tags": [
+          "Projects"
+        ],
         "summary": "Vote on project difficulty",
         "description": "Upserts a difficulty vote for the authenticated user on this project. Body: { projectId?, difficulty }. `projectId` from the path; `userId` from the session.",
         "operationId": "voteDifficulty",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/VoteDifficulty" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VoteDifficulty"
+              }
+            }
           }
         },
         "responses": {
           "200": {
             "description": "Vote saved",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessOnly" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessOnly"
+                }
+              }
+            }
           },
           "400": {
             "description": "Validation error",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/solutions": {
       "post": {
-        "tags": ["Solutions"],
+        "tags": [
+          "Solutions"
+        ],
         "summary": "Create a solution",
         "description": "Authenticated users can submit a solution to a project. The `userId` is derived from the session.",
         "operationId": "createSolution",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/CreateSolution" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSolution"
+              }
+            }
           }
         },
         "responses": {
           "200": {
             "description": "Solution created",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Solution" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Solution"
+                }
+              }
+            }
           },
           "400": {
             "description": "Validation error or duplicate solution for this project",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/solutions/{id}": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "get": {
-        "tags": ["Solutions"],
+        "tags": [
+          "Solutions"
+        ],
         "summary": "Get a solution",
         "operationId": "getSolution",
         "responses": {
@@ -672,8 +1322,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/Solution" }
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Solution"
+                    }
                   }
                 }
               }
@@ -681,134 +1335,250 @@
           },
           "404": {
             "description": "Solution not found",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       },
       "put": {
-        "tags": ["Solutions"],
+        "tags": [
+          "Solutions"
+        ],
         "summary": "Update a solution",
         "description": "Only the solution owner can update. `userId` is derived from the session; service enforces ownership.",
         "operationId": "updateSolution",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateSolution" } }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
           }
-        },
-        "responses": {
-          "200": {
-            "description": "Solution updated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Solution" } } }
-          },
-          "400": {
-            "description": "Validation error or solution not found",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
-          },
-          "401": {
-            "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
-          },
-          "403": {
-            "description": "Not the owner",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
-          }
-        }
-      },
-      "delete": {
-        "tags": ["Solutions"],
-        "summary": "Delete a solution",
-        "description": "Only the solution owner can delete. `userId` is derived from the session.",
-        "operationId": "deleteSolution",
-        "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
-        ],
-        "responses": {
-          "200": {
-            "description": "Solution deleted. Body includes projectId for revalidation; may be undefined on failure.",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SolutionDeleteResult" } } }
-          },
-          "401": {
-            "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
-          },
-          "403": {
-            "description": "Not the owner",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
-          }
-        }
-      }
-    },
-    "/api/solutions/{id}/like": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
-      "post": {
-        "tags": ["Solutions"],
-        "summary": "Toggle a solution like",
-        "description": "Toggles a like for the authenticated user. `solutionId` from the URL path; `userId` from the session. Body is optional (route spreads body+solutionId).",
-        "operationId": "toggleSolutionLike",
-        "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "type": "object", "description": "Optional empty object." }
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSolution"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Solution updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Solution"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or solution not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not the owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Solutions"
+        ],
+        "summary": "Delete a solution",
+        "description": "Only the solution owner can delete. `userId` is derived from the session.",
+        "operationId": "deleteSolution",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Solution deleted. Body includes projectId for revalidation; may be undefined on failure.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SolutionDeleteResult"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not the owner",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/solutions/{id}/like": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
+      "post": {
+        "tags": [
+          "Solutions"
+        ],
+        "summary": "Toggle a solution like",
+        "description": "Toggles a like for the authenticated user. `solutionId` from the URL path; `userId` from the session. Body is optional (route spreads body+solutionId).",
+        "operationId": "toggleSolutionLike",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Optional empty object."
+              }
             }
           }
         },
         "responses": {
           "200": {
             "description": "Like toggled",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessOnly" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessOnly"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/solutions/{id}/bookmark": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "post": {
-        "tags": ["Solutions"],
+        "tags": [
+          "Solutions"
+        ],
         "summary": "Toggle a solution bookmark",
         "description": "Toggles a bookmark for the authenticated user. `solutionId` from the URL path; `userId` from the session.",
         "operationId": "toggleSolutionBookmark",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "type": "object", "description": "Optional empty object." }
+              "schema": {
+                "type": "object",
+                "description": "Optional empty object."
+              }
             }
           }
         },
         "responses": {
           "200": {
             "description": "Bookmark toggled",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessOnly" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessOnly"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/stacks": {
       "get": {
-        "tags": ["Stacks"],
+        "tags": [
+          "Stacks"
+        ],
         "summary": "List stacks",
         "description": "Public list of technology stacks.",
         "operationId": "listStacks",
@@ -820,12 +1590,94 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
+                    "success": {
+                      "type": "boolean"
+                    },
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Stack" }
+                      "items": {
+                        "$ref": "#/components/schemas/Stack"
+                      }
                     }
                   }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Stacks"
+        ],
+        "summary": "Create a stack (admin only)",
+        "description": "Admin-only. Adds a new technology stack. Returns 401 if unauthenticated, 403 if not an admin.",
+        "operationId": "createStack",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Stack created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stack"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller is not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -834,90 +1686,123 @@
       }
     },
     "/api/users": {
-      "post": {
-        "tags": ["Users"],
-        "summary": "Create a user (admin / seed-only in practice)",
-        "description": "This endpoint is technically public in the current code (no auth check in the action). It is intended for admin or seed operations; the same credential check as signup/login covers normal user creation.",
-        "operationId": "createUser",
-        "security": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/CreateUser" } }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "User created",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } }
-          },
-          "400": {
-            "description": "Validation error or email already used",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
-          }
-        }
-      },
       "put": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Update the current user",
         "description": "Authenticated users can update their own profile. `userId` is derived from the session.",
         "operationId": "updateUser",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/UpdateUser" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUser"
+              }
+            }
           }
         },
         "responses": {
           "200": {
             "description": "User updated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
           },
           "400": {
             "description": "Validation error",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       },
       "delete": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Delete the current user",
         "description": "Authenticated users can delete their own account. `userId` from the session; service enforces ownership.",
         "operationId": "deleteUser",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "requestBody": {
           "required": true,
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/DeleteUser" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteUser"
+              }
+            }
           }
         },
         "responses": {
           "200": {
             "description": "User deleted",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/SuccessOnly" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessOnly"
+                }
+              }
+            }
           },
           "401": {
             "description": "Not authenticated",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/users/{id}": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Get a user",
         "description": "Public. Returns public profile fields for a user by id.",
         "operationId": "getUser",
@@ -929,8 +1814,12 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
-                    "data": { "$ref": "#/components/schemas/User" }
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
                   }
                 }
               }
@@ -938,19 +1827,127 @@
           },
           "400": {
             "description": "Missing user id",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           },
           "404": {
             "description": "User not found",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Users"
+        ],
+        "summary": "Set a user's role (admin only)",
+        "description": "Admin-only. Updates the role of the user identified by {id}. The acting user must be an admin. Returns 401 if unauthenticated, 403 if not an admin. Prevents removing the last admin.",
+        "operationId": "setUserRole",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "role"
+                ],
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "admin"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error, or attempt to remove the last admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller is not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/users/{id}/solutions": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Get a user's solutions",
         "description": "Public. Returns all solutions by a user.",
         "operationId": "getUserSolutions",
@@ -962,10 +1959,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
+                    "success": {
+                      "type": "boolean"
+                    },
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Solution" }
+                      "items": {
+                        "$ref": "#/components/schemas/Solution"
+                      }
                     }
                   }
                 }
@@ -974,21 +1975,37 @@
           },
           "400": {
             "description": "Missing user id",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/users/{id}/bookmarks": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Get a user's bookmarks",
         "description": "Authenticated. Returns bookmarks by the requested user id (service-side filtered by userId).",
         "operationId": "getUserBookmarks",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "responses": {
           "200": {
@@ -998,10 +2015,14 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
+                    "success": {
+                      "type": "boolean"
+                    },
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Project" }
+                      "items": {
+                        "$ref": "#/components/schemas/Project"
+                      }
                     }
                   }
                 }
@@ -1010,21 +2031,37 @@
           },
           "400": {
             "description": "Missing user id",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/users/{id}/likes": {
-      "parameters": [{ "$ref": "#/components/parameters/IdParam" }],
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
       "get": {
-        "tags": ["Users"],
+        "tags": [
+          "Users"
+        ],
         "summary": "Get a user's likes",
         "description": "Authenticated. Returns the projects and solutions liked by the requested user id.",
         "operationId": "getUserLikes",
         "security": [
-          { "cookieAuth": [] },
-          { "bearerAuth": [] }
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
         ],
         "responses": {
           "200": {
@@ -1034,13 +2071,19 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "success": { "type": "boolean" },
+                    "success": {
+                      "type": "boolean"
+                    },
                     "data": {
                       "type": "array",
                       "items": {
                         "oneOf": [
-                          { "$ref": "#/components/schemas/Project" },
-                          { "$ref": "#/components/schemas/Solution" }
+                          {
+                            "$ref": "#/components/schemas/Project"
+                          },
+                          {
+                            "$ref": "#/components/schemas/Solution"
+                          }
                         ]
                       }
                     }
@@ -1051,7 +2094,212 @@
           },
           "400": {
             "description": "Missing user id",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stacks/{id}": {
+      "parameters": [
+        {
+          "$ref": "#/components/parameters/IdParam"
+        }
+      ],
+      "get": {
+        "tags": [
+          "Stacks"
+        ],
+        "summary": "Get a stack",
+        "description": "Public. Returns a single stack by id.",
+        "operationId": "getStack",
+        "responses": {
+          "200": {
+            "description": "Stack",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Stack"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Stack not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Stacks"
+        ],
+        "summary": "Update a stack (admin only)",
+        "description": "Admin-only. Renames the stack identified by {id}. Returns 401 if unauthenticated, 403 if not an admin.",
+        "operationId": "updateStack",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Stack updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stack"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error or name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller is not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Stack not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Stacks"
+        ],
+        "summary": "Delete a stack (admin only)",
+        "description": "Admin-only. Deletes the stack identified by {id}. Returns 401 if unauthenticated, 403 if not an admin.",
+        "operationId": "deleteStack",
+        "security": [
+          {
+            "cookieAuth": []
+          },
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stack deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Stack"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Caller is not an admin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Stack not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
           }
         }
       }
@@ -1077,20 +2325,32 @@
         "name": "id",
         "in": "path",
         "required": true,
-        "schema": { "type": "string", "format": "uuid" },
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        },
         "description": "UUID identifier"
       }
     },
     "schemas": {
       "SuccessOnly": {
         "type": "object",
-        "properties": { "success": { "type": "boolean" } }
+        "properties": {
+          "success": {
+            "type": "boolean"
+          }
+        }
       },
       "Error": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean", "example": false },
-          "error": { "type": "string" },
+          "success": {
+            "type": "boolean",
+            "example": false
+          },
+          "error": {
+            "type": "string"
+          },
           "fieldErrors": {
             "type": "object",
             "description": "Per-field validation errors when applicable."
@@ -1099,121 +2359,376 @@
       },
       "Signup": {
         "type": "object",
-        "required": ["name", "email", "password"],
+        "required": [
+          "name",
+          "email",
+          "password"
+        ],
         "properties": {
-          "name": { "type": "string", "minLength": 1, "maxLength": 255 },
-          "email": { "type": "string", "format": "email", "maxLength": 255 },
-          "password": { "type": "string", "minLength": 8, "maxLength": 72 }
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 72
+          }
         }
       },
       "Login": {
         "type": "object",
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "properties": {
-          "email": { "type": "string", "format": "email" },
-          "password": { "type": "string", "minLength": 1 }
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       },
       "AuthResult": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "email": { "type": "string", "format": "email" },
-          "image": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
-          "token": { "type": "string", "description": "Session JWT token (also set as httpOnly cookie)." }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "image": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "token": {
+            "type": "string",
+            "description": "Session JWT token (also set as httpOnly cookie)."
+          }
         }
       },
       "CreateUser": {
         "type": "object",
-        "required": ["name", "email"],
+        "required": [
+          "name",
+          "email"
+        ],
         "properties": {
-          "name": { "type": "string", "minLength": 1, "maxLength": 255 },
-          "email": { "type": "string", "format": "email", "maxLength": 255 },
-          "image": { "oneOf": [{ "type": "string", "format": "uri", "maxLength": 1000 }, { "type": "null" }] }
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255
+          },
+          "image": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
         }
       },
       "UpdateUser": {
         "type": "object",
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string", "minLength": 1, "maxLength": 255 },
-          "email": { "type": "string", "format": "email", "maxLength": 255 },
-          "image": { "oneOf": [{ "type": "string", "format": "uri", "maxLength": 1000 }, { "type": "null" }] }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255
+          },
+          "image": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
         }
       },
       "DeleteUser": {
         "type": "object",
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "properties": {
-          "id": { "type": "string", "format": "uuid" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
         }
       },
       "User": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "email": { "type": "string", "format": "email" },
-          "image": { "oneOf": [{ "type": "string", "format": "uri" }, { "type": "null" }] },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "image": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "admin"
+            ]
+          }
         }
       },
       "Category": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "categoryId": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "CreateCategory": {
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "properties": {
-          "name": { "type": "string", "minLength": 1, "maxLength": 255 }
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
         }
       },
       "UpdateCategory": {
         "type": "object",
-        "required": ["categoryId", "name"],
+        "required": [
+          "categoryId",
+          "name"
+        ],
         "properties": {
-          "categoryId": { "type": "string", "format": "uuid" },
-          "name": { "type": "string", "minLength": 1, "maxLength": 255 }
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
         }
       },
       "Project": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "description": { "type": "string" },
-          "instructions": { "type": "array", "items": { "type": "string" } },
-          "level": { "type": "string", "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED"] },
-          "requirements": { "type": "array", "items": { "type": "string" } },
-          "optRequirements": { "oneOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }] },
-          "categoryId": { "type": "string", "format": "uuid" },
-          "userId": { "type": "string", "format": "uuid" },
-          "totalLikes": { "type": "integer" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED"
+            ]
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optRequirements": {
+            "oneOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "totalLikes": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "CreateProject": {
         "type": "object",
-        "required": ["name", "description", "instructions", "requirements", "categoryId"],
+        "required": [
+          "name",
+          "description",
+          "instructions",
+          "requirements",
+          "categoryId"
+        ],
         "properties": {
-          "name": { "type": "string", "minLength": 1, "maxLength": 255 },
-          "description": { "type": "string", "minLength": 1 },
-          "instructions": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-          "level": { "type": "string", "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED"], "default": "BEGINNER" },
-          "requirements": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
-          "optRequirements": { "oneOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }] },
-          "categoryId": { "type": "string", "format": "uuid" },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED"
+            ],
+            "default": "BEGINNER"
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          },
+          "optRequirements": {
+            "oneOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
           "userId": {
             "type": "string",
             "format": "uuid",
@@ -1223,90 +2738,325 @@
       },
       "UpdateProject": {
         "type": "object",
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string", "minLength": 1, "maxLength": 255 },
-          "description": { "type": "string", "minLength": 1 },
-          "instructions": { "type": "array", "items": { "type": "string" } },
-          "level": { "type": "string", "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED"] },
-          "requirements": { "type": "array", "items": { "type": "string" } },
-          "optRequirements": { "oneOf": [{ "type": "array", "items": { "type": "string" } }, { "type": "null" }] },
-          "categoryId": { "type": "string", "format": "uuid" },
-          "userId": { "type": "string", "format": "uuid" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "instructions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED"
+            ]
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "optRequirements": {
+            "oneOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "categoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          }
         }
       },
       "Solution": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "projectId": { "type": "string", "format": "uuid" },
-          "userId": { "type": "string", "format": "uuid" },
-          "title": { "type": "string" },
-          "description": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
-          "repoUrl": { "oneOf": [{ "type": "string", "format": "uri" }, { "type": "null" }] },
-          "demoUrl": { "oneOf": [{ "type": "string", "format": "uri" }, { "type": "null" }] },
-          "implFeat": { "type": "array", "items": { "type": "string" } },
-          "totalLikes": { "type": "integer" },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "repoUrl": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "demoUrl": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "implFeat": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "totalLikes": {
+            "type": "integer"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "CreateSolution": {
         "type": "object",
-        "required": ["projectId", "title", "implFeat"],
+        "required": [
+          "projectId",
+          "title",
+          "implFeat"
+        ],
         "properties": {
-          "projectId": { "type": "string", "format": "uuid" },
-          "title": { "type": "string", "minLength": 1, "maxLength": 255 },
-          "description": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "repoUrl": {
-            "oneOf": [{ "type": "string", "format": "uri" }, { "type": "null" }],
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "HTTPS URL to allowlisted git hosts (GitHub/GitLab/Bitbucket)."
           },
           "demoUrl": {
-            "oneOf": [{ "type": "string", "format": "uri" }, { "type": "null" }],
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "description": "Any public HTTPS URL."
           },
-          "implFeat": { "type": "array", "items": { "type": "string" }, "minItems": 1 }
+          "implFeat": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1
+          }
         }
       },
       "UpdateSolution": {
         "type": "object",
-        "required": ["solutionId"],
+        "required": [
+          "solutionId"
+        ],
         "properties": {
-          "solutionId": { "type": "string", "format": "uuid" },
-          "projectId": { "type": "string", "format": "uuid" },
-          "title": { "type": "string", "minLength": 1, "maxLength": 255 },
-          "description": { "type": "string" },
-          "repoUrl": { "oneOf": [{ "type": "string", "format": "uri" }, { "type": "null" }] },
-          "demoUrl": { "oneOf": [{ "type": "string", "format": "uri" }, { "type": "null" }] },
-          "implFeat": { "type": "array", "items": { "type": "string" } }
+          "solutionId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "projectId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string"
+          },
+          "repoUrl": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "demoUrl": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uri"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "implFeat": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
         }
       },
       "SolutionDeleteResult": {
         "type": "object",
         "properties": {
-          "success": { "type": "boolean" },
-          "projectId": { "oneOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }] }
+          "success": {
+            "type": "boolean"
+          },
+          "projectId": {
+            "oneOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
         }
       },
       "VoteDifficulty": {
         "type": "object",
-        "required": ["difficulty"],
+        "required": [
+          "difficulty"
+        ],
         "properties": {
-          "projectId": { "type": "string", "format": "uuid", "description": "Optional; also taken from the URL path." },
-          "difficulty": { "type": "string", "enum": ["BEGINNER", "INTERMEDIATE", "ADVANCED"] }
+          "projectId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Optional; also taken from the URL path."
+          },
+          "difficulty": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED"
+            ]
+          }
         }
       },
       "Stack": {
         "type": "object",
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "description": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
-          "imageUrl": { "oneOf": [{ "type": "string" }, { "type": "null" }] },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "updatedAt": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "imageUrl": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       }
     }

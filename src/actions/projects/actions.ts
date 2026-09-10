@@ -13,7 +13,8 @@ import {
 import { createProjectService } from "@/services/projects/create-project";
 import { updateProjectService } from "@/services/projects/update-project";
 import { deleteProjectService } from "@/services/projects/delete-project";
-import { requireUserId, requireOwner } from "@/lib/auth/dal";
+import { selectProjectOwnerService } from "@/services/projects/select-project";
+import { requireUserId, requireOwnerOrAdmin } from "@/lib/auth/dal";
 
 /**
  * Creates a new project after verifying payloads via Zod.
@@ -36,15 +37,21 @@ export async function createProjectAction(input: CreateProjectInput) {
 
 /**
  * Updates an existing project by its unique ID.
+ * Only the project owner may update.
  */
 export async function updateProjectAction(input: UpdateProjectInput) {
   const validation = validateData(updateProjectSchema, input);
   if (!validation.success) return validation;
 
-  const userId = await requireOwner(validation.data.id);
+  const ownerId = await selectProjectOwnerService({ input: { projectId: validation.data.id } });
+  if (!ownerId) {
+    return { success: false as const, error: "Project not found", status: 404 };
+  }
+
+  const user = await requireOwnerOrAdmin(ownerId);
 
   const result = await safeAction(async () => {
-    return await updateProjectService({ input: { ...validation.data, userId } });
+    return await updateProjectService({ input: { ...validation.data, userId: user.id } });
   }, "Failed to update project.");
 
   if (result.success) {
@@ -56,13 +63,19 @@ export async function updateProjectAction(input: UpdateProjectInput) {
 
 /**
  * Deletes a project by its unique ID.
+ * Project owner OR admin may delete (admin moderation).
  */
 export async function deleteProjectAction(input: DeleteProjectInput) {
-  await requireOwner(input.id);
+  const ownerId = await selectProjectOwnerService({ input: { projectId: input.id } });
+  if (!ownerId) {
+    return { success: false as const, error: "Project not found", status: 404 };
+  }
+
+  const user = await requireOwnerOrAdmin(ownerId);
 
   const result = await safeAction(async () => {
-    return await deleteProjectService({ input: { id: input.id } });
-  }, "Failed to delete project.");
+    return await deleteProjectService({ input: { id: input.id, isAdmin: user.role === "admin" } });
+   }, "Failed to delete project.");
 
   if (result.success) {
     revalidatePath("/projects");
