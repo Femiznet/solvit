@@ -9,8 +9,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const { searchParams } = request.nextUrl;
     const params = {
       projectId: searchParams.get("projectId") ?? "",
-      limit: searchParams.get("limit") ?? 20,
-      offset: searchParams.get("offset") ?? 0,
+      limit: searchParams.get("limit") ?? undefined,
+      offset: searchParams.get("offset") ?? undefined,
     };
     const validation = searchSolutionsSchema.safeParse(params);
     if (!validation.success) {

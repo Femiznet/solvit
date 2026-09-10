@@ -2,17 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { createCategoryAction } from "@/actions/categories/actions";
 import { selectManyCategoriesService } from "@/services/categories/select-category";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
+import { taxonomyPaginationSchema } from "@/zod-validators/zod-pagination";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = request.nextUrl;
-    const limit = Number(searchParams.get("limit") ?? 50);
-    const offset = Number(searchParams.get("offset") ?? 0);
-    const categories = await selectManyCategoriesService({
-      limit: Number.isNaN(limit) ? 50 : limit,
-      offset: Number.isNaN(offset) ? 0 : offset,
+    const validation = taxonomyPaginationSchema.safeParse({
+      limit: searchParams.get("limit") ?? undefined,
+      offset: searchParams.get("offset") ?? undefined,
     });
-    return NextResponse.json({ success: true, data: categories }, { status: 200 });
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid query parameters",
+          fieldErrors: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+    const result = await selectManyCategoriesService({ ...validation.data });
+    return NextResponse.json({ success: true, data: result }, { status: 200 });
   } catch (error) {
     return routeErrorToResponse(error);
   }

@@ -1,6 +1,7 @@
 import { selectUserSolutionsService } from "@/services/solutions/select-solution";
 import { NextRequest, NextResponse } from "next/server";
 import { routeErrorToResponse } from "@/lib/http-response";
+import { paginationSchema } from "@/zod-validators/zod-pagination";
 
 interface RouteParams {
   params: Promise<{
@@ -12,8 +13,6 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
   try {
     const { id: userId } = await params;
     const { searchParams } = request.nextUrl;
-    const limit = Number(searchParams.get("limit") ?? 20);
-    const offset = Number(searchParams.get("offset") ?? 0);
 
     if (!userId) {
       return NextResponse.json(
@@ -22,11 +21,26 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
       );
     }
 
+    const validation = paginationSchema.safeParse({
+      limit: searchParams.get("limit") ?? undefined,
+      offset: searchParams.get("offset") ?? undefined,
+    });
+    if (!validation.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid query parameters",
+          fieldErrors: validation.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+
     const solutions = await selectUserSolutionsService({
       input: {
         userId,
-        limit: Number.isNaN(limit) ? 20 : limit,
-        offset: Number.isNaN(offset) ? 0 : offset,
+        limit: validation.data.limit,
+        offset: validation.data.offset,
       },
     });
 

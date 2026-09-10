@@ -895,6 +895,20 @@ paths:
                         items: { $ref: "#/components/schemas/Stack" }
                       pagination:
                         $ref: "#/components/schemas/Pagination"
+        "400":
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  error: { type: string }
+                  fieldErrors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items: { type: string }
     post:
       tags: [Stacks]
       summary: Create a stack (admin only)

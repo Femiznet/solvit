@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { selectSingleProjectService } from "@/services/projects/select-project";
 import { updateProjectAction, deleteProjectAction } from "@/actions/projects/actions";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
+import { projectDetailPaginationSchema } from "@/zod-validators/zod-pagination";
 
 export async function GET(
   request: NextRequest,
@@ -11,13 +12,25 @@ export async function GET(
   try {
     const { id } = await params;
     const { searchParams } = request.nextUrl;
-    const solutionsLimit = Number(searchParams.get("solutionsLimit") ?? 10);
-    const solutionsOffset = Number(searchParams.get("solutionsOffset") ?? 0);
+    const pagination = projectDetailPaginationSchema.safeParse({
+      solutionsLimit: searchParams.get("solutionsLimit") ?? undefined,
+      solutionsOffset: searchParams.get("solutionsOffset") ?? undefined,
+    });
+    if (!pagination.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid query parameters",
+          fieldErrors: pagination.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
     const project = await selectSingleProjectService({
       input: {
         projectId: id,
-        solutionsLimit: Number.isNaN(solutionsLimit) ? 10 : solutionsLimit,
-        solutionsOffset: Number.isNaN(solutionsOffset) ? 0 : solutionsOffset,
+        solutionsLimit: pagination.data.solutionsLimit,
+        solutionsOffset: pagination.data.solutionsOffset,
       },
     });
 
