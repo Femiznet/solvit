@@ -43,13 +43,16 @@ Server starts at `http://localhost:3000`. API docs at `/reference`.
 
 | Group | Endpoints | Access |
 |---|---|---|
+| **Health** | `GET /api/health` | Public (no auth) |
 | **Auth** | `POST /api/auth/signup`, `/login`, `/logout`, `GET /me` | Public (signup/login) / authed (me) |
 | **Categories** | `GET /api/categories`, `POST/PUT/DELETE /api/categories[/{id}]` | Reads public / writes **admin** |
 | **Stacks** | `GET /api/stacks`, `POST/PUT/DELETE /api/stacks[/{id}]` | Reads public / writes **admin** |
 | **Projects** | `GET /api/projects[/{id}|/search]`, `POST/PUT/DELETE /api/projects[/{id}]` | Reads public / create: authed / update: owner / delete: **owner or admin** |
-| **Solutions** | `GET /api/solutions[/{id}]`, `POST/PUT/DELETE /api/solutions[/{id}]` | Reads public / create: authed / update: owner / delete: **owner or admin** |
+| **Solutions** | `GET /api/solutions[?projectId]`, `GET/PUT/DELETE /api/solutions[/{id}]`, `POST /api/solutions` | Reads public / create: authed / update: owner / delete: **owner or admin** |
 | **Users** | `GET /api/users/{id}`, `PUT /api/users/{id}` (set role), `PUT/DELETE /api/users` | Self-only (update/delete) / admin can delete any / set-role: admin-only |
 | **Engagement** | `POST /api/projects/{id}/like\|bookmark\|vote`, same for solutions | Authed, self-scoped |
+
+All list endpoints support `?limit` (default 20, max 50) and `?offset` (default 0) query parameters for pagination. Responses include a `pagination` object with `total`, `limit`, `offset`, and `hasMore`.
 
 Full OpenAPI spec: `openapi.yaml` (browse at `/reference`).
 
@@ -98,6 +101,18 @@ src/
 scripts/          # Seed + openapi sync
 drizzle/          # Migrations
 ```
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `ECONNREFUSED` / `Connection refused` on startup | PostgreSQL not running | Start Postgres: `pg_ctl start` or your system service |
+| `AUTH_SECRET` too short / `jose` errors | Secret under 32 chars | Set `AUTH_SECRET` to a 32+ character random string in `.env` |
+| `relation "X" does not exist` | Migrations not run | Run `npm run db:migrate` before starting the server |
+| `db:seed` fails with `tsx: not found` | `tsx` not installed | Run `npm install` (it's a devDependency) |
+| 500 errors with no details | Server-side crash | Check `logs/` directory for stack traces |
+
+Verify the server is healthy: `curl http://localhost:3000/api/health` → `{"status":"ok","db":"up",...}`.
 
 ## Status
 

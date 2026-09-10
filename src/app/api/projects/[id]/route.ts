@@ -10,7 +10,16 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const project = await selectSingleProjectService({ input: { projectId: id } });
+    const { searchParams } = request.nextUrl;
+    const solutionsLimit = Number(searchParams.get("solutionsLimit") ?? 10);
+    const solutionsOffset = Number(searchParams.get("solutionsOffset") ?? 0);
+    const project = await selectSingleProjectService({
+      input: {
+        projectId: id,
+        solutionsLimit: Number.isNaN(solutionsLimit) ? 10 : solutionsLimit,
+        solutionsOffset: Number.isNaN(solutionsOffset) ? 0 : solutionsOffset,
+      },
+    });
 
     if (!project) {
       return NextResponse.json(

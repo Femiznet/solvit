@@ -169,14 +169,14 @@ describe("stack API routes", () => {
       { id: UUIDS.otherProject, name: "Next.js" },
     ];
     mocks.selectManyStacksService
-      .mockResolvedValueOnce(stackRows)
+      .mockResolvedValueOnce({ data: stackRows, pagination: { total: 2, limit: 50, offset: 0, hasMore: false } })
       .mockRejectedValueOnce(new Error(ERROR_MESSAGE));
 
-    expect(await json(await listStacks())).toEqual({
+    expect(await json(await listStacks(request(URLS.stacks)))).toEqual({
       status: STATUS.ok,
-      body: { success: true, data: stackRows },
+      body: { success: true, data: { data: stackRows, pagination: { total: 2, limit: 50, offset: 0, hasMore: false } } },
     });
-    expect(await json(await listStacks())).toEqual({
+    expect(await json(await listStacks(request(URLS.stacks)))).toEqual({
       status: STATUS.serverError,
       body: { success: false, error: ERROR_MESSAGE },
     });

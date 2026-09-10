@@ -11,6 +11,9 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams): Promise<NextResponse> {
   try {
     const { id: userId } = await params;
+    const { searchParams } = request.nextUrl;
+    const limit = Number(searchParams.get("limit") ?? 20);
+    const offset = Number(searchParams.get("offset") ?? 0);
 
     if (!userId) {
       return NextResponse.json(
@@ -19,7 +22,13 @@ export async function GET(request: NextRequest, { params }: RouteParams): Promis
       );
     }
 
-    const solutions = await selectUserSolutionsService({ input: { userId } });
+    const solutions = await selectUserSolutionsService({
+      input: {
+        userId,
+        limit: Number.isNaN(limit) ? 20 : limit,
+        offset: Number.isNaN(offset) ? 0 : offset,
+      },
+    });
 
     return NextResponse.json({ success: true, data: solutions }, { status: 200 });
   } catch (error: unknown) {

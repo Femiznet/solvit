@@ -128,16 +128,45 @@ paths:
       security:
         - cookieAuth: []
         - bearerAuth: []
+  /api/health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns server and database status. Public, no auth required.
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Server and database are healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: "ok" }
+                  db: { type: string, example: "up" }
+                  time: { type: string, format: date-time }
+        "503":
+          description: Database is unreachable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: "error" }
+                  db: { type: string, example: "down" }
+                  time: { type: string, format: date-time }
   /api/categories:
     get:
       tags: [Categories]
       summary: List categories
       description: Public list of all categories.
       operationId: listCategories
-      parameters: [ ]
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
       responses:
         "200":
-          description: List of categories
+          description: Paginated list of categories
           content:
             application/json:
               schema:
@@ -145,8 +174,13 @@ paths:
                 properties:
                   success: { type: boolean }
                   data:
-                    type: array
-                    items: { $ref: "#/components/schemas/Category" }
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Category" }
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
     post:
       tags: [Categories]
       summary: Create a category (admin only)
@@ -466,7 +500,19 @@ paths:
     get:
       tags: [Projects]
       summary: Get a project
+      description: "Public. Returns project details with paginated embedded solutions. Use `solutionsLimit` and `solutionsOffset` to page through solutions."
       operationId: getProject
+      parameters:
+        - name: solutionsLimit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+          description: Maximum number of solutions to embed (default 10)
+        - name: solutionsOffset
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+          description: Number of solutions to skip
       responses:
         "200":
           description: Project
@@ -625,6 +671,41 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
   /api/solutions:
+    get:
+      tags: [Solutions]
+      summary: List solutions for a project
+      description: "Public. Returns paginated solutions for a given project."
+      operationId: listSolutions
+      parameters:
+        - name: projectId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+          description: Project ID to filter solutions by
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
+      responses:
+        "200":
+          description: Paginated list of solutions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      solutions:
+                        type: array
+                        items: { $ref: "#/components/schemas/Solution" }
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+        "400":
+          description: Missing or invalid projectId
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
     post:
       tags: [Solutions]
       summary: Create a solution
@@ -794,10 +875,12 @@ paths:
       summary: List stacks
       description: Public list of technology stacks.
       operationId: listStacks
-      parameters: [ ]
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
       responses:
         "200":
-          description: Stacks
+          description: Paginated list of stacks
           content:
             application/json:
               schema:
@@ -805,8 +888,13 @@ paths:
                 properties:
                   success: { type: boolean }
                   data:
-                    type: array
-                    items: { $ref: "#/components/schemas/Stack" }
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Stack" }
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
     post:
       tags: [Stacks]
       summary: Create a stack (admin only)
@@ -1029,11 +1117,14 @@ paths:
     get:
       tags: [Users]
       summary: Get a user's solutions
-      description: Public. Returns all solutions by a user.
+      description: Public. Returns paginated solutions by a user.
       operationId: getUserSolutions
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
       responses:
         "200":
-          description: List of solutions
+          description: Paginated list of solutions
           content:
             application/json:
               schema:
@@ -1041,8 +1132,13 @@ paths:
                 properties:
                   success: { type: boolean }
                   data:
-                    type: array
-                    items: { $ref: "#/components/schemas/Solution" }
+                    type: object
+                    properties:
+                      solutions:
+                        type: array
+                        items: { $ref: "#/components/schemas/Solution" }
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
         "400":
           description: Missing user id
           content:
@@ -1054,14 +1150,17 @@ paths:
     get:
       tags: [Users]
       summary: Get a user's bookmarks
-      description: Authenticated. Returns bookmarks by the requested user id (service-side filtered by userId).
+      description: Authenticated. Returns paginated bookmarks by the requested user id.
       operationId: getUserBookmarks
       security:
         - cookieAuth: []
         - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
       responses:
         "200":
-          description: Bookmarks
+          description: Paginated bookmarks
           content:
             application/json:
               schema:
@@ -1069,8 +1168,24 @@ paths:
                 properties:
                   success: { type: boolean }
                   data:
-                    type: array
-                    items: { $ref: "#/components/schemas/Project" }
+                    type: object
+                    properties:
+                      projects:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items: { $ref: "#/components/schemas/Project" }
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
+                      solutions:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items: { $ref: "#/components/schemas/Solution" }
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
         "400":
           description: Missing user id
           content:
@@ -1082,14 +1197,17 @@ paths:
     get:
       tags: [Users]
       summary: Get a user's likes
-      description: Authenticated. Returns the projects and solutions liked by the requested user id.
+      description: Authenticated. Returns paginated projects and solutions liked by the requested user id.
       operationId: getUserLikes
       security:
         - cookieAuth: []
         - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
       responses:
         "200":
-          description: Likes
+          description: Paginated likes
           content:
             application/json:
               schema:
@@ -1097,7 +1215,24 @@ paths:
                 properties:
                   success: { type: boolean }
                   data:
-                    type: array
+                    type: object
+                    properties:
+                      projects:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items: { $ref: "#/components/schemas/Project" }
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
+                      solutions:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items: { $ref: "#/components/schemas/Solution" }
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
                     items:
                       oneOf:
                         - $ref: "#/components/schemas/Project"
@@ -1188,11 +1323,30 @@ components:
       required: true
       schema: { type: string, format: uuid }
       description: UUID identifier
+    PaginationLimit:
+      name: limit
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      description: Maximum number of items to return
+    PaginationOffset:
+      name: offset
+      in: query
+      required: false
+      schema: { type: integer, minimum: 0, default: 0 }
+      description: Number of items to skip for pagination
   schemas:
     SuccessOnly:
       type: object
       properties:
         success: { type: boolean }
+    Pagination:
+      type: object
+      properties:
+        total: { type: integer, description: "Total number of items available" }
+        limit: { type: integer, description: "Number of items returned in this page" }
+        offset: { type: integer, description: "Number of items skipped" }
+        hasMore: { type: boolean, description: "Whether more items are available" }
     Error:
       type: object
       properties:

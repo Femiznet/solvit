@@ -97,9 +97,26 @@ export const solutionLikeSchema = createInsertSchema(solutionLikes, {
   solutionId: true,
 });
 
+// 6. Search Solutions Schema (paginated list by project)
+export const searchSolutionsSchema = z.object({
+  projectId: z.uuid({ error: "Invalid project ID format" }),
+  limit: z.coerce
+    .number()
+    .int({ error: "Limit must be a whole number" })
+    .min(1, { error: "Limit must be at least 1" })
+    .max(50, { error: "Limit cannot exceed 50" })
+    .default(20),
+  offset: z.coerce
+    .number()
+    .int({ error: "Offset must be a whole number" })
+    .min(0, { error: "Offset cannot be negative" })
+    .default(0),
+});
+
 // Exported Types
 export type Solution = z.infer<typeof solutionSchema>;
 export type CreateSolutionInput = z.infer<typeof createSolutionSchema>;
 export type UpdateSolutionInput = z.infer<typeof updateSolutionSchema>;
 export type DeleteSolutionInput = z.infer<typeof deleteSolutionSchema>;
 export type SolutionLikeInput = z.infer<typeof solutionLikeSchema>;
+export type SearchSolutionsInput = z.infer<typeof searchSolutionsSchema>;

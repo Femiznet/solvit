@@ -35,7 +35,7 @@
 
 import { db } from "@/database";
 import { projects, solutions } from "@/database/schemas";
-import { eq } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
 export type SelectSolutionInput = {
@@ -44,6 +44,8 @@ export type SelectSolutionInput = {
 
 export type SelectUserSolutiontInput = {
   userId: string;
+  limit?: number;
+  offset?: number;
 };
 
 export async function selectSingleSolutionService({
@@ -70,16 +72,36 @@ export async function selectUserSolutionsService({
   input,
   tx,
 }: ServiceArgs<SelectUserSolutiontInput>) {
-  const results = await db(tx)
-    .select()
-    .from(solutions)
-    .leftJoin(projects, eq(solutions.projectId, projects.id))
-    .where(eq(solutions.userId, input.userId));
+  const { userId, limit = 20, offset = 0 } = input;
 
-  return results.map((row) => ({
-    ...row.solutions,
-    project: row.projects || null,
-  }));
+  const [results, countResult] = await Promise.all([
+    db(tx)
+      .select()
+      .from(solutions)
+      .leftJoin(projects, eq(solutions.projectId, projects.id))
+      .where(eq(solutions.userId, userId))
+      .orderBy(desc(solutions.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db(tx)
+      .select({ count: sql<number>`count(*)` })
+      .from(solutions)
+      .where(eq(solutions.userId, userId))
+      .then((r) => Number(r[0]?.count ?? 0)),
+  ]);
+
+  return {
+    solutions: results.map((row) => ({
+      ...row.solutions,
+      project: row.projects || null,
+    })),
+    pagination: {
+      total: countResult,
+      limit,
+      offset,
+      hasMore: offset + limit < countResult,
+    },
+  };
 }
 
 /**

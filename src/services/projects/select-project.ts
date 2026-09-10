@@ -1,11 +1,13 @@
 import { db } from "@/database";
 import { projects, projectStacks, solutions, stacks } from "@/database/schemas";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, desc, sql } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 import { selectProjectDifficultyStatsService } from "@/services/projects/difficulty-vote";
 
 export type SelectProjectInput = {
   projectId: string;
+  solutionsLimit?: number;
+  solutionsOffset?: number;
 };
 
 export type SelectUserProjectInput = {
@@ -13,7 +15,7 @@ export type SelectUserProjectInput = {
 };
 
 export async function selectSingleProjectService({
-  input: { projectId },
+  input: { projectId, solutionsLimit = 10, solutionsOffset = 0 },
   tx,
 }: ServiceArgs<SelectProjectInput>) {
   const [project] = await db(tx).select().from(projects).where(eq(projects.id, projectId));
@@ -23,8 +25,19 @@ export async function selectSingleProjectService({
   }
 
   // Enrichment queries run in parallel once the project is confirmed to exist.
-  const [projectSolutions, stacksResult, difficultyStats] = await Promise.all([
-    db(tx).select().from(solutions).where(eq(solutions.projectId, projectId)),
+  const [projectSolutions, solutionsCount, stacksResult, difficultyStats] = await Promise.all([
+    db(tx)
+      .select()
+      .from(solutions)
+      .where(eq(solutions.projectId, projectId))
+      .orderBy(desc(solutions.createdAt))
+      .limit(solutionsLimit)
+      .offset(solutionsOffset),
+    db(tx)
+      .select({ count: sql<number>`count(*)` })
+      .from(solutions)
+      .where(eq(solutions.projectId, projectId))
+      .then((r) => Number(r[0]?.count ?? 0)),
     db(tx)
       .select({ stackName: stacks.name })
       .from(projectStacks)
@@ -38,7 +51,12 @@ export async function selectSingleProjectService({
     stacks: stacksResult.map((row) => row.stackName),
     difficultyStats,
     solutions: projectSolutions,
-    solutionsCount: projectSolutions.length,
+    solutionsCount,
+    solutionsPagination: {
+      limit: solutionsLimit,
+      offset: solutionsOffset,
+      hasMore: solutionsOffset + solutionsLimit < solutionsCount,
+    },
   };
 }
 
