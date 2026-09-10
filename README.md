@@ -50,7 +50,6 @@ Server starts at `http://localhost:3000`. API docs at `/reference`.
 | **Solutions** | `GET /api/solutions[/{id}]`, `POST/PUT/DELETE /api/solutions[/{id}]` | Reads public / create: authed / update: owner / delete: **owner or admin** |
 | **Users** | `GET /api/users/{id}`, `PUT /api/users/{id}` (set role), `PUT/DELETE /api/users` | Self-only (update/delete) / admin can delete any / set-role: admin-only |
 | **Engagement** | `POST /api/projects/{id}/like\|bookmark\|vote`, same for solutions | Authed, self-scoped |
-| **Engagement** | `POST /api/projects/{id}/like|bookmark|vote`, same for solutions | Authed, self-scoped |
 
 Full OpenAPI spec: `openapi.yaml` (browse at `/reference`).
 

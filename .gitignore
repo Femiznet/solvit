@@ -32,11 +32,16 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
+# Ignore all .env files first, then whitelist .env.example as a tracked template.
 .env*
+!.env.example
 
 # local env files
 .env*.local
 .env
+
+# Seed script output logs (ignore generated logs, keep the seeder)
+src/scripts/*.log
 
 # vercel
 .vercel
@@ -45,7 +50,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-src/scripts
+src/scripts/*.log
 SUGGESTION.md
 
 logs/

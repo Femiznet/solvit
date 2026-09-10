@@ -1110,8 +1110,8 @@ paths:
   /api/users:
     put:
       tags: [Users]
-      summary: Update the current user
-      description: "Authenticated users can update their own profile. `userId` is derived from the session."
+      summary: Update a user
+      description: "Updates a user's profile. The user themselves OR an admin may update. `userId` is derived from the session; admins may act on any user id."
       operationId: updateUser
       security:
         - cookieAuth: []
@@ -1135,10 +1135,15 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is neither the target user nor an admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
     delete:
       tags: [Users]
-      summary: Delete the current user
-      description: "Authenticated users can delete their own account. `userId` from the session; service enforces ownership."
+      summary: Delete a user
+      description: "Deletes a user account. The user themselves OR an admin may delete (admin moderation)."
       operationId: deleteUser
       security:
         - cookieAuth: []
@@ -1154,6 +1159,11 @@ paths:
           content: { application/json: { schema: { $ref: "#/components/schemas/SuccessOnly" } } }
         "401":
           description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is neither the target user nor an admin
           content:
             application/json:
               schema: { $ref: "#/components/schemas/Error" }
