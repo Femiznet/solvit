@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Solvit
 
-## Getting Started
+Backend-only MVP for **Solvit** — a platform where developers share projects, post solutions, and signal quality through likes, difficulty votes, and bookmarks.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, Route Handlers only — no frontend yet)
+- **PostgreSQL** + **Drizzle ORM**
+- **jose** for stateless session tokens, **bcryptjs** for password hashing
+- **Zod** for input validation
+- **Scalar** for interactive API docs at `/reference`
+
+## Prerequisites
+
+- Node.js 20+
+- PostgreSQL 16 running locally
+
+## Quickstart
 
 ```bash
+# 1. Clone + install
+git clone https://github.com/Femiznet/solvit.git
+cd solvit
+npm install
+
+# 2. Configure env
+cp .env.example .env
+# edit .env — set DATABASE_URL, AUTH_SECRET (min 32 chars), optionally SEED_ADMIN_EMAIL/PASSWORD
+
+# 3. Run migrations
+npm run db:migrate
+
+# 4. (Optional) Seed admin + sample data
+npm run db:seed
+
+# 5. Start dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Server starts at `http://localhost:3000`. API docs at `/reference`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API overview
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Group | Endpoints | Access |
+|---|---|---|
+| **Auth** | `POST /api/auth/signup`, `/login`, `/logout`, `GET /me` | Public (signup/login) / authed (me) |
+| **Categories** | `GET /api/categories`, `POST/PUT/DELETE /api/categories[/{id}]` | Reads public / writes **admin** |
+| **Stacks** | `GET /api/stacks`, `POST/PUT/DELETE /api/stacks[/{id}]` | Reads public / writes **admin** |
+| **Projects** | `GET /api/projects[/{id}|/search]`, `POST/PUT/DELETE /api/projects[/{id}]` | Reads public / create: authed / update: owner / delete: **owner or admin** |
+| **Solutions** | `GET /api/solutions[/{id}]`, `POST/PUT/DELETE /api/solutions[/{id}]` | Reads public / create: authed / update: owner / delete: **owner or admin** |
+| **Users** | `GET /api/users/{id}`, `PUT /api/users/{id}` (set role), `PUT/DELETE /api/users` | Self-only (update/delete) / admin can delete any / set-role: admin-only |
+| **Engagement** | `POST /api/projects/{id}/like\|bookmark\|vote`, same for solutions | Authed, self-scoped |
+| **Engagement** | `POST /api/projects/{id}/like|bookmark|vote`, same for solutions | Authed, self-scoped |
 
-## Learn More
+Full OpenAPI spec: `openapi.yaml` (browse at `/reference`).
 
-To learn more about Next.js, take a look at the following resources:
+## Authorization model
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `userId` is **always** resolved server-side from the session token — never trusted from client input.
+- Session token sent via `httpOnly` cookie or `Authorization: Bearer` header.
+- Two roles: `user` (default) and `admin`.
+- Admins can: manage categories/stacks, delete any project/solution/user (moderation), and change user roles.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Testing
 
-## Deploy on Vercel
+```bash
+npm run test:run
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Unit tests cover auth gating, proxy-guard path classification, and action-level authorization. Uses mocked database calls — no live Postgres required for tests.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Scripts
+
+| Command | Purpose |
+|---|---|
+| `npm run dev` | Start dev server |
+| `npm run build` / `start` | Production build / serve |
+| `npm run db:migrate` | Apply pending migrations |
+| `npm run db:generate` | Generate migration from schema changes |
+| `npm run db:seed` | Seed sample data + optional admin user |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier |
+| `npm run knip` | Find unused exports/deps |
+| `npm run test` | Vitest (watch) |
+| `npm run test:run` | Vitest (single run) |
+
+## Project structure
+
+```
+src/
+  actions/        # Server actions (validation → auth → service call)
+  app/api/        # Route handlers (Next.js App Router)
+  database/       # Drizzle schema + connection
+  lib/auth/       # Session, hashing, proxy-guard, DAL
+  services/       # Data access layer (DB queries)
+  zod-validators/ # Input schemas
+  __tests__/      # Vitest unit tests
+  proxy.ts        # Optimistic credential gate (not authorization)
+scripts/          # Seed + openapi sync
+drizzle/          # Migrations
+```
+
+## Status
+
+**Backend MVP.** All core domain models, auth, authorization, and CRUD endpoints are implemented and tested. No frontend yet — the API is consumed via curl, tests, or the Scalar reference at `/reference`.
