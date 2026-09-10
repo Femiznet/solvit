@@ -49,3 +49,6 @@ src/scripts
 SUGGESTION.md
 
 logs/
+
+# Serena agent internal cache and memory indexes
+.serena/
