@@ -2,7 +2,7 @@
 import { db } from "@/database";
 import { projects } from "@/database/schemas";
 import { projectCreationLogs } from "@/database/schemas/project-creation-logs";
-import { ClientError } from "@/lib/errors";
+import { RateLimitError } from "@/lib/errors";
 import { ServiceArgs } from "@/types/service-args";
 import { CreateProjectInput } from "@/zod-validators/zod-projects";
 import { and, eq, gte, count, sql } from "drizzle-orm";
@@ -22,7 +22,7 @@ export async function createProjectService({ input, tx }: ServiceArgs<CreateProj
     );
 
   if (result && result.count >= 2) {
-    throw new ClientError("Daily project creation limit reached (maximum 2 projects per day).");
+    throw new RateLimitError("Daily project creation limit reached (maximum 2 projects per day).");
   }
 
   // Log the creation attempt

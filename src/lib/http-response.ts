@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { AuthenticationError, AuthorizationError } from "@/lib/auth/errors";
 import { logServerError, SafeActionResult } from "@/utils/file-logger";
+import { BaseAppError } from "./errors";
 
 /**
  * Convert an action result into a NextResponse.
@@ -33,14 +33,7 @@ export function actionResultToResponse<T>(
  * and returned as a generic 500 so we never leak internals.
  */
 export function routeErrorToResponse(error: unknown, fileName?: string): NextResponse {
-  if (error instanceof AuthenticationError) {
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: error.status }
-    );
-  }
-
-  if (error instanceof AuthorizationError) {
+  if (error instanceof BaseAppError) {
     return NextResponse.json(
       { success: false, error: error.message },
       { status: error.status }

@@ -1,15 +1,15 @@
 import "server-only";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { db } from "@/database";
 import { users } from "@/database/schemas";
 import { eq } from "drizzle-orm";
-import { AuthenticationError, AuthorizationError } from "./errors";
 import {
   getSessionCookieName,
   verifySessionToken,
   type SessionTokenPayload,
 } from "./session";
+import { AuthenticationError, AuthorizationError } from "../errors";
 
 export type SafeUser = {
   id: string;
@@ -20,11 +20,22 @@ export type SafeUser = {
   updatedAt: Date;
 };
 
+async function readTokenFromHeaders(headersObj: Headers): Promise<string | null> {
+  const authHeader = headersObj.get("authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token.length > 0) return token;
+  }
+  return null;
+}
+
 async function readTokenFromRequest(): Promise<string | null> {
   const cookieStore = await cookies();
   const cookieToken = cookieStore.get(getSessionCookieName())?.value;
   if (cookieToken) return cookieToken;
-  return null;
+
+  const headersList = await headers();
+  return readTokenFromHeaders(headersList);
 }
 
 async function resolveSession(): Promise<SessionTokenPayload | null> {
@@ -35,6 +46,30 @@ async function resolveSession(): Promise<SessionTokenPayload | null> {
 
 export async function getSession(): Promise<SafeUser | null> {
   const payload = await resolveSession();
+  if (!payload) return null;
+
+  const [user] = await db()
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      image: users.image,
+      createdAt: users.createdAt,
+      updatedAt: users.updatedAt,
+    })
+    .from(users)
+    .where(eq(users.id, payload.sub));
+
+  return user ?? null;
+}
+
+export async function getSessionFromHeaders(
+  requestHeaders: Headers
+): Promise<SafeUser | null> {
+  const token = await readTokenFromHeaders(requestHeaders);
+  if (!token) return null;
+
+  const payload = await verifySessionToken(token);
   if (!payload) return null;
 
   const [user] = await db()

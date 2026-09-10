@@ -1,6 +1,5 @@
-import { AuthenticationError, AuthorizationError } from "@/lib/auth/errors";
 import { handleDbError } from "@/lib/db-error";
-import { ClientError } from "@/lib/errors";
+import { BaseAppError } from "@/lib/errors";
 import { DrizzleQueryError } from "drizzle-orm";
 import fs from "fs";
 import path from "path";
@@ -139,18 +138,8 @@ export async function safeAction<T>(
       }
     }
 
-    // 2. Auth errors — carry their protocol status through
-    if (err instanceof AuthenticationError) {
+    if (err instanceof BaseAppError) {
       return { success: false, error: err.message, status: err.status };
-    }
-
-    if (err instanceof AuthorizationError) {
-      return { success: false, error: err.message, status: err.status };
-    }
-
-    // 3. If it's a ClientError, return it cleanly
-    if (err instanceof ClientError) {
-      return { success: false, error: err.message, status: 400 };
     }
 
     // 4. Otherwise, log it as an unexpected server crash

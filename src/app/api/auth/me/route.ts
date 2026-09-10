@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/dal";
-import { AuthenticationError } from "@/lib/auth/errors";
 import { routeErrorToResponse } from "@/lib/http-response";
+import { AuthenticationError } from "@/lib/errors";
 
 export async function GET() {
   try {

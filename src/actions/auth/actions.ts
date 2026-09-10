@@ -8,8 +8,8 @@ import { createUserService } from "@/services/users/create-user";
 import { selectUserByEmailService } from "@/services/users/select-user";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
 import { signSessionToken, getSessionCookieName } from "@/lib/auth/session";
-import { AuthenticationError } from "@/lib/auth/errors";
 import type { SignupInput, LoginInput } from "@/zod-validators/zod-auth";
+import { AuthenticationError } from "@/lib/errors";
 
 export type AuthResult = {
   id: string;
