@@ -14,6 +14,7 @@ import {
 import { createUserService } from "@/services/users/create-user";
 import { updateUserService } from "@/services/users/update-user";
 import { deleteUserService } from "@/services/users/delete-user";
+import { requireUserId } from "@/lib/auth/dal";
 
 const USER_CONSTRAINTS = {
   users_email_unique: "An account with this email already exists.",
@@ -46,9 +47,11 @@ export async function updateUserAction(input: UpdateUserInput) {
   const validation = validateData(updateUserSchema, input);
   if (!validation.success) return validation;
 
+  const userId = await requireUserId();
+
   const result = await safeAction(
     async () => {
-      return await updateUserService({ input: { ...validation.data } });
+      return await updateUserService({ input: { ...validation.data, userId } });
     },
     "Failed to update user profile.",
     {
@@ -72,9 +75,14 @@ export async function deleteUserAction(input: DeleteUserInput) {
   const validation = validateData(deleteUserSchema, input);
   if (!validation.success) return validation;
 
-  const result = await safeAction(async () => {
-    return await deleteUserService({ input: { id: validation.data.id } });
-  }, "Failed to delete user account.");
+  const userId = await requireUserId();
+
+  const result = await safeAction(
+    async () => {
+      return await deleteUserService({ input: { id: validation.data.id, userId } });
+    },
+    "Failed to delete user account."
+  );
 
   if (result.success) {
     revalidatePath("/users");

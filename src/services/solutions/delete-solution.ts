@@ -1,25 +1,28 @@
 import { db } from "@/database";
 import { solutions } from "@/database/schemas";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
-import { ClientError } from "@/lib/errors";
+import { AuthorizationError } from "@/lib/errors";
 
 export type DeleteSolutionInput = {
   solutionId: string;
+  userId: string;
 };
 
 export async function deleteSolutionService({
-  input: { solutionId },
+  input: { solutionId, userId },
   tx,
 }: ServiceArgs<DeleteSolutionInput>) {
   const [deletedSolution] = await db(tx)
     .delete(solutions)
-    .where(eq(solutions.id, solutionId))
+    .where(and(eq(solutions.id, solutionId), eq(solutions.userId, userId)))
     .returning({
       projectId: solutions.projectId,
     });
 
-  if (!deletedSolution) throw new ClientError("Solution not found");
+  if (!deletedSolution) {
+    throw new AuthorizationError("Solution not found or you are not authorized to delete it.");
+  }
 
   return deletedSolution;
 }

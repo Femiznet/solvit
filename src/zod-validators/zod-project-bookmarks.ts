@@ -13,11 +13,9 @@ export const selectProjectBookmarkSchema = z.object({
 
 export const createProjectBookmarkSchema = createInsertSchema(projectBookMarks)
   .extend({
-    userId: z.uuid("Invalid user ID format."),
     projectId: z.uuid("Invalid project ID format."),
   })
   .pick({
-    userId: true,
     projectId: true,
   });
 
@@ -40,11 +38,9 @@ export const selectSolutionBookmarkSchema = z.object({
 
 export const createSolutionBookmarkSchema = createInsertSchema(solutionBookMarks)
   .extend({
-    userId: z.uuid("Invalid user ID format."),
     solutionId: z.uuid("Invalid solution ID format."),
   })
   .pick({
-    userId: true,
     solutionId: true,
   });
 

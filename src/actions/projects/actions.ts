@@ -6,7 +6,6 @@ import { safeAction } from "@/utils/file-logger";
 import {
   createProjectSchema,
   updateProjectSchema,
-  deleteProjectSchema,
   type CreateProjectInput,
   type UpdateProjectInput,
   type DeleteProjectInput,
@@ -14,6 +13,7 @@ import {
 import { createProjectService } from "@/services/projects/create-project";
 import { updateProjectService } from "@/services/projects/update-project";
 import { deleteProjectService } from "@/services/projects/delete-project";
+import { requireUserId, requireOwner } from "@/lib/auth/dal";
 
 /**
  * Creates a new project after verifying payloads via Zod.
@@ -22,8 +22,10 @@ export async function createProjectAction(input: CreateProjectInput) {
   const validation = validateData(createProjectSchema, input);
   if (!validation.success) return validation;
 
+  const userId = await requireUserId();
+
   const result = await safeAction(async () => {
-    return await createProjectService({ input: validation.data });
+    return await createProjectService({ input: { ...validation.data, userId } });
   }, "Failed to create project.");
 
   if (result.success) {
@@ -39,15 +41,16 @@ export async function updateProjectAction(input: UpdateProjectInput) {
   const validation = validateData(updateProjectSchema, input);
   if (!validation.success) return validation;
 
+  const userId = await requireOwner(validation.data.id);
+
   const result = await safeAction(async () => {
-    return await updateProjectService({ input: { ...validation.data } });
+    return await updateProjectService({ input: { ...validation.data, userId } });
   }, "Failed to update project.");
 
   if (result.success) {
     revalidatePath(`/projects/${validation.data.id}`);
     revalidatePath("/projects");
   }
-
   return result;
 }
 
@@ -55,16 +58,14 @@ export async function updateProjectAction(input: UpdateProjectInput) {
  * Deletes a project by its unique ID.
  */
 export async function deleteProjectAction(input: DeleteProjectInput) {
-  const validation = validateData(deleteProjectSchema, input);
-  if (!validation.success) return validation;
+  await requireOwner(input.id);
 
   const result = await safeAction(async () => {
-    return await deleteProjectService({ input: { id: validation.data.id } });
+    return await deleteProjectService({ input: { id: input.id } });
   }, "Failed to delete project.");
 
   if (result.success) {
     revalidatePath("/projects");
   }
-
   return result;
 }

@@ -1,17 +1,18 @@
 import { db } from "@/database";
 import { users } from "@/database/schemas";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
-import { ClientError } from "@/lib/errors";
+import { AuthorizationError } from "@/lib/errors";
 
 export type UpdateUserInput = {
   id: string;
   name?: string;
   email?: string;
+  userId: string;
 };
 
 export async function updateUserService({
-  input: { id, ...updatedData },
+  input: { id, userId, ...updatedData },
   tx,
 }: ServiceArgs<UpdateUserInput>) {
   const [updatedUser] = await db(tx)
@@ -20,11 +21,11 @@ export async function updateUserService({
       ...updatedData,
       updatedAt: new Date(),
     })
-    .where(eq(users.id, id))
+    .where(and(eq(users.id, id), eq(users.id, userId)))
     .returning({ id: users.id });
 
   if (!updatedUser) {
-    throw new ClientError("User not found.");
+    throw new AuthorizationError("User not found or you are not authorized to update this profile.");
   }
 
   return updatedUser || null;

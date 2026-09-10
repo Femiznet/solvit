@@ -33,8 +33,8 @@ export const PAYLOADS = {
   solution: { title: "A solution", content: "A useful solution" },
   user: { name: "Ada Lovelace", email: "ada@example.com" },
   category: { name: "Web development" },
-  bookmark: { userId: UUIDS.user },
-  vote: { projectId: UUIDS.project, userId: UUIDS.user, difficulty: "INTERMEDIATE" },
+  bookmark: {},
+  vote: { projectId: UUIDS.project, difficulty: "INTERMEDIATE" },
   search: { query: "next", stackIds: [UUIDS.stack, UUIDS.category] },
 };
 

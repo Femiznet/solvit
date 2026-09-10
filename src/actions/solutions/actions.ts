@@ -5,8 +5,8 @@ import { validateData } from "@/lib/validate";
 import { safeAction, SafeActionResult } from "@/utils/file-logger";
 import {
   createSolutionSchema,
-  deleteSolutionSchema,
   updateSolutionSchema,
+  deleteSolutionSchema,
   type CreateSolutionInput,
   type UpdateSolutionInput,
   type DeleteSolutionInput,
@@ -14,6 +14,7 @@ import {
 import { createSolutionService } from "@/services/solutions/create-solution";
 import { updateSolutionService } from "@/services/solutions/update-solution";
 import { deleteSolutionService } from "@/services/solutions/delete-solution";
+import { requireUserId } from "@/lib/auth/dal";
 
 const SOLUTION_CONSTRAINTS = {
   solutions_user_id_project_id_unique: "You already added a solution for this project",
@@ -25,9 +26,13 @@ export async function createSolutionAction(input: CreateSolutionInput): Promise<
   const validation = validateData(createSolutionSchema, input);
   if (!validation.success) return validation;
 
+  const userId = await requireUserId();
+
   const result = await safeAction(
     async () => {
-      return await createSolutionService({ input: { ...validation.data } });
+      return await createSolutionService({
+        input: { ...validation.data, userId },
+      });
     },
     "Failed to create solution.",
     {
@@ -50,8 +55,12 @@ export async function updateSolutionAction(input: UpdateSolutionInput): Promise<
   const validation = validateData(updateSolutionSchema, input);
   if (!validation.success) return validation;
 
+  const userId = await requireUserId();
+
   const result = await safeAction(async () => {
-    return await updateSolutionService({ input: { ...validation.data } });
+    return await updateSolutionService({
+      input: { ...validation.data, userId },
+    });
   }, "Failed to update solution.");
 
   if (result.success) {
@@ -69,9 +78,13 @@ export async function deleteSolutionAction(input: DeleteSolutionInput): Promise<
   const validation = validateData(deleteSolutionSchema, input);
   if (!validation.success) return validation;
 
+  const userId = await requireUserId();
+
   const result = await safeAction(
     async () => {
-      return await deleteSolutionService({ input: { ...validation.data } });
+      return await deleteSolutionService({
+        input: { ...validation.data, userId },
+      });
     },
     "Failed to delete solution.",
     {

@@ -107,10 +107,8 @@ export const deleteProjectSchema = z.object({
 
 // 4. Action Specific Schemas
 export const projectLikeSchema = createInsertSchema(projectLikes, {
-  userId: z.string("User ID must be a string").uuid({ error: "Invalid user ID format" }),
   projectId: z.string("Project ID must be a string").uuid({ error: "Invalid project ID format" }),
 }).pick({
-  userId: true,
   projectId: true,
 });
 

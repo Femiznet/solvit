@@ -8,12 +8,14 @@ import {
   type VoteDifficultyInput,
 } from "@/zod-validators/zod-project-difficulty";
 import { upsertProjectDifficultyVoteService } from "@/services/projects/difficulty-vote";
+import { requireUserId } from "@/lib/auth/dal";
 
 export async function voteDifficultyAction(input: VoteDifficultyInput) {
   const validation = validateData(voteDifficultySchema, input);
   if (!validation.success) return validation;
 
-  const { userId, projectId, difficulty } = validation.data;
+  const userId = await requireUserId();
+  const { projectId, difficulty } = validation.data;
 
   const result = await safeAction(async () => {
     return await upsertProjectDifficultyVoteService({

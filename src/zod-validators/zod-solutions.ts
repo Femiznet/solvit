@@ -38,7 +38,6 @@ export const solutionSchema = createSelectSchema(solutions, {
 // 2. Create Schema (Insert)
 export const createSolutionSchema = createInsertSchema(solutions, {
   projectId: z.uuid({ error: "Invalid project ID format." }),
-  userId: z.uuid({ error: "Invalid user ID format." }),
   title: z
     .string("Title must be a string")
     .min(1, { error: "Title is required" })
@@ -51,7 +50,6 @@ export const createSolutionSchema = createInsertSchema(solutions, {
     .min(1, { error: "At least one feature must be provided" }),
 }).pick({
   projectId: true,
-  userId: true,
   title: true,
   description: true,
   repoUrl: true,
@@ -62,7 +60,6 @@ export const createSolutionSchema = createInsertSchema(solutions, {
 // 3. Update Schema
 export const updateSolutionSchema = createInsertSchema(solutions, {
   projectId: z.uuid({ error: "Invalid project ID format." }).optional(),
-  userId: z.uuid({ error: "Invalid user ID format." }),
   title: z
     .string("Title must be a string")
     .min(1, { error: "Title is required" })
@@ -78,7 +75,6 @@ export const updateSolutionSchema = createInsertSchema(solutions, {
 })
   .pick({
     projectId: true,
-    userId: true,
     title: true,
     description: true,
     repoUrl: true,
@@ -96,10 +92,8 @@ export const deleteSolutionSchema = z.object({
 
 // 5. Solution Likes Schema
 export const solutionLikeSchema = createInsertSchema(solutionLikes, {
-  userId: z.uuid({ error: "Invalid user ID format." }),
   solutionId: z.uuid({ error: "Invalid solution ID format." }),
 }).pick({
-  userId: true,
   solutionId: true,
 });
 

@@ -12,6 +12,7 @@ import { DASHBOARD_PATH, PROJECTS_PATH } from "@/constants/paths";
 import { safeAction } from "@/utils/file-logger";
 import { toggleProjectBookmarkService } from "@/services/bookmarks/project-bookmarks";
 import { toggleSolutionBookmarkService } from "@/services/bookmarks/solution-bookmarks";
+import { requireUserId } from "@/lib/auth/dal";
 
 // ==========================================
 // Project Bookmark Actions
@@ -21,9 +22,11 @@ export async function bookmarkProject(input: CreateProjectBookmarkInput) {
   const validation = validateData(createProjectBookmarkSchema, input);
   if (!validation.success) return validation;
 
+  const userId = await requireUserId();
+
   const result = await safeAction(async () => {
     return await toggleProjectBookmarkService({
-      userId: validation.data.userId,
+      userId,
       projectId: validation.data.projectId,
     });
   }, "Failed to bookmark project");
@@ -44,9 +47,11 @@ export async function bookmarkSolution(input: CreateSolutionBookmarkInput) {
   const validation = validateData(createSolutionBookmarkSchema, input);
   if (!validation.success) return validation;
 
+  const userId = await requireUserId();
+
   const result = await safeAction(async () => {
     return await toggleSolutionBookmarkService({
-      userId: validation.data.userId,
+      userId,
       solutionId: validation.data.solutionId,
     });
   }, "Failed to bookmark solution");
