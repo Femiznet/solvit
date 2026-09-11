@@ -12,6 +12,7 @@ import {
 import { updateUserService } from "@/services/users/update-user";
 import { deleteUserService } from "@/services/users/delete-user";
 import { requireSelfOrAdmin } from "@/lib/auth/dal";
+import { GHOST_USER_ID } from "@/constants/ghost-user";
 
 const USER_CONSTRAINTS = {
   users_email_unique: "An account with this email already exists.",
@@ -25,6 +26,14 @@ const USER_CONSTRAINTS = {
 export async function updateUserAction(input: UpdateUserInput) {
   const validation = validateData(updateUserSchema, input);
   if (!validation.success) return validation;
+
+  if (validation.data.id === GHOST_USER_ID) {
+    return {
+      success: false as const,
+      error: "This account cannot be modified.",
+      status: 400,
+    };
+  }
 
   await requireSelfOrAdmin(validation.data.id);
 

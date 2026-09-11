@@ -1,3 +1,0 @@
-CREATE TYPE "public"."user_role" AS ENUM('user', 'admin');--> statement-breakpoint
-ALTER TABLE "users" ALTER COLUMN "password_hash" DROP NOT NULL;--> statement-breakpoint
-ALTER TABLE "users" ADD COLUMN "role" "user_role" DEFAULT 'user' NOT NULL;

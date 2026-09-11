@@ -49,7 +49,7 @@ Server starts at `http://localhost:3000`. API docs at `/reference`.
 | **Stacks** | `GET /api/stacks`, `POST/PUT/DELETE /api/stacks[/{id}]` | Reads public / writes **admin** |
 | **Projects** | `GET /api/projects[/{id}|/search]`, `POST/PUT/DELETE /api/projects[/{id}]` | Reads public / create: authed / update: owner / delete: **owner or admin** |
 | **Solutions** | `GET /api/solutions[?projectId]`, `GET/PUT/DELETE /api/solutions[/{id}]`, `POST /api/solutions` | Reads public / create: authed / update: owner / delete: **owner or admin** |
-| **Users** | `GET /api/users/{id}`, `PUT /api/users/{id}` (set role), `PUT/DELETE /api/users` | Self-only (update/delete) / admin can delete any / set-role: admin-only |
+| **Users** | `GET /api/users/{id}`, `PUT /api/users/{id}` (set role), `PUT/DELETE /api/users` | Self-only (update/delete) / admin can delete any / set-role: admin-only. Deleting a user reassigns their projects to a [deleted] ghost account; their solutions are removed. |
 | **Engagement** | `POST /api/projects/{id}/like\|bookmark\|vote`, same for solutions | Authed, self-scoped |
 
 All list endpoints support `?limit` (default 20, max 50) and `?offset` (default 0) query parameters for pagination. Responses include a `pagination` object with `total`, `limit`, `offset`, and `hasMore`.

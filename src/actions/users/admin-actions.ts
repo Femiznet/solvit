@@ -9,6 +9,7 @@ import {
 } from "@/zod-validators/zod-users";
 import { setUserRoleService } from "@/services/users/set-role";
 import { requireAdmin } from "@/lib/auth/dal";
+import { GHOST_USER_ID } from "@/constants/ghost-user";
 import { users } from "@/database/schemas";
 import { db } from "@/database";
 import { and, eq, ne, count } from "drizzle-orm";
@@ -22,6 +23,14 @@ export async function setUserRoleAction(input: SetUserRoleInput) {
   if (!validation.success) return validation;
 
   const actor = await requireAdmin();
+
+  if (input.targetUserId === GHOST_USER_ID) {
+    return {
+      success: false as const,
+      error: "This account cannot be modified.",
+      status: 400,
+    };
+  }
 
   // Guard against self-demotion leaving zero admins.
   if (

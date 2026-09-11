@@ -5,29 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1788820487523,
-      "tag": "0000_crazy_paper_doll",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1788875703213,
-      "tag": "0001_pretty_carlie_cooper",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1788988583756,
-      "tag": "0002_overrated_the_leader",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1789078669062,
-      "tag": "0003_add_user_role",
+      "when": 1789154677071,
+      "tag": "0000_aromatic_paladin",
       "breakpoints": true
     }
   ]

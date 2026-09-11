@@ -3,6 +3,7 @@ import { users, userRole } from "@/database/schemas";
 import { eq } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 import { AuthorizationError } from "@/lib/errors";
+import { GHOST_USER_ID } from "@/constants/ghost-user";
 
 export type SetRoleInput = {
   targetUserId: string;
@@ -21,6 +22,10 @@ export async function setUserRoleService({
 }: ServiceArgs<SetRoleInput> & { actorIsAdmin: boolean }) {
   if (!actorIsAdmin) {
     throw new AuthorizationError("Only admins can change user roles.");
+  }
+
+  if (targetUserId === GHOST_USER_ID) {
+    throw new AuthorizationError("This account cannot be modified.");
   }
 
   const [updatedUser] = await db(tx)

@@ -15,6 +15,8 @@ import {
 import { ProjectLevel } from "@/constants/enums";
 import { hashPassword } from "@/lib/auth/password";
 import { eq } from "drizzle-orm";
+import { randomBytes } from "node:crypto";
+import { GHOST_USER_ID, GHOST_USER_EMAIL } from "@/constants/ghost-user";
 
 const SEED_USERS = [
   {
@@ -423,9 +425,19 @@ async function upsertUsers(): Promise<Map<string, string>> {
   const byEmail = new Map(existing.map((u) => [u.email, u.id] as const));
   const missing = SEED_USERS.filter((u) => !byEmail.has(u.email));
   if (missing.length > 0) {
-    const inserted = await db().insert(users).values(missing).returning();
+    const devPassword =
+      process.env.SEED_USER_PASSWORD ?? "password123 (dev only)";
+    const devHash = await hashPassword(devPassword);
+    const inserted = await db()
+      .insert(users)
+      .values(missing.map((u) => ({ ...u, passwordHash: devHash })))
+      .returning();
     for (const u of inserted) byEmail.set(u.email, u.id);
   }
+
+  // Ghost user: holds projects after owner deletes (T&C: projects stay, solutions go).
+  // Fixed UUID, unknowable password, non-routable email — can never be logged into.
+  await upsertGhostUser(byEmail);
 
   // Seed admin user from env (idempotent: re-run keeps admin role + password current)
   const adminEmail = process.env.SEED_ADMIN_EMAIL;
@@ -459,6 +471,25 @@ async function upsertUsers(): Promise<Map<string, string>> {
   }
 
   return byEmail;
+}
+
+async function upsertGhostUser(byEmail: Map<string, string>): Promise<void> {
+  if (byEmail.has(GHOST_USER_EMAIL)) return;
+
+  const passwordHash = await hashPassword(randomBytes(32).toString("hex"));
+  await db()
+    .insert(users)
+    .values({
+      id: GHOST_USER_ID,
+      name: "[deleted]",
+      email: GHOST_USER_EMAIL,
+      passwordHash,
+      role: "user",
+    })
+    .onConflictDoNothing({ target: users.id });
+
+  byEmail.set(GHOST_USER_EMAIL, GHOST_USER_ID);
+  console.log(`  Ghost user ready: ${GHOST_USER_EMAIL}`);
 }
 
 async function upsertCategories(): Promise<Map<string, string>> {
