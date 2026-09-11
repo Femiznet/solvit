@@ -274,7 +274,13 @@ paths:
     delete:
       tags: [Categories]
       summary: Delete a category (admin only)
-      description: "Admin-only. Deletes the category identified by {id}. Returns 401 if unauthenticated, 403 if not an admin."
+      description: |
+        Admin-only. Deletes the category identified by {id}.
+
+        A category that still contains projects **cannot be deleted** — deleting it
+        would cascade-delete every project in it (solutions, likes, bookmarks,
+        difficulty votes, and project-stack tags too). Reassign or delete the
+        projects first, then retry. Returns 400 with a count if populated.
       operationId: deleteCategory
       security:
         - cookieAuth: []
@@ -288,6 +294,19 @@ paths:
                 oneOf:
                   - $ref: "#/components/schemas/SuccessOnly"
                   - $ref: "#/components/schemas/Error"
+        "400":
+          description: Category still in use — cannot delete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Cannot delete category: 3 project(s) still use it. Reassign or delete them first."
         "401":
           description: Authentication required
           content:
