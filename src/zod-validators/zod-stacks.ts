@@ -13,16 +13,20 @@ export const stackSchema = createSelectSchema(stacks, {
 export const createStackSchema = z.object({
   name: z
     .string({ error: "Name is required" })
+    .trim()
     .min(1, { error: "Name is required" })
-    .max(100, { error: "Name cannot exceed 100 characters" }),
+    .max(100, { error: "Name cannot exceed 100 characters" })
+    .transform((val) => val.toLowerCase()),
 });
 
 export const updateStackSchema = z.object({
   stackId: z.uuid("Invalid stack ID format."),
   name: z
     .string({ error: "Name is required" })
+    .trim()
     .min(1, { error: "Name is required" })
-    .max(100, { error: "Name cannot exceed 100 characters" }),
+    .max(100, { error: "Name cannot exceed 100 characters" })
+    .transform((val) => val.toLowerCase()),
 });
 
 export const deleteStackSchema = z.object({

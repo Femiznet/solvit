@@ -13,9 +13,11 @@ export async function updateStackService({
   input: { stackId, name },
   tx,
 }: ServiceArgs<UpdateStackInput>) {
+  // Normalize: taxonomy matching is case-insensitive (see update-category).
+  const normalizedName = name.trim().toLowerCase();
   const [updatedStack] = await db(tx)
     .update(stacks)
-    .set({ name })
+    .set({ name: normalizedName })
     .where(eq(stacks.id, stackId))
     .returning({
       id: stacks.id,

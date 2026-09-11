@@ -17,8 +17,10 @@ export const categorySchema = createSelectSchema(categories).extend({
 export const createCategorySchema = createInsertSchema(categories, {
   name: z
     .string({ error: "Name is required" })
+    .trim()
     .min(1, { error: "Name is required" })
-    .max(255, { error: "Name cannot exceed 255 characters" }),
+    .max(255, { error: "Name cannot exceed 255 characters" })
+    .transform((val) => val.toLowerCase()),
 }).pick({
   name: true,
 });
@@ -27,8 +29,10 @@ export const createCategorySchema = createInsertSchema(categories, {
 export const updateCategorySchema = createInsertSchema(categories, {
   name: z
     .string({ error: "Name is required" })
+    .trim()
     .min(1, { error: "Name is required" })
-    .max(255, { error: "Name cannot exceed 255 characters" }),
+    .max(255, { error: "Name cannot exceed 255 characters" })
+    .transform((val) => val.toLowerCase()),
 })
   .pick({
     name: true,

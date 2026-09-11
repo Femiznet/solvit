@@ -272,7 +272,7 @@ spec.paths["/api/stacks/{id}"] = {
     tags: ["Stacks"],
     summary: "Delete a stack (admin only)",
     description:
-      "Admin-only. Deletes the stack identified by {id}. Returns 401 if unauthenticated, 403 if not an admin.",
+      "Admin-only. Deletes the stack identified by {id}. Blocked with 400 while any project still references the stack. Returns 401 if unauthenticated, 403 if not an admin.",
     operationId: "deleteStack",
     security: [{ cookieAuth: [] }, { bearerAuth: [] }],
     responses: {
@@ -287,6 +287,14 @@ spec.paths["/api/stacks/{id}"] = {
                 data: { $ref: "#/components/schemas/Stack" },
               },
             },
+          },
+        },
+      },
+      "400": {
+        description: "Stack still referenced by projects",
+        content: {
+          "application/json": {
+            schema: { $ref: "#/components/schemas/Error" },
           },
         },
       },

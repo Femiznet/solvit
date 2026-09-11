@@ -12,6 +12,8 @@ export type SelectProjectInput = {
 
 export type SelectUserProjectInput = {
   userId: string;
+  limit?: number;
+  offset?: number;
 };
 
 export async function selectSingleProjectService({
@@ -64,18 +66,34 @@ export async function selectUserProjectsService({
   input,
   tx,
 }: ServiceArgs<SelectUserProjectInput>) {
-  const userProjects = await db(tx)
-    .select()
-    .from(projects)
-    .where(eq(projects.userId, input.userId));
+  const { userId, limit = 20, offset = 0 } = input;
+  const activeDb = db(tx);
+
+  const [userProjects, countResult] = await Promise.all([
+    activeDb
+      .select()
+      .from(projects)
+      .where(eq(projects.userId, userId))
+      .orderBy(desc(projects.createdAt))
+      .limit(limit)
+      .offset(offset),
+    activeDb
+      .select({ count: sql<number>`count(*)` })
+      .from(projects)
+      .where(eq(projects.userId, userId))
+      .then((r) => Number(r[0]?.count ?? 0)),
+  ]);
 
   if (userProjects.length === 0) {
-    return [];
+    return {
+      data: [],
+      pagination: { total: countResult, limit, offset, hasMore: false },
+    };
   }
 
-  // Optional: Batch fetch stacks just like in searchProjectsService
+  // Batch fetch stacks for the returned project IDs.
   const projectIds = userProjects.map((p) => p.id);
-  const stacksResult = await db(tx)
+  const stacksResult = await activeDb
     .select({
       projectId: projectStacks.projectId,
       stackName: stacks.name,
@@ -92,10 +110,18 @@ export async function selectUserProjectsService({
     stacksMap.get(row.projectId)!.push(row.stackName);
   }
 
-  return userProjects.map((project) => ({
-    ...project,
-    stacks: stacksMap.get(project.id) || [],
-  }));
+  return {
+    data: userProjects.map((project) => ({
+      ...project,
+      stacks: stacksMap.get(project.id) || [],
+    })),
+    pagination: {
+      total: countResult,
+      limit,
+      offset,
+      hasMore: offset + limit < countResult,
+    },
+  };
 }
 
 /**

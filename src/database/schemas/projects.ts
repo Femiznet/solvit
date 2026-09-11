@@ -27,7 +27,7 @@ export const projects = pgTable("projects", {
   level: levelEnum("level").default("BEGINNER").notNull(),
   optRequirements: jsonb("opt_requirements").$type<string[]>().default([]),
   requirements: jsonb("requirements").$type<string[]>().notNull(),
-  instructions: text("instructions").$type<string[]>().notNull(),
+  instructions: jsonb("instructions").$type<string[]>().notNull(),
   totalLikes: integer("total_likes").default(0).notNull(),
   createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { mode: "date" })

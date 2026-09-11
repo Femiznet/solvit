@@ -13,10 +13,13 @@ export async function updateCategoryService({
   input: { categoryId, name },
   tx,
 }: ServiceArgs<UpdateCategoryInput>) {
+  // Normalize: taxonomy matching is case-insensitive, so "React" and "react"
+  // must collide on the unique constraint instead of coexisting.
+  const normalizedName = name.trim().toLowerCase();
   const [updatedCategory] = await db(tx)
     .update(categories)
     .set({
-      name,
+      name: normalizedName,
       updatedAt: new Date(),
     })
     .where(eq(categories.id, categoryId))

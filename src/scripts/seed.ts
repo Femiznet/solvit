@@ -34,22 +34,22 @@ const SEED_USERS = [
 ];
 
 const SEED_CATEGORIES = [
-  { name: "Fullstack Application" },
-  { name: "Frontend Component" },
-  { name: "Backend API & Services" },
+  { name: "fullstack application" },
+  { name: "frontend component" },
+  { name: "backend api & services" },
 ];
 
 const SEED_STACKS = [
-  "Next.js",
-  "TypeScript",
-  "PostgreSQL",
-  "Drizzle ORM",
-  "Tailwind CSS",
-  "Docker",
-  "React",
-  "Redis",
-  "Node.js",
-  "GraphQL",
+  "next.js",
+  "typescript",
+  "postgresql",
+  "drizzle orm",
+  "tailwind css",
+  "docker",
+  "react",
+  "redis",
+  "node.js",
+  "graphql",
 ].map((name) => ({ name }));
 
 type SeedProject = {
@@ -533,7 +533,8 @@ async function insertProjects(
     .filter((p) => !existingNames.has(p.name))
     .map((p) => ({
       userId: userIds.get(p.ownerEmail)!,
-      categoryId: categoryIds.get(p.category)!,
+      // Seed fixtures use display-case names; taxonomy rows are stored lowercase.
+      categoryId: categoryIds.get(p.category.toLowerCase())!,
       name: p.name,
       description: p.description,
       level: p.level,
@@ -553,7 +554,7 @@ async function insertProjects(
   for (const project of inserted) {
     const seed = SEED_PROJECTS.find((p) => p.name === project.name)!;
     for (const stackName of seed.stackNames) {
-      const stackId = stackIds.get(stackName);
+      const stackId = stackIds.get(stackName.toLowerCase());
       if (stackId) stackLinks.push({ projectId: project.id, stackId });
     }
   }

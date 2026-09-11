@@ -74,7 +74,9 @@ export async function deleteProjectAction(input: DeleteProjectInput) {
   const user = await requireOwnerOrAdmin(ownerId);
 
   const result = await safeAction(async () => {
-    return await deleteProjectService({ input: { id: input.id, isAdmin: user.role === "admin" } });
+    return await deleteProjectService({
+      input: { id: input.id, isAdmin: user.role === "admin", userId: user.id },
+    });
    }, "Failed to delete project.");
 
   if (result.success) {

@@ -55,7 +55,9 @@ export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInp
 
   if (requirements && requirements.length > 0) {
     for (const feat of requirements) {
-      conditions.push(sql`${projects.requirements} @> ${JSON.stringify([feat])}::jsonb`);
+      conditions.push(
+        sql`${projects.requirements} @? ${`$.** ? (@ like_regex "^${feat}$" flag "i")`}`
+      );
     }
   }
 
