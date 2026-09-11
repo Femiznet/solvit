@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createCategoryAction } from "@/actions/categories/actions";
 import { selectManyCategoriesService } from "@/services/categories/select-category";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
+import { parseJsonBody } from "@/lib/parse-body";
 import { taxonomyPaginationSchema } from "@/zod-validators/zod-pagination";
 
 export async function GET(request: NextRequest) {
@@ -30,7 +31,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const body = await request.json();
+    const parsed = await parseJsonBody(request);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
     const result = await createCategoryAction(body);
     return actionResultToResponse(result);
   } catch (error: unknown) {

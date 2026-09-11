@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { selectUserService } from "@/services/users/select-user";
 import { routeErrorToResponse, actionResultToResponse } from "@/lib/http-response";
+import { parseJsonBody } from "@/lib/parse-body";
 import { setUserRoleAction } from "@/actions/users/admin-actions";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -32,7 +33,15 @@ export async function PUT(
 ) {
   try {
     const { id: targetUserId } = await params;
-    const body = await request.json();
+    const parsed = await parseJsonBody(request);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
+    // server id last: URL param wins over body
     const result = await setUserRoleAction({ ...body, targetUserId });
     return actionResultToResponse(result);
   } catch (error) {

@@ -83,7 +83,8 @@ export const updateProjectSchema = createInsertSchema(projects, {
     .string("Category ID must be a string")
     .uuid({ error: "Invalid category ID format" })
     .optional(),
-  userId: z.string("User ID must be a string").uuid({ error: "Invalid user ID format" }).optional(),
+  // NOTE: userId is intentionally NOT accepted from clients. Actions set it
+  // from the server session (server field last) after validation.
 })
   .pick({
     name: true,
@@ -93,7 +94,6 @@ export const updateProjectSchema = createInsertSchema(projects, {
     requirements: true,
     optRequirements: true,
     categoryId: true,
-    userId: true,
   })
   .partial()
   .extend({

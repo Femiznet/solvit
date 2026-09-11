@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSolutionLikeAction } from "@/actions/likes/actions";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
+import { parseJsonBody } from "@/lib/parse-body";
 
 export async function POST(
   request: NextRequest,
@@ -9,7 +10,15 @@ export async function POST(
   try {
     const { id: solutionId } = await params;
 
-    const body = await request.json();
+    const parsed = await parseJsonBody(request);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
+    // server id last: URL param wins over body
     const result = await createSolutionLikeAction({ ...body, solutionId });
     return actionResultToResponse(result);
   } catch (error: unknown) {

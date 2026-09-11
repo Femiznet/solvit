@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createProjectAction } from "@/actions/projects/actions";
 import { searchProjectsAction } from "@/actions/projects/search";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
+import { LARGE_MAX_JSON_BODY_BYTES, parseJsonBody } from "@/lib/parse-body";
 import { parseSearchParams } from "@/utils/parse-search-params";
 
 // GET is the list endpoint: it delegates to the same search pipeline as
@@ -20,7 +21,15 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
-    const body = await request.json();
+    // Project payloads carry instruction/requirement arrays, so allow 1MB here.
+    const parsed = await parseJsonBody(request, LARGE_MAX_JSON_BODY_BYTES);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
     const result = await createProjectAction(body);
     return actionResultToResponse(result);
   } catch (error: unknown) {

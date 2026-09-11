@@ -2,6 +2,7 @@ import { deleteCategoryAction, updateCategoryAction } from "@/actions/categories
 import { selectCategoryService } from "@/services/categories/select-category";
 import { NextRequest, NextResponse } from "next/server";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
+import { parseJsonBody } from "@/lib/parse-body";
 
 export async function GET(
   request: NextRequest,
@@ -31,7 +32,15 @@ export async function PUT(
 ): Promise<NextResponse> {
   try {
     const { id: categoryId } = await params;
-    const body = await request.json();
+    const parsed = await parseJsonBody(request);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
+    // server id last: URL param wins over body
     const result = await updateCategoryAction({ ...body, categoryId });
     return actionResultToResponse(result);
   } catch (error: unknown) {

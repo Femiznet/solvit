@@ -2,6 +2,7 @@ import { deleteStackAction, updateStackAction } from "@/actions/stacks/actions";
 import { selectStackService } from "@/services/stacks/select-stacks";
 import { NextRequest, NextResponse } from "next/server";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
+import { parseJsonBody } from "@/lib/parse-body";
 
 export async function GET(
   request: NextRequest,
@@ -31,7 +32,15 @@ export async function PUT(
 ): Promise<NextResponse> {
   try {
     const { id: stackId } = await params;
-    const body = await request.json();
+    const parsed = await parseJsonBody(request);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
+    // server id last: URL param wins over body
     const result = await updateStackAction({ ...body, stackId });
     return actionResultToResponse(result);
   } catch (error: unknown) {
