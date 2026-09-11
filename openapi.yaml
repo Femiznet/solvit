@@ -442,7 +442,7 @@ paths:
     get:
       tags: [Projects]
       summary: Search projects
-      description: Explicit search endpoint. Same parameters and response shape as /api/projects?query.
+      description: "Full-text search over name (A), description (B), requirements (C), and instructions (D) using the `simple` config. When `query` is present with no explicit `sort`, results rank by relevance (ts_rank, newest tiebreak); an explicit `sort` always wins."
       operationId: searchProjects
       parameters:
         - name: query

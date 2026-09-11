@@ -135,7 +135,9 @@ describe("search projects schema", () => {
     const parsed = searchProjectsSchema.safeParse({ query: "next" });
     expect(parsed.success).toBe(true);
     if (!parsed.success) return;
-    expect(parsed.data.sort).toBe("newest");
+    // sort stays undefined so the service can distinguish "no explicit sort"
+    // (query -> relevance rank) from an explicit sort choice.
+    expect(parsed.data.sort).toBeUndefined();
     expect(parsed.data.limit).toBe(20);
     expect(parsed.data.offset).toBe(0);
   });

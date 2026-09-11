@@ -119,7 +119,7 @@ export const searchProjectsSchema = z.object({
   stackIds: z.array(z.string().uuid({ error: "Invalid stack ID format" })).optional(),
   requirements: z.array(z.string()).optional(),
   optRequirements: z.array(z.string()).optional(),
-  sort: z.enum(PROJECT_SORT_OPTIONS, { error: "Invalid sorting option" }).default("newest"),
+  sort: z.enum(PROJECT_SORT_OPTIONS, { error: "Invalid sorting option" }).optional(),
   limit: z.coerce
     .number()
     .int({ error: "Limit must be a whole number" })
