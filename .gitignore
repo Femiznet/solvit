@@ -61,3 +61,6 @@ logs/
 
 # Local-only security backlog (never commit, never push)
 SECURITY-TODO.md
+
+# local todo.md — single review doc (product + security backlog)
+todo.md
