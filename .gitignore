@@ -64,3 +64,6 @@ SECURITY-TODO.md
 
 # local todo.md — single review doc (product + security backlog)
 todo.md
+
+# openvisio code-graph index/cache (unless you want to commit the graph)
+.openvisio/
