@@ -1,0 +1,1652 @@
+
+openapi: 3.1.0
+info:
+  title: Solvit API
+  description: Solvit — Next.js / PostgreSQL project by Femiznet. Test with the Scalar UI at /reference.
+  version: 0.1.0
+  contact:
+    name: Webhooks / feedback
+servers:
+  - url: /
+    description: Same-origin API (works on localhost and preview deploys)
+tags:
+  - name: Auth
+    description: Authentication and session endpoints
+  - name: Categories
+    description: Global reference categories of projects
+  - name: Projects
+    description: Projects that users create for coder-coder practice
+  - name: Solutions
+    description: Solutions submitted to projects
+  - name: Stacks
+    description: Technology stacks
+  - name: Users
+    description: User profiles and related resources
+security:
+  - cookieAuth: []
+  - bearerAuth: []
+paths:
+  /api/auth/signup:
+    post:
+      tags: [Auth]
+      summary: Create an account
+      description: Public endpoint. Returns a session cookie (`solvit_session`, httpOnly, 7-day) plus a JWT token in the body. The token can be used as `Authorization: Bearer <token>`; the cookie is sent automatically same-origin.
+      operationId: createAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Signup" }
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResult" }
+        "400":
+          description: Validation error (invalid email, short password, etc.)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+      security: []
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in
+      description: Public endpoint. On success sets a session cookie and returns a JWT token in the body.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Login" }
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthResult" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+      security: []
+  /api/auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user
+      description: Returns the authenticated user. Cookie or Bearer token required.
+      operationId: getMe
+      parameters: [ ]
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      user: { $ref: "#/components/schemas/User" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+  /api/auth/logout:
+    post:
+      tags: [Auth]
+      summary: Sign out
+      description: Clears the session cookie and revokes the current session.
+      operationId: logout
+      responses:
+        "200":
+          description: Signed out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+  /api/health:
+    get:
+      tags: [Health]
+      summary: Health check
+      description: Returns server and database status. Public, no auth required.
+      operationId: healthCheck
+      responses:
+        "200":
+          description: Server and database are healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: "ok" }
+                  db: { type: string, example: "up" }
+                  time: { type: string, format: date-time }
+        "503":
+          description: Database is unreachable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: "error" }
+                  db: { type: string, example: "down" }
+                  time: { type: string, format: date-time }
+  /api/categories:
+    get:
+      tags: [Categories]
+      summary: List categories
+      description: Public list of all categories.
+      operationId: listCategories
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
+      responses:
+        "200":
+          description: Paginated list of categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Category" }
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+    post:
+      tags: [Categories]
+      summary: Create a category (admin only)
+      description: "Admin-only. Adds a new category to the global reference list. Returns 401 if unauthenticated, 403 if not an admin."
+      operationId: createCategory
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCategory" }
+      responses:
+        "200":
+          description: Category created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessOnly" }
+        "400":
+          description: Validation error or name already exists
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/categories/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    get:
+      tags: [Categories]
+      summary: Get a category
+      operationId: getCategory
+      responses:
+        "200":
+          description: Category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Category" }
+        "404":
+          description: Category not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    put:
+      tags: [Categories]
+      summary: Update a category (admin only)
+      description: "Admin-only. Renames the category identified by {id}. Returns 401 if unauthenticated, 403 if not an admin."
+      operationId: updateCategory
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateCategory" }
+      responses:
+        "200":
+          description: Category updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessOnly" }
+        "400":
+          description: Validation error or name already exists
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    delete:
+      tags: [Categories]
+      summary: Delete a category (admin only)
+      description: |
+        Admin-only. Deletes the category identified by {id}.
+
+        A category that still contains projects **cannot be deleted** — deleting it
+        would cascade-delete every project in it (solutions, likes, bookmarks,
+        difficulty votes, and project-stack tags too). Reassign or delete the
+        projects first, then retry. Returns 400 with a count if populated.
+      operationId: deleteCategory
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Category deleted.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/SuccessOnly"
+                  - $ref: "#/components/schemas/Error"
+        "400":
+          description: Category still in use — cannot delete
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    example: "Cannot delete category: 3 project(s) still use it. Reassign or delete them first."
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/projects:
+    get:
+      tags: [Projects]
+      summary: List projects
+      description: Public list of newest projects by default. Shares the same response shape as /api/projects/search.
+      operationId: listProjects
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema: { type: string }
+          description: Text search across project name/description/instructions
+        - name: categoryId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+          description: Filter by category
+        - name: level
+          in: query
+          required: false
+          schema: { type: array, items: { type: string, enum: [BEGINNER, INTERMEDIATE, ADVANCED] } }
+          style: form
+          explode: false
+          description: Filter by one or more levels (repeatable or comma-separated)
+        - name: stackIds
+          in: query
+          required: false
+          schema:
+            type: array
+            items: { type: string, format: uuid }
+          style: form
+          explode: false
+          description: Projects that use at least one of these stacks (repeatable or comma-separated)
+        - name: requirements
+          in: query
+          required: false
+          schema: { type: array, items: { type: string } }
+          style: form
+          explode: false
+          description: Term matches project requirements (repeatable or comma-separated)
+        - name: optRequirements
+          in: query
+          required: false
+          schema: { type: array, items: { type: string } }
+          style: form
+          explode: false
+          description: Term matches optional requirements (repeatable or comma-separated)
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [newest, most-liked, recently-updated, alphabetical]
+            default: newest
+          description: Sort mode
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+          description: Page size
+        - name: offset
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+          description: Pagination offset
+      responses:
+        "200":
+          description: Paginated projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      projects:
+          type: array
+          items:
+            $ref: "#/components/schemas/Project"
+        pagination:
+                          type: object
+                          properties:
+                            total: { type: integer }
+                            limit: { type: integer }
+                            offset: { type: integer }
+    post:
+      tags: [Projects]
+      summary: Create a project
+      description: "Authenticated users can create projects. The `userId` is **not** sent in the body; it is derived from the session and set by the service."
+      operationId: createProject
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateProject" }
+      responses:
+        "200":
+          description: Project created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "429":
+          description: Daily project creation limit reached
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/projects/search:
+    get:
+      tags: [Projects]
+      summary: Search projects
+      description: "Full-text search over name (A), description (B), requirements (C), and instructions (D) using the `simple` config. When `query` is present with no explicit `sort`, results rank by relevance (ts_rank, newest tiebreak); an explicit `sort` always wins."
+      operationId: searchProjects
+      parameters:
+        - name: query
+          in: query
+          required: false
+          schema: { type: string }
+        - name: categoryId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - name: level
+          in: query
+          required: false
+          schema: { type: array, items: { type: string, enum: [BEGINNER, INTERMEDIATE, ADVANCED] } }
+          style: form
+          explode: false
+        - name: stackIds
+          in: query
+          required: false
+          schema:
+            type: array
+            items: { type: string, format: uuid }
+          style: form
+          explode: false
+        - name: requirements
+          in: query
+          required: false
+          schema: { type: array, items: { type: string } }
+          style: form
+          explode: false
+        - name: optRequirements
+          in: query
+          required: false
+          schema: { type: array, items: { type: string } }
+          style: form
+          explode: false
+        - name: sort
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [newest, most-liked, recently-updated, alphabetical]
+            default: newest
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+        - name: offset
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        "200":
+          description: Paginated projects
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      projects: { type: array, items: { $ref: "#/components/schemas/Project" } }
+                        pagination:
+                          type: object
+                          properties:
+                            total: { type: integer }
+                            limit: { type: integer }
+                            offset: { type: integer }
+  /api/projects/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    get:
+      tags: [Projects]
+      summary: Get a project
+      description: "Public. Returns project details with paginated embedded solutions. Use `solutionsLimit` and `solutionsOffset` to page through solutions."
+      operationId: getProject
+      parameters:
+        - name: solutionsLimit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+          description: Maximum number of solutions to embed (default 10)
+        - name: solutionsOffset
+          in: query
+          required: false
+          schema: { type: integer, minimum: 0, default: 0 }
+          description: Number of solutions to skip
+      responses:
+        "200":
+          description: Project
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Project" }
+        "404":
+          description: Project not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    put:
+      tags: [Projects]
+      summary: Update a project
+      description: "Only the project owner can update. The `userId` is **not** in the body; it is derived from the session via `requireOwner` and passed to the service."
+      operationId: updateProject
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateProject" }
+      responses:
+        "200":
+          description: Project updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+        "400":
+          description: Validation error or project not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Not the owner of the project
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    delete:
+      tags: [Projects]
+      summary: Delete a project
+      description: "Only the project owner can delete. The userId is derived from the session via `requireOwner`."
+      operationId: deleteProject
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Project deleted
+          content: { application/json: { schema: { $ref: "#/components/schemas/SuccessOnly" } } }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Not the owner
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/projects/{id}/like:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    post:
+      tags: [Projects]
+      summary: Toggle a project like
+      description: "Toggles a like entry for the authenticated user. The `projectId` is taken from the URL path; the `userId` is derived from the session. Body is an empty object {} (optional — the route spreads body+projectId)."
+      operationId: toggleProjectLike
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: "Optional empty object; projectId comes from the URL path." }
+      responses:
+        "200":
+          description: Like toggled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessOnly" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/projects/{id}/bookmark:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    post:
+      tags: [Projects]
+      summary: Toggle a project bookmark
+      description: "Toggles a bookmark for the authenticated user. `projectId` comes from the URL path; `userId` from the session."
+      operationId: toggleProjectBookmark
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: "Optional empty object." }
+      responses:
+        "200":
+          description: Bookmark toggled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessOnly" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/projects/{id}/vote:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    post:
+      tags: [Projects]
+      summary: Vote on project difficulty
+      description: "Upserts a difficulty vote for the authenticated user on this project. Body: { projectId?, difficulty }. `projectId` from the path; `userId` from the session."
+      operationId: voteDifficulty
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VoteDifficulty" }
+      responses:
+        "200":
+          description: Vote saved
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessOnly" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/solutions:
+    get:
+      tags: [Solutions]
+      summary: List solutions for a project
+      description: "Public. Returns paginated solutions for a given project."
+      operationId: listSolutions
+      parameters:
+        - name: projectId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+          description: Project ID to filter solutions by
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
+      responses:
+        "200":
+          description: Paginated list of solutions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      solutions:
+                        type: array
+                        items: { $ref: "#/components/schemas/Solution" }
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+        "400":
+          description: Missing or invalid projectId
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    post:
+      tags: [Solutions]
+      summary: Create a solution
+      description: "Authenticated users can submit a solution to a project the create endpoint picks up on create validation. `userId` is derived from the session."
+      operationId: createSolution
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateSolution" }
+      responses:
+        "200":
+          description: Solution created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Solution" }
+        "400":
+          description: Validation error or duplicate solution for this project
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/solutions/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    get:
+      tags: [Solutions]
+      summary: Get a solution
+      operationId: getSolution
+      responses:
+        "200":
+          description: Solution
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Solution" }
+        "404":
+          description: Solution not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    put:
+      tags: [Solutions]
+      summary: Update a solution
+      description: "Only the solution owner can update. `userId` is derived from the session; service enforces ownership."
+      operationId: updateSolution
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateSolution" }
+      responses:
+        "200":
+          description: Solution updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Solution" }
+        "400":
+          description: Validation error or solution not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Not the owner
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    delete:
+      tags: [Solutions]
+      summary: Delete a solution
+      description: "Only the solution owner can delete. `userId` is derived from the session."
+      operationId: deleteSolution
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Solution deleted. Body includes projectId for revalidation; may be undefined on failure.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SolutionDeleteResult" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Not the owner
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/solutions/{id}/like:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    post:
+      tags: [Solutions]
+      summary: Toggle a solution like
+      description: "Toggles a like for the authenticated user. `solutionId` from the URL path; `userId` from the session. Body is optional (route spreads body+solutionId)."
+      operationId: toggleSolutionLike
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: "Optional empty object." }
+      responses:
+        "200":
+          description: Like toggled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessOnly" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/solutions/{id}/bookmark:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    post:
+      tags: [Solutions]
+      summary: Toggle a solution bookmark
+      description: "Toggles a bookmark for the authenticated user. `solutionId` from the URL path; `userId` from the session."
+      operationId: toggleSolutionBookmark
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: "Optional empty object." }
+      responses:
+        "200":
+          description: Bookmark toggled
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SuccessOnly" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/stacks:
+    get:
+      tags: [Stacks]
+      summary: List stacks
+      description: Public list of technology stacks.
+      operationId: listStacks
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
+      responses:
+        "200":
+          description: Paginated list of stacks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Stack" }
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+        "400":
+          description: Invalid pagination parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: false }
+                  error: { type: string }
+                  fieldErrors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items: { type: string }
+    post:
+      tags: [Stacks]
+      summary: Create a stack (admin only)
+      description: "Admin-only. Adds a new technology stack. Returns 401 if unauthenticated, 403 if not an admin."
+      operationId: createStack
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+      responses:
+        "201":
+          description: Stack created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Stack" }
+        "400":
+          description: Validation error or name already exists
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/stacks/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    get:
+      tags: [Stacks]
+      summary: Get a stack
+      description: Public. Returns a single stack by id.
+      operationId: getStack
+      responses:
+        "200":
+          description: Stack
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Stack" }
+        "404":
+          description: Stack not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    put:
+      tags: [Stacks]
+      summary: Update a stack (admin only)
+      description: "Admin-only. Renames the stack identified by {id}. Returns 401 if unauthenticated, 403 if not an admin."
+      operationId: updateStack
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+      responses:
+        "200":
+          description: Stack updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Stack" }
+        "400":
+          description: Validation error or name already exists
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: Stack not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    delete:
+      tags: [Stacks]
+      summary: Delete a stack (admin only)
+      description: "Admin-only. Deletes the stack identified by {id}. Blocked with 400 while any project still references the stack. Returns 401 if unauthenticated, 403 if not an admin."
+      operationId: deleteStack
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Stack deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/Stack" }
+        "400":
+          description: Stack still referenced by projects
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: Stack not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    get:
+      tags: [Users]
+      summary: Get a user
+      description: Public. Returns public profile fields for a user by id.
+      operationId: getUser
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: "#/components/schemas/User" }
+        "400":
+          description: Missing user id
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    put:
+      tags: [Users]
+      summary: Set a user's role (admin only)
+      description: "Admin-only. Updates the role of the user identified by {id}. The acting user must be an admin. Returns 401 if unauthenticated, 403 if not an admin. Prevents removing the last admin."
+      operationId: setUserRole
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [role]
+              properties:
+                role:
+                  type: string
+                  enum: [user, admin]
+      responses:
+        "200":
+          description: Role updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "400":
+          description: Validation error, or attempt to remove the last admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is not an admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/users/{id}/solutions:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    get:
+      tags: [Users]
+      summary: Get a user's solutions
+      description: Public. Returns paginated solutions by a user.
+      operationId: getUserSolutions
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
+      responses:
+        "200":
+          description: Paginated list of solutions
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      solutions:
+                        type: array
+                        items: { $ref: "#/components/schemas/Solution" }
+                      pagination:
+                        $ref: "#/components/schemas/Pagination"
+        "400":
+          description: Missing user id
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/users/{id}/bookmarks:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    get:
+      tags: [Users]
+      summary: Get a user's bookmarks
+      description: Authenticated. Returns paginated bookmarks by the requested user id.
+      operationId: getUserBookmarks
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
+      responses:
+        "200":
+          description: Paginated bookmarks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      projects:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items: { $ref: "#/components/schemas/Project" }
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
+                      solutions:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items: { $ref: "#/components/schemas/Solution" }
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
+        "400":
+          description: Missing user id
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/users/{id}/likes:
+    parameters:
+      - $ref: "#/components/parameters/IdParam"
+    get:
+      tags: [Users]
+      summary: Get a user's likes
+      description: Authenticated. Returns paginated projects and solutions liked by the requested user id.
+      operationId: getUserLikes
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/PaginationLimit"
+        - $ref: "#/components/parameters/PaginationOffset"
+      responses:
+        "200":
+          description: Paginated likes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: object
+                    properties:
+                      projects:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items: { $ref: "#/components/schemas/Project" }
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
+                      solutions:
+                        type: object
+                        properties:
+                          data:
+                            type: array
+                            items: { $ref: "#/components/schemas/Solution" }
+                          pagination:
+                            $ref: "#/components/schemas/Pagination"
+                    items:
+                      oneOf:
+                        - $ref: "#/components/schemas/Project"
+                        - $ref: "#/components/schemas/Solution"
+        "400":
+          description: Missing user id
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+  /api/users:
+    put:
+      tags: [Users]
+      summary: Update a user
+      description: "Updates a user's profile. The user themselves OR an admin may update. `userId` is derived from the session; admins may act on any user id."
+      operationId: updateUser
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateUser" }
+      responses:
+        "200":
+          description: User updated
+          content: { application/json: { schema: { $ref: "#/components/schemas/User" } } }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is neither the target user nor an admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+    delete:
+      tags: [Users]
+      summary: Delete a user
+      description: "Deletes a user account. The user themselves OR an admin may delete (admin moderation)."
+      operationId: deleteUser
+      security:
+        - cookieAuth: []
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/DeleteUser" }
+      responses:
+        "200":
+          description: User deleted
+          content: { application/json: { schema: { $ref: "#/components/schemas/SuccessOnly" } } }
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+        "403":
+          description: Caller is neither the target user nor an admin
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Error" }
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: solvit_session
+      description: |
+        HTTP-only session cookie set on signup/login. Same-origin browsers send it automatically.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT fallback returned in the body of /api/auth/signup and /api/auth/login.
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+      description: UUID identifier
+    PaginationLimit:
+      name: limit
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+      description: Maximum number of items to return
+    PaginationOffset:
+      name: offset
+      in: query
+      required: false
+      schema: { type: integer, minimum: 0, default: 0 }
+      description: Number of items to skip for pagination
+  schemas:
+    SuccessOnly:
+      type: object
+      properties:
+        success: { type: boolean }
+    Pagination:
+      type: object
+      properties:
+        total: { type: integer, description: "Total number of items available" }
+        limit: { type: integer, description: "Number of items returned in this page" }
+        offset: { type: integer, description: "Number of items skipped" }
+        hasMore: { type: boolean, description: "Whether more items are available" }
+    Error:
+      type: object
+      properties:
+        success: { type: boolean }
+        error: { type: string }
+        fieldErrors:
+          type: object
+          description: Per-field validation errors when applicable.
+    Signup:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+    Login:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+    AuthResult:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string, format: email }
+        image: { type: [string, "null"] }
+        token: { type: string, description: "Session JWT token (also set as httpOnly cookie)." }
+    CreateUser:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        image:
+          type: [string, "null"]
+          format: uri
+          maxLength: 1000
+    UpdateUser:
+      type: object
+      required: [id]
+      properties:
+        id: { type: string, format: uuid }
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+          maxLength: 255
+        image:
+          type: [string, "null"]
+          format: uri
+          maxLength: 1000
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string, format: email }
+        image: { type: [string, "null"] }
+        role: { type: string, enum: [user, admin] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    Category:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        categoryId: { type: string, format: uuid }
+        name: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CreateCategory:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+    UpdateCategory:
+      type: object
+      required: [categoryId, name]
+      properties:
+        categoryId: { type: string, format: uuid }
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+    Project:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        instructions: { type: array, items: { type: string } }
+        level: { type: string, enum: [BEGINNER, INTERMEDIATE, ADVANCED] }
+        requirements: { type: array, items: { type: string } }
+        optRequirements: { type: [array, "null"], items: { type: string } }
+        categoryId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        totalLikes: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CreateProject:
+      type: object
+      required: [name, description, instructions, requirements, categoryId]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+        instructions:
+          type: array
+          items: { type: string }
+          minItems: 1
+        level:
+          type: string
+          enum: [BEGINNER, INTERMEDIATE, ADVANCED]
+          default: BEGINNER
+        requirements:
+          type: array
+          items: { type: string }
+          minItems: 1
+        optRequirements:
+          type: [array, "null"]
+          items: { type: string }
+        categoryId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+          description: "Sent on create for legacy validation but ignored/set server-side from the session."
+    UpdateProject:
+      type: object
+      required: [id]
+      properties:
+        id: { type: string, format: uuid }
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          minLength: 1
+        instructions:
+          type: array
+          items: { type: string }
+        level:
+          type: string
+          enum: [BEGINNER, INTERMEDIATE, ADVANCED]
+        requirements:
+          type: array
+          items: { type: string }
+        optRequirements:
+          type: [array, "null"]
+          items: { type: string }
+        categoryId:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+    Solution:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        projectId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        title: { type: string }
+        description: { type: [string, "null"] }
+        repoUrl: { type: [string, "null"], format: uri }
+        demoUrl: { type: [string, "null"], format: uri }
+        implFeat: { type: array, items: { type: string } }
+        totalLikes: { type: integer }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+    CreateSolution:
+      type: object
+      required: [projectId, title, implFeat]
+      properties:
+        projectId: { type: string, format: uuid }
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description:
+          type: [string, "null"]
+        repoUrl:
+          type: [string, "null"]
+          format: uri
+          description: "HTTPS URL to allowlisted git hosts (GitHub/GitLab/Bitbucket)."
+        demoUrl:
+          type: [string, "null"]
+          format: uri
+          description: "Any public HTTPS URL."
+        implFeat:
+          type: array
+          items: { type: string }
+          minItems: 1
+    UpdateSolution:
+      type: object
+      required: [solutionId]
+      properties:
+        solutionId: { type: string, format: uuid }
+        projectId: { type: string, format: uuid }
+        title:
+          type: string
+          minLength: 1
+          maxLength: 255
+        description: { type: string }
+        repoUrl:
+          type: [string, "null"]
+          format: uri
+        demoUrl:
+          type: [string, "null"]
+          format: uri
+        implFeat:
+          type: array
+          items: { type: string }
+    SolutionDeleteResult:
+      type: object
+      properties:
+        success: { type: boolean }
+        projectId: { type: [string, "null"], format: uuid }
+    VoteDifficulty:
+      type: object
+      required: [difficulty]
+      properties:
+        projectId: { type: string, format: uuid, description: "Optional; also taken from the URL path." }
+        difficulty: { type: string, enum: [BEGINNER, INTERMEDIATE, ADVANCED] }
+    Stack:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: [string, "null"] }
+        imageUrl: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }

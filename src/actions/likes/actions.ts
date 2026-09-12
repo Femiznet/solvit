@@ -9,6 +9,7 @@ import { projectIdPath, solutionIdPath } from "@/constants/paths";
 import { safeAction } from "@/utils/file-logger";
 import { toggleSolutionLikeService } from "@/services/likes/like-solutions";
 import { toggleProjectLikeService } from "@/services/likes/like-projects";
+import { requireUserId } from "@/lib/auth/dal";
 
 /**
  * Toggles a project like entry.
@@ -18,7 +19,9 @@ export async function createProjectLikeAction(input: ProjectLikeInput) {
   const validation = validateData(projectLikeSchema, input);
   if (!validation.success) return validation;
 
-  const { userId, projectId } = validation.data;
+  const userId = await requireUserId();
+
+  const { projectId } = validation.data;
 
   const projectLikeFn = async () => {
     return await toggleProjectLikeService({ input: { userId, projectId } });
@@ -41,7 +44,9 @@ export async function createSolutionLikeAction(input: SolutionLikeInput) {
   const validation = validateData(solutionLikeSchema, input);
   if (!validation.success) return validation;
 
-  const { userId, solutionId } = validation.data;
+  const userId = await requireUserId();
+
+  const { solutionId } = validation.data;
 
   const solutionLikeFn = async () => {
     return await toggleSolutionLikeService({ input: { userId, solutionId } });

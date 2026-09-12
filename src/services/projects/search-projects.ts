@@ -1,7 +1,7 @@
 // src/services/projects/search-projects.ts
 import { db } from "@/database";
 import { projects, stacks } from "@/database/schemas";
-import { eq, and, or, ilike, inArray, asc, desc, sql } from "drizzle-orm";
+import { eq, and, inArray, asc, desc, sql } from "drizzle-orm";
 import { projectStacks } from "@/database/schemas/project-stacks";
 import { PROJECT_SORT_OPTIONS, ProjectLevel } from "@/constants/enums";
 import { ServiceArgs } from "@/types";
@@ -29,7 +29,7 @@ export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInp
     requirements,
     optRequirements,
     query,
-    sort = "newest",
+    sort,
     limit = 20,
     offset = 0,
   } = input;
@@ -48,20 +48,28 @@ export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInp
     conditions.push(eq(projects.categoryId, categoryId));
   }
 
-  if (query) {
-    const searchTerm = `%${query}%`;
-    conditions.push(or(ilike(projects.name, searchTerm), ilike(projects.description, searchTerm)));
+  // Full-text search over the weighted search_vector (name A, description B,
+  // requirements/optRequirements C, instructions D). `query` travels as a
+  // bound parameter — no interpolation, no LIKE wildcards to escape.
+  const trimmedQuery = query?.trim();
+  const hasQuery = !!trimmedQuery;
+  if (hasQuery) {
+    conditions.push(sql`${projects.searchVector} @@ plainto_tsquery('simple', ${trimmedQuery})`);
   }
 
   if (requirements && requirements.length > 0) {
     for (const feat of requirements) {
-      conditions.push(sql`${projects.requirements} @> ${JSON.stringify([feat])}::jsonb`);
+      conditions.push(
+        sql`${projects.requirements} @? ${`$.** ? (@ like_regex "^${feat}$" flag "i")`}`
+      );
     }
   }
 
   if (optRequirements && optRequirements.length > 0) {
     for (const feat of optRequirements) {
-      conditions.push(sql`${projects.optRequirements} @> ${JSON.stringify([feat])}::jsonb`);
+      conditions.push(
+        sql`${projects.optRequirements} @? ${`$.** ? (@ like_regex "^${feat}$" flag "i")`}`
+      );
     }
   }
 
@@ -92,7 +100,17 @@ export async function searchProjectsService(args?: ServiceArgs<SearchProjectsInp
     newest: desc(projects.createdAt),
   };
 
-  const paginatedQuery = filteredQuery.orderBy(sortMapping[sort]).limit(limit).offset(offset);
+  // Ordering rule: an explicit `sort` always wins. A query with no explicit
+  // sort ranks by FTS relevance (ts_rank) with newest as tiebreaker.
+  const rankExpr = hasQuery
+    ? sql`ts_rank(${projects.searchVector}, plainto_tsquery('simple', ${trimmedQuery}))`
+    : undefined;
+  const orderBy =
+    hasQuery && !sort
+      ? [sql`${rankExpr} DESC`, desc(projects.createdAt)]
+      : [sortMapping[sort ?? "newest"]];
+
+  const paginatedQuery = filteredQuery.orderBy(...orderBy).limit(limit).offset(offset);
 
   // 1. Fetch total count and paginated projects concurrently
   const [[countResult], projectsResult] = await Promise.all([actualCountQuery, paginatedQuery]);

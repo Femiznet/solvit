@@ -8,7 +8,7 @@ import {
   projectLikes,
   solutionLikes,
 } from "@/database/schemas";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
 
 export type SelectUserInput = {
@@ -38,46 +38,118 @@ export async function selectUserByEmailService({
   return user || null;
 }
 
+export type SelectUserPaginatedInput = SelectUserInput & {
+  limit?: number;
+  offset?: number;
+};
+
 export async function selectUserBookmarksService({
-  input: { id },
+  input: { id, limit = 20, offset = 0 },
   tx,
-}: ServiceArgs<SelectUserInput>) {
-  const [projectsResult, solutionsResult] = await Promise.all([
+}: ServiceArgs<SelectUserPaginatedInput>) {
+  const [projectsResult, projectsCount, solutionsResult, solutionsCount] = await Promise.all([
     db(tx)
       .select({ project: projects, bookmarkedAt: projectBookMarks.createdAt })
       .from(projectBookMarks)
       .innerJoin(projects, eq(projectBookMarks.projectId, projects.id))
-      .where(eq(projectBookMarks.userId, id)),
+      .where(eq(projectBookMarks.userId, id))
+      .orderBy(desc(projectBookMarks.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db(tx)
+      .select({ count: sql<number>`count(*)` })
+      .from(projectBookMarks)
+      .where(eq(projectBookMarks.userId, id))
+      .then((r) => Number(r[0]?.count ?? 0)),
     db(tx)
       .select({ solution: solutions, bookmarkedAt: solutionBookMarks.createdAt })
       .from(solutionBookMarks)
       .innerJoin(solutions, eq(solutionBookMarks.solutionId, solutions.id))
-      .where(eq(solutionBookMarks.userId, id)),
+      .where(eq(solutionBookMarks.userId, id))
+      .orderBy(desc(solutionBookMarks.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db(tx)
+      .select({ count: sql<number>`count(*)` })
+      .from(solutionBookMarks)
+      .where(eq(solutionBookMarks.userId, id))
+      .then((r) => Number(r[0]?.count ?? 0)),
   ]);
 
   return {
-    projects: projectsResult.map((row) => ({ ...row.project, bookmarkedAt: row.bookmarkedAt })),
-    solutions: solutionsResult.map((row) => ({ ...row.solution, bookmarkedAt: row.bookmarkedAt })),
+    projects: {
+      data: projectsResult.map((row) => ({ ...row.project, bookmarkedAt: row.bookmarkedAt })),
+      pagination: {
+        total: projectsCount,
+        limit,
+        offset,
+        hasMore: offset + limit < projectsCount,
+      },
+    },
+    solutions: {
+      data: solutionsResult.map((row) => ({ ...row.solution, bookmarkedAt: row.bookmarkedAt })),
+      pagination: {
+        total: solutionsCount,
+        limit,
+        offset,
+        hasMore: offset + limit < solutionsCount,
+      },
+    },
   };
 }
 
-export async function selectUserLikesService({ input: { id }, tx }: ServiceArgs<SelectUserInput>) {
-  const [projectsResult, solutionsResult] = await Promise.all([
+export async function selectUserLikesService({
+  input: { id, limit = 20, offset = 0 },
+  tx,
+}: ServiceArgs<SelectUserPaginatedInput>) {
+  const [projectsResult, projectsCount, solutionsResult, solutionsCount] = await Promise.all([
     db(tx)
       .select({ project: projects, likedAt: projectLikes.createdAt })
       .from(projectLikes)
       .innerJoin(projects, eq(projectLikes.projectId, projects.id))
-      .where(eq(projectLikes.userId, id)),
+      .where(eq(projectLikes.userId, id))
+      .orderBy(desc(projectLikes.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db(tx)
+      .select({ count: sql<number>`count(*)` })
+      .from(projectLikes)
+      .where(eq(projectLikes.userId, id))
+      .then((r) => Number(r[0]?.count ?? 0)),
     db(tx)
       .select({ solution: solutions, likedAt: solutionLikes.createdAt })
       .from(solutionLikes)
       .innerJoin(solutions, eq(solutionLikes.solutionId, solutions.id))
-      .where(eq(solutionLikes.userId, id)),
+      .where(eq(solutionLikes.userId, id))
+      .orderBy(desc(solutionLikes.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db(tx)
+      .select({ count: sql<number>`count(*)` })
+      .from(solutionLikes)
+      .where(eq(solutionLikes.userId, id))
+      .then((r) => Number(r[0]?.count ?? 0)),
   ]);
 
   return {
-    projects: projectsResult.map((row) => ({ ...row.project, likedAt: row.likedAt })),
-    solutions: solutionsResult.map((row) => ({ ...row.solution, likedAt: row.likedAt })),
+    projects: {
+      data: projectsResult.map((row) => ({ ...row.project, likedAt: row.likedAt })),
+      pagination: {
+        total: projectsCount,
+        limit,
+        offset,
+        hasMore: offset + limit < projectsCount,
+      },
+    },
+    solutions: {
+      data: solutionsResult.map((row) => ({ ...row.solution, likedAt: row.likedAt })),
+      pagination: {
+        total: solutionsCount,
+        limit,
+        offset,
+        hasMore: offset + limit < solutionsCount,
+      },
+    },
   };
 }
 

@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { selectSingleProjectService } from "@/services/projects/select-project";
 import { updateProjectAction, deleteProjectAction } from "@/actions/projects/actions";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
+import { parseJsonBody } from "@/lib/parse-body";
+import { projectDetailPaginationSchema } from "@/zod-validators/zod-pagination";
 
 export async function GET(
   request: NextRequest,
@@ -10,7 +12,28 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const project = await selectSingleProjectService({ input: { projectId: id } });
+    const { searchParams } = request.nextUrl;
+    const pagination = projectDetailPaginationSchema.safeParse({
+      solutionsLimit: searchParams.get("solutionsLimit") ?? undefined,
+      solutionsOffset: searchParams.get("solutionsOffset") ?? undefined,
+    });
+    if (!pagination.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid query parameters",
+          fieldErrors: pagination.error.flatten().fieldErrors,
+        },
+        { status: 400 }
+      );
+    }
+    const project = await selectSingleProjectService({
+      input: {
+        projectId: id,
+        solutionsLimit: pagination.data.solutionsLimit,
+        solutionsOffset: pagination.data.solutionsOffset,
+      },
+    });
 
     if (!project) {
       return NextResponse.json(
@@ -31,7 +54,15 @@ export async function PUT(
 ): Promise<NextResponse> {
   try {
     const { id } = await params;
-    const body = await request.json();
+    const parsed = await parseJsonBody(request);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
+    // server id last: URL param wins over body
     const result = await updateProjectAction({ ...body, id });
     return actionResultToResponse(result);
   } catch (error: unknown) {

@@ -15,6 +15,7 @@ import { createCategoryService } from "@/services/categories/create-category";
 import { updateCategoryService } from "@/services/categories/update-category";
 import { deleteCategoryService } from "@/services/categories/delete-category";
 import { CATEGORY_PATH } from "@/constants/paths";
+import { requireAdmin } from "@/lib/auth/dal";
 
 const CATEGORY_CONSTRAINTS = {
   categories_name_unique: "Category name already exists",
@@ -26,6 +27,8 @@ const CATEGORY_CONSTRAINTS = {
 export async function createCategoryAction(input: CreateCategoryInput): Promise<SafeActionResult<{ name: string }>> {
   const validation = validateData(createCategorySchema, input);
   if (!validation.success) return validation;
+
+  await requireAdmin();
 
   const result = await safeAction(
     async () => {
@@ -51,6 +54,8 @@ export async function updateCategoryAction(input: UpdateCategoryInput): Promise<
   const validation = validateData(updateCategorySchema, input);
   if (!validation.success) return validation;
 
+  await requireAdmin();
+
   const result = await safeAction(
     async () => {
       return await updateCategoryService({ input: { ...validation.data } });
@@ -74,6 +79,8 @@ export async function updateCategoryAction(input: UpdateCategoryInput): Promise<
 export async function deleteCategoryAction(input: DeleteCategoryInput): Promise<SafeActionResult<{ id: string; name: string }>> {
   const validation = validateData(deleteCategorySchema, input);
   if (!validation.success) return validation;
+
+  await requireAdmin();
 
   const result = await safeAction(async () => {
     return await deleteCategoryService({ input: { ...validation.data } });

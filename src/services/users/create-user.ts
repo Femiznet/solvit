@@ -6,7 +6,7 @@ export interface CreateUserInput {
   name: string;
   email: string;
   image?: string;
-  passwordHash?: string;
+  passwordHash: string;
 }
 
 export async function createUserService({ input, tx }: ServiceArgs<CreateUserInput>) {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { DELETE as deleteUser, POST as createUser, PUT as updateUser } from "@/app/api/users/route";
+import { DELETE as deleteUser, PUT as updateUser } from "@/app/api/users/route";
 import { GET as getUserSolutions } from "@/app/api/users/[id]/solutions/route";
 import {
   ERROR_MESSAGE,
@@ -14,7 +14,6 @@ import {
 } from "./api-fixtures";
 
 const mocks = vi.hoisted(() => ({
-  createUserAction: vi.fn(),
   updateUserAction: vi.fn(),
   deleteUserAction: vi.fn(),
   selectUserSolutionsService: vi.fn(),
@@ -22,7 +21,6 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/actions/users/actions", () => ({
-  createUserAction: mocks.createUserAction,
   updateUserAction: mocks.updateUserAction,
   deleteUserAction: mocks.deleteUserAction,
 }));
@@ -34,13 +32,10 @@ vi.mock("@/utils/file-logger", () => ({ logServerError: mocks.logServerError }))
 afterEach(() => vi.clearAllMocks());
 
 describe("user API routes", () => {
-  it("creates, updates, and deletes a user", async () => {
-    for (const action of [mocks.createUserAction, mocks.updateUserAction, mocks.deleteUserAction])
+  it("updates and deletes a user", async () => {
+    for (const action of [mocks.updateUserAction, mocks.deleteUserAction])
       action.mockResolvedValue(RESULTS.success);
 
-    expect((await json(await createUser(request(URLS.users, PAYLOADS.user)))).status).toBe(
-      STATUS.ok
-    );
     expect(
       (await json(await updateUser(request(URLS.users, { ...PAYLOADS.user, id: UUIDS.user }))))
         .status
@@ -51,14 +46,18 @@ describe("user API routes", () => {
   });
 
   it("returns validation errors and server errors from user actions", async () => {
-    mocks.createUserAction
+    mocks.updateUserAction
       .mockResolvedValueOnce(RESULTS.failure)
       .mockRejectedValueOnce(new Error(ERROR_MESSAGE));
 
-    expect((await json(await createUser(request(URLS.users, PAYLOADS.user)))).status).toBe(
-      STATUS.badRequest
-    );
-    expect((await json(await createUser(request(URLS.users, PAYLOADS.user)))).body).toEqual({
+    expect(
+      (await json(await updateUser(request(URLS.users, { ...PAYLOADS.user, id: UUIDS.user }))))
+        .status
+    ).toBe(STATUS.badRequest);
+    expect(
+      (await json(await updateUser(request(URLS.users, { ...PAYLOADS.user, id: UUIDS.user }))))
+        .body
+    ).toEqual({
       success: false,
       error: ERROR_MESSAGE,
     });

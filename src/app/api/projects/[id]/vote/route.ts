@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { voteDifficultyAction } from "@/actions/projects/difficulty-votes";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
+import { parseJsonBody } from "@/lib/parse-body";
 
 export async function POST(
   request: NextRequest,
@@ -8,7 +9,15 @@ export async function POST(
 ): Promise<NextResponse> {
   try {
     const { id: projectId } = await params;
-    const body = await request.json();
+    const parsed = await parseJsonBody(request);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
+    // server id last: URL param wins over body
     const result = await voteDifficultyAction({ ...body, projectId });
     return actionResultToResponse(result);
   } catch (error: unknown) {

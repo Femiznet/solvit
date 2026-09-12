@@ -83,7 +83,8 @@ export const updateProjectSchema = createInsertSchema(projects, {
     .string("Category ID must be a string")
     .uuid({ error: "Invalid category ID format" })
     .optional(),
-  userId: z.string("User ID must be a string").uuid({ error: "Invalid user ID format" }).optional(),
+  // NOTE: userId is intentionally NOT accepted from clients. Actions set it
+  // from the server session (server field last) after validation.
 })
   .pick({
     name: true,
@@ -93,7 +94,6 @@ export const updateProjectSchema = createInsertSchema(projects, {
     requirements: true,
     optRequirements: true,
     categoryId: true,
-    userId: true,
   })
   .partial()
   .extend({
@@ -107,10 +107,8 @@ export const deleteProjectSchema = z.object({
 
 // 4. Action Specific Schemas
 export const projectLikeSchema = createInsertSchema(projectLikes, {
-  userId: z.string("User ID must be a string").uuid({ error: "Invalid user ID format" }),
   projectId: z.string("Project ID must be a string").uuid({ error: "Invalid project ID format" }),
 }).pick({
-  userId: true,
   projectId: true,
 });
 
@@ -121,7 +119,7 @@ export const searchProjectsSchema = z.object({
   stackIds: z.array(z.string().uuid({ error: "Invalid stack ID format" })).optional(),
   requirements: z.array(z.string()).optional(),
   optRequirements: z.array(z.string()).optional(),
-  sort: z.enum(PROJECT_SORT_OPTIONS, { error: "Invalid sorting option" }).default("newest"),
+  sort: z.enum(PROJECT_SORT_OPTIONS, { error: "Invalid sorting option" }).optional(),
   limit: z.coerce
     .number()
     .int({ error: "Limit must be a whole number" })

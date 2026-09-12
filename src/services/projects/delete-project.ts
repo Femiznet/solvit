@@ -1,20 +1,23 @@
 import { db } from "@/database";
 import { projects } from "@/database/schemas";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { ServiceArgs } from "@/types";
-import { ClientError } from "@/lib/errors";
+import { AuthorizationError } from "@/lib/errors";
 
 export type DeleteProjectInput = {
   id: string;
+  userId: string;
+  isAdmin?: boolean;
 };
 
-export async function deleteProjectService({ input: { id }, tx }: ServiceArgs<DeleteProjectInput>) {
-  const [deletedProject] = await db(tx).delete(projects).where(eq(projects.id, id)).returning({
+export async function deleteProjectService({ input: { id, userId, isAdmin }, tx }: ServiceArgs<DeleteProjectInput>) {
+  const where = isAdmin ? eq(projects.id, id) : and(eq(projects.id, id), eq(projects.userId, userId));
+  const [deletedProject] = await db(tx).delete(projects).where(where).returning({
     id: projects.id,
   });
 
   if (!deletedProject) {
-    throw new ClientError("Project not found.");
+    throw new AuthorizationError("Project not found or you are not authorized to delete it.");
   }
 
   return deletedProject;

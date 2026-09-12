@@ -1,6 +1,6 @@
 {
-  "id": "352c3518-4a58-429d-9f2c-0417c0e336cf",
-  "prevId": "72db1d76-6baa-453b-bdd2-a9d4e9c142a0",
+  "id": "cc53e643-f11b-47f6-9403-52c7dcd39075",
+  "prevId": "e6d11576-06b3-40a4-a045-f79268ca480f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -274,7 +274,7 @@
         },
         "instructions": {
           "name": "instructions",
-          "type": "text",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": true
         },
@@ -325,7 +325,7 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "cascade",
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -434,14 +434,14 @@
         },
         "created_at": {
           "name": "created_at",
-          "type": "timestamp with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
-          "type": "timestamp with time zone",
+          "type": "timestamp",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
@@ -807,6 +807,14 @@
           "primaryKey": false,
           "notNull": false
         },
+        "role": {
+          "name": "role",
+          "type": "user_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'user'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp",
@@ -903,6 +911,14 @@
         "BEGINNER",
         "INTERMEDIATE",
         "ADVANCED"
+      ]
+    },
+    "public.user_role": {
+      "name": "user_role",
+      "schema": "public",
+      "values": [
+        "user",
+        "admin"
       ]
     }
   },

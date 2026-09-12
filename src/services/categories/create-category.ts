@@ -9,7 +9,9 @@ export async function createCategoryService({
   input: { name },
   tx,
 }: ServiceArgs<CreateCategoryInput>) {
-  const [newCategory] = await db(tx).insert(categories).values({ name }).returning({
+  // Normalize: taxonomy matching is case-insensitive (see update-category).
+  const normalizedName = name.trim().toLowerCase();
+  const [newCategory] = await db(tx).insert(categories).values({ name: normalizedName }).returning({
     id: categories.id,
     name: categories.name,
   });

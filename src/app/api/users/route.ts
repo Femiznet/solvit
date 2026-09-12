@@ -1,19 +1,18 @@
-import { createUserAction, deleteUserAction, updateUserAction } from "@/actions/users/actions";
+import { deleteUserAction, updateUserAction } from "@/actions/users/actions";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
-
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const result = await createUserAction(body);
-    return actionResultToResponse(result);
-  } catch (error) {
-    return routeErrorToResponse(error);
-  }
-}
+import { parseJsonBody } from "@/lib/parse-body";
+import { NextResponse } from "next/server";
 
 export async function PUT(req: Request) {
   try {
-    const body = await req.json();
+    const parsed = await parseJsonBody(req);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
     const result = await updateUserAction(body);
     return actionResultToResponse(result);
   } catch (error) {
@@ -23,7 +22,14 @@ export async function PUT(req: Request) {
 
 export async function DELETE(req: Request) {
   try {
-    const body = await req.json();
+    const parsed = await parseJsonBody(req);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
     const result = await deleteUserAction(body);
     return actionResultToResponse(result);
   } catch (error) {

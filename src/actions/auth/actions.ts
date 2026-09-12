@@ -76,7 +76,11 @@ export async function loginAction(input: LoginInput) {
 
       const user = await selectUserByEmailService({ input: { email } });
 
-      if (!user || !user.passwordHash) {
+      if (!user) {
+        throw new AuthenticationError("Invalid email or password");
+      }
+
+      if (user.email === "deleted@localhost") {
         throw new AuthenticationError("Invalid email or password");
       }
 

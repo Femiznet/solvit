@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { updateSolutionAction, deleteSolutionAction } from "@/actions/solutions/actions";
 import { selectSingleSolutionService } from "@/services/solutions/select-solution";
 import { actionResultToResponse, routeErrorToResponse } from "@/lib/http-response";
+import { parseJsonBody } from "@/lib/parse-body";
 
 interface RouteParams {
   params: Promise<{
@@ -42,7 +43,15 @@ export async function PUT(request: NextRequest, { params }: RouteParams): Promis
         { status: 400 }
       );
     }
-    const body = await request.json();
+    const parsed = await parseJsonBody(request);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error },
+        { status: parsed.status }
+      );
+    }
+    const body = parsed.data;
+    // server id last: URL param wins over body
     const result = await updateSolutionAction({ ...body, solutionId });
     return actionResultToResponse(result);
   } catch (error: unknown) {

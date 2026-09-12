@@ -16,8 +16,8 @@ export const projectDifficultyVotes = pgTable(
       .notNull()
       .references(() => projects.id, { onDelete: "cascade" }),
     difficulty: project_difficulty("difficulty").notNull(), // BEGINNER, INTERMEDIATE, ADVANCED
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" }).defaultNow().notNull(),
   },
   (t) => [unique("user_project_difficulty_idx").on(t.userId, t.projectId)]
 );

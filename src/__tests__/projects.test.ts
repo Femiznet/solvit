@@ -43,6 +43,11 @@ vi.mock("@/utils/file-logger", () => ({ logServerError: mocks.logServerError }))
 vi.mock("@/services/stacks/select-stacks", () => ({
   selectManyStacksService: mocks.selectManyStacksService,
 }));
+vi.mock("@/actions/stacks/actions", () => ({
+  createStackAction: vi.fn(),
+  updateStackAction: vi.fn(),
+  deleteStackAction: vi.fn(),
+}));
 
 afterEach(() => vi.clearAllMocks());
 
@@ -130,7 +135,9 @@ describe("search projects schema", () => {
     const parsed = searchProjectsSchema.safeParse({ query: "next" });
     expect(parsed.success).toBe(true);
     if (!parsed.success) return;
-    expect(parsed.data.sort).toBe("newest");
+    // sort stays undefined so the service can distinguish "no explicit sort"
+    // (query -> relevance rank) from an explicit sort choice.
+    expect(parsed.data.sort).toBeUndefined();
     expect(parsed.data.limit).toBe(20);
     expect(parsed.data.offset).toBe(0);
   });
@@ -164,14 +171,14 @@ describe("stack API routes", () => {
       { id: UUIDS.otherProject, name: "Next.js" },
     ];
     mocks.selectManyStacksService
-      .mockResolvedValueOnce(stackRows)
+      .mockResolvedValueOnce({ data: stackRows, pagination: { total: 2, limit: 50, offset: 0, hasMore: false } })
       .mockRejectedValueOnce(new Error(ERROR_MESSAGE));
 
-    expect(await json(await listStacks())).toEqual({
+    expect(await json(await listStacks(request(URLS.stacks)))).toEqual({
       status: STATUS.ok,
-      body: { success: true, data: stackRows },
+      body: { success: true, data: { data: stackRows, pagination: { total: 2, limit: 50, offset: 0, hasMore: false } } },
     });
-    expect(await json(await listStacks())).toEqual({
+    expect(await json(await listStacks(request(URLS.stacks)))).toEqual({
       status: STATUS.serverError,
       body: { success: false, error: ERROR_MESSAGE },
     });
